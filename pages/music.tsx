@@ -3,6 +3,7 @@
 import { NextPage } from 'next';
 import Head from 'next/head';
 import { useEffect, useState } from 'react';
+import NavbarMain from '@/components/navbar-main';
 
 interface MusicPiece {
   title: string;
@@ -30,6 +31,7 @@ const Music: NextPage = () => {
       <Head>
         <title>Music Pieces</title>
       </Head>
+      <NavbarMain />
       <main>
         <h1>Music Pieces</h1>
         <ul>
