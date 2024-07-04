@@ -16,9 +16,12 @@ const Music: NextPage = () => {
     const fetchPieces = async () => {
       const res = await fetch('/api/music');
       const data = await res.json();
-      setPieces(data);
+      console.log(data);  // Log the fetched data
+      // Flatten the array of music pieces
+      const flattenedPieces = data.flatMap((group: { musicPieces: MusicPiece[] }) => group.musicPieces);
+      setPieces(flattenedPieces);
     };
-
+  
     fetchPieces();
   }, []);
 

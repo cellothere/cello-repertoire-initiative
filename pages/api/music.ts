@@ -27,6 +27,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             _id: {
               $toLower: { $substrCP: ['$composer', 0, 1] },
             },
+            
             musicPieces: {
               $push: {
                 title: '$title',
@@ -36,6 +37,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             },
             count: { $sum: 1 },
           },
+          
         },
         {
           $sort: {
@@ -44,7 +46,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         },
       ])
       .toArray();
-
+      console.log(musicPieces[1])
     res.status(200).json(musicPieces);
   } catch (error) {
     res.status(500).json({ error: 'Failed to fetch music pieces' });
