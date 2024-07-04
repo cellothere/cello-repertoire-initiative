@@ -8,10 +8,14 @@ const config: Config = {
   ],
   theme: {
     extend: {
-      backgroundImage: {
-        "gradient-radial": "radial-gradient(var(--tw-gradient-stops))",
-        "gradient-conic":
-          "conic-gradient(from 180deg at 50% 50%, var(--tw-gradient-stops))",
+      backgroundImage: theme => ({
+        'gradient-to-br': 'linear-gradient(to bottom right, #623d88, #36c190)',
+        'gradient-text': 'linear-gradient(to bottom right, #623d88, #36c190)',
+      }),
+      colors: {
+        purple: {
+          '500': '#623d88', //custom shade of purple
+        },
       },
     },
   },
