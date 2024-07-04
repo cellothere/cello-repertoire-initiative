@@ -10,7 +10,7 @@ const Contribute = () => {
   const [whereToBuyOrDownload, setWhereToBuyOrDownload] = useState('');
   const [description, setDescription] = useState('');
 
-  const submitForm = async (e) => {
+  const submitForm = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
     // Construct email template parameters
