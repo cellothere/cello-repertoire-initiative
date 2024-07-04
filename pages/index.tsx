@@ -12,14 +12,6 @@ const Home: NextPage = () => {
       <main className="p-4 flex flex-col items-center justify-center h-screen">
         <h1 className="text-2xl font-bold mb-4">Welcome to the Cello Repertoire Initiative!</h1>
         <p className="text-center">Your source for curated cello music pieces.</p>
-
-        <div className="ml-auto mt-8 text-right">
-          <div className="routerLinkToPieces block mb-2">Find music for your students</div>
-          <br />
-          <div className="routerLinkToPieces block mb-2">Browse our catalogue</div>
-          <br />
-          <div className="routerLinkToPieces block mb-2">Discover composers</div>
-        </div>
       </main>
     </div>
   );
