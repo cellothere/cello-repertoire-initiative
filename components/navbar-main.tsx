@@ -1,5 +1,6 @@
 //main nav bar
 import Link from 'next/link';
+import Head from 'next/head';
 
 const NavbarMain = () => {
   return (
