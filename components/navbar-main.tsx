@@ -1,3 +1,4 @@
+//main nav bar
 import Link from 'next/link';
 
 const NavbarMain = () => {
