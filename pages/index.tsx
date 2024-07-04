@@ -8,7 +8,7 @@ const Home: NextPage = () => {
         <title>Cello Repertoire Initiative</title>
       </Head>
       <main>
-        <h1>Welcome to the Cello Repertoire Initiative</h1>
+        <h1>Welcome to the Cello Repertoire Initiative!</h1>
         <p>Your source for curated cello music pieces.</p>
       </main>
     </div>
