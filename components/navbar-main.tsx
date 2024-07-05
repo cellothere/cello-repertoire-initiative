@@ -49,7 +49,7 @@ const NavbarMain = () => {
             onMouseEnter={() => setIsHovered(true)}
             onMouseLeave={() => setIsHovered(false)}
           >
-            <DropdownItem className="custom-dropdown-item">
+            <DropdownItem className="custom-dropdown-item bg-white-500">
               <Link href="#">
                 Violin Sheet Music
               </Link>
