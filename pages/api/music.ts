@@ -16,6 +16,19 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     const musicPieces = await collection
       .aggregate<MusicPiece>([
+   
+        {
+          $lookup: {
+            from: 'composers',
+            localField: 'composer_id',
+            foreignField: 'id',
+            as: 'composerDetails',
+            
+          },
+        },
+        {
+          $unwind: '$composerDetails',
+        },
         {
           $sort: {
             composer: 1,
@@ -31,7 +44,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             musicPieces: {
               $push: {
                 title: '$title',
-                composer: '$composer',
+                composer: '$composerDetails.composer_name',
                 description: '$description',
               },
             },
@@ -46,7 +59,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         },
       ])
       .toArray();
-      console.log(musicPieces[1])
     res.status(200).json(musicPieces);
   } catch (error) {
     res.status(500).json({ error: 'Failed to fetch music pieces' });
