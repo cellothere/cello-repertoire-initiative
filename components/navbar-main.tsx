@@ -1,6 +1,6 @@
-import Link from 'next/link';
+
 import { useState } from 'react';
-import { Dropdown, DropdownTrigger, DropdownMenu, DropdownItem } from '@nextui-org/dropdown';
+import {Dropdown, Link, DropdownTrigger, DropdownMenu, DropdownItem, Button} from "@nextui-org/react";
 
 const NavbarMain = () => {
   // State to track hover state
@@ -10,9 +10,13 @@ const NavbarMain = () => {
     <header className="bg-gray-100 text-black p-4 flex items-center justify-between">
       <div className="flex items-center">
         <div className="flex-shrink-0">
+          <Link href='/'>
           <img src="/assets/altLogo.png" alt="Logo" className="h-16 w-auto" />
+          </Link>
         </div>
+        <Link href='/'>
         <span className="ml-8 text-xl font-bold bg-clip-text text-transparent bg-gradient-to-br">Cello Repertoire Initiative</span>
+        </Link>
       </div>
       <div className="flex-grow max-w-lg mx-4">
         <input
@@ -23,7 +27,7 @@ const NavbarMain = () => {
       </div>
       <nav>
         <Link href="/">
-          <button className="bg-purple-500 hover:bg-teal-400 text-white font-bold py-2 px-4 rounded mx-2">
+          <button className="bg-black hover:bg-teal-400 text-white font-bold py-2 px-4 rounded mx-2">
             Home
           </button>
         </Link>
@@ -31,17 +35,17 @@ const NavbarMain = () => {
           onMouseEnter={() => setIsHovered(true)}
           onMouseLeave={() => setIsHovered(false)}
           isOpen={isHovered}
-        >
+           className="bg-white">
           <DropdownTrigger>
-            <button
-              className="bg-purple-500 text-white font-bold py-2 px-4 rounded mx-2"
+            <Button 
+              className="bg-black text-white font-bold py-2 px-4 rounded mx-2"
               onMouseEnter={() => setIsHovered(true)}
               onMouseLeave={() => setIsHovered(false)}
             >
-              <Link href="/music">
+              <Link href="/cello-music">
                 Music
               </Link>
-            </button>
+            </Button>
           </DropdownTrigger>
           <DropdownMenu
             aria-label="Music Options"
@@ -49,22 +53,22 @@ const NavbarMain = () => {
             onMouseEnter={() => setIsHovered(true)}
             onMouseLeave={() => setIsHovered(false)}
           >
-            <DropdownItem className="custom-dropdown-item bg-white-500">
+            <DropdownItem className="custom-dropdown-item text-black bg-white-500 text-black p-2">
               <Link href="#">
                 Violin Sheet Music
               </Link>
             </DropdownItem>
-            <DropdownItem className="custom-dropdown-item">
+            <DropdownItem className="custom-dropdown-item text-black p-2">
               <Link href="#">
                 Viola Sheet Music
               </Link>
             </DropdownItem>
-            <DropdownItem className="custom-dropdown-item">
-              <Link href="#">
+            <DropdownItem className="custom-dropdown-item text-black text-black p-2">
+              <Link href="cello-music">
                 Cello Sheet Music
               </Link>
             </DropdownItem>
-            <DropdownItem className="custom-dropdown-item">
+            <DropdownItem className="custom-dropdown-item text-black text-black p-2">
               <Link href="#">
                 Bass Sheet Music
               </Link>
@@ -72,7 +76,7 @@ const NavbarMain = () => {
           </DropdownMenu>
         </Dropdown>
         <Link href="/contact">
-          <button className="bg-purple-500 hover:bg-teal-400 text-white font-bold py-2 px-4 rounded mx-2">
+          <button className="bg-black hover:bg-teal-400 text-white font-bold py-2 px-4 rounded mx-2">
             Contact
           </button>
         </Link>

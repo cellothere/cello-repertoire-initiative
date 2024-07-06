@@ -33,7 +33,7 @@ const Music: NextPage = () => {
 
   useEffect(() => {
     const fetchPieces = async () => {
-      const res = await fetch('/api/music');
+      const res = await fetch('/api/celloMusic');
       const data = await res.json();
       console.log(data);  // Log the fetched data
       const flattenedPieces = data.flatMap((group: { musicPieces: MusicPiece[] }) => group.musicPieces);
@@ -58,8 +58,8 @@ const Music: NextPage = () => {
         <title>Cello Music</title>
       </Head>
       <NavbarMain />
-      <div className="flex mt-16"> {/* Adjusted margin to account for Navbar */}
-        <aside className="fixed top-24 left-0 h-full w-1/4 p-5 "> {/* Adjusted top to start below the Navbar */}
+      <div className="flex mt-16"> {/* Adjust margin to account for Navbar */}
+        <aside className="fixed top-24 left-0 h-full w-1/4 p-5 "> 
           <h2 className="text-xl font-bold mb-4">Filter</h2>
           <input
             type="text"
@@ -76,7 +76,7 @@ const Music: NextPage = () => {
               <div key={index} className="bg-white shadow-md rounded-lg p-4">
                 <h2 className="text-xl font-semibold text-gray-800">{piece.title}</h2>
                 <p className="text-gray-600">by {piece.composer}</p>
-                <div className="border-b border-gray-300 my-2"></div> {/* Add this line */}
+                <div className="border-b border-gray-300 my-2"></div>
                 <div className="flex justify-between items-center">
                   <p className="text-gray-600">{getLevelDescription(piece.level_id)}</p>
                   <a href="#" className="text-blue-500 hover:underline">View Detail</a>
