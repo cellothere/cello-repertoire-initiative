@@ -6,7 +6,7 @@ import NavbarMain from '@/components/navbar-main';
 interface MusicPiece {
   title: string;
   composer: string;
-  level_id: string; 
+  level_id: string;
 }
 
 const getLevelDescription = (level_id: string): string => {
@@ -76,7 +76,11 @@ const Music: NextPage = () => {
               <div key={index} className="bg-white shadow-md rounded-lg p-4">
                 <h2 className="text-xl font-semibold text-gray-800">{piece.title}</h2>
                 <p className="text-gray-600">by {piece.composer}</p>
-                <p className="text-gray-600">{getLevelDescription(piece.level_id)}</p>
+                <div className="border-b border-gray-300 my-2"></div> {/* Add this line */}
+                <div className="flex justify-between items-center">
+                  <p className="text-gray-600">{getLevelDescription(piece.level_id)}</p>
+                  <a href="#" className="text-blue-500 hover:underline">View Detail</a>
+                </div>
               </div>
             ))}
           </div>
