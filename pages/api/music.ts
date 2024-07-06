@@ -7,6 +7,7 @@ import clientPromise from '../../lib/mongodb';
 type MusicPiece = {
   title: string;
   composer: string;
+  level_id: number;
 };
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -45,6 +46,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
               $push: {
                 title: '$title',
                 composer: '$composerDetails.composer_name',
+                level_id: '$level_id',
                 description: '$description',
               },
             },
