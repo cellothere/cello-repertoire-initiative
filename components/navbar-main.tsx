@@ -17,7 +17,7 @@ const NavbarMain = () => {
             <img src="/assets/altLogo.png" alt="Logo" className="h-16 w-auto" />
           </Link>
         </div>
-        <Link href='/'>
+        <Link href='/' id='navName' className="hidden md:inline">
           <span className="ml-8 text-xl font-bold bg-clip-text text-transparent bg-gradient-to-br">Cello Repertoire Initiative</span>
         </Link>
       </div>
@@ -126,6 +126,12 @@ const NavbarMain = () => {
         }
         .custom-dropdown-item:last-child {
           margin-bottom: 0;
+        }
+
+        @media (max-width: 768px) {
+          #navName {
+            display: none;
+          }
         }
       `}</style>
     </header>
