@@ -1,8 +1,7 @@
 import { NextPage } from 'next';
 import Head from 'next/head';
 import NavbarMain from '@/components/navbar-main';
-import { ArrowRight } from 'feather-icons-react'; 
-
+import { FaArrowRight } from 'react-icons/fa';
 const Home: NextPage = () => {
   return (
     <div>
@@ -14,7 +13,7 @@ const Home: NextPage = () => {
         <h1 className="text-2xl font-bold mb-4">Explore, Discover, Teach</h1>
         <p className="text-center">Connecting Teachers to Diverse Musical Voices.</p>
         <button className="bg-black text-white px-6 py-3 rounded-lg mt-4 transition-transform hover:scale-110">
-          Find music <ArrowRight size={20} className="inline-block ml-2" />
+          Find music <FaArrowRight className="inline-block ml-2" />
         </button>
       </main>
     </div>
