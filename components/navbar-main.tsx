@@ -1,21 +1,24 @@
-
 import { useState } from 'react';
-import {Dropdown, Link, DropdownTrigger, DropdownMenu, DropdownItem, Button} from "@nextui-org/react";
+import { Dropdown, Link, DropdownTrigger, DropdownMenu, DropdownItem, Button } from "@nextui-org/react";
 
 const NavbarMain = () => {
-  // State to track hover state
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
+
+  const toggleMenu = () => {
+    setIsMenuOpen(!isMenuOpen);
+  };
 
   return (
     <header className="bg-gray-100 text-black p-4 flex items-center justify-between">
       <div className="flex items-center">
         <div className="flex-shrink-0">
           <Link href='/'>
-          <img src="/assets/altLogo.png" alt="Logo" className="h-16 w-auto" />
+            <img src="/assets/altLogo.png" alt="Logo" className="h-16 w-auto" />
           </Link>
         </div>
         <Link href='/'>
-        <span className="ml-8 text-xl font-bold bg-clip-text text-transparent bg-gradient-to-br">Cello Repertoire Initiative</span>
+          <span className="ml-8 text-xl font-bold bg-clip-text text-transparent bg-gradient-to-br">Cello Repertoire Initiative</span>
         </Link>
       </div>
       <div className="flex-grow max-w-lg mx-4">
@@ -25,7 +28,7 @@ const NavbarMain = () => {
           className="w-full p-2 rounded bg-gray-300 border border-gray-600 text-white"
         />
       </div>
-      <nav>
+      <nav className="hidden md:flex">
         <Link href="/">
           <button className="bg-black hover:bg-teal-400 text-white font-bold py-2 px-4 rounded mx-2">
             Home
@@ -35,9 +38,10 @@ const NavbarMain = () => {
           onMouseEnter={() => setIsHovered(true)}
           onMouseLeave={() => setIsHovered(false)}
           isOpen={isHovered}
-           className="bg-white">
+          className="bg-white"
+        >
           <DropdownTrigger>
-            <Button 
+            <Button
               className="bg-black text-white font-bold py-2 px-4 rounded mx-2"
               onMouseEnter={() => setIsHovered(true)}
               onMouseLeave={() => setIsHovered(false)}
@@ -63,12 +67,12 @@ const NavbarMain = () => {
                 Viola Sheet Music
               </Link>
             </DropdownItem>
-            <DropdownItem className="custom-dropdown-item text-black text-black p-2">
+            <DropdownItem className="custom-dropdown-item text-black p-2">
               <Link href="cello-music">
                 Cello Sheet Music
               </Link>
             </DropdownItem>
-            <DropdownItem className="custom-dropdown-item text-black text-black p-2">
+            <DropdownItem className="custom-dropdown-item text-black p-2">
               <Link href="#">
                 Bass Sheet Music
               </Link>
@@ -81,12 +85,44 @@ const NavbarMain = () => {
           </button>
         </Link>
       </nav>
+
+      {/* Mobile Menu */}
+      <div className="md:hidden flex items-center">
+        <Button
+          variant="flat"
+          onClick={toggleMenu}
+          aria-label="Toggle Menu"
+          className="bg-black text-white font-bold py-2 px-4 rounded mx-2"
+        >
+          Menu
+        </Button>
+        {isMenuOpen && (
+          <div className="absolute top-16 right-0 bg-white w-48 border border-gray-400 rounded shadow-lg">
+            <Link href="/">
+              <button className="w-full py-2 px-4 text-left hover:bg-gray-200">
+                Home
+              </button>
+            </Link>
+            <Link href="/cello-music">
+              <button className="w-full py-2 px-4 text-left hover:bg-gray-200">
+                Music
+              </button>
+            </Link>
+            <Link href="/contact">
+              <button className="w-full py-2 px-4 text-left hover:bg-gray-200">
+                Contact
+              </button>
+            </Link>
+          </div>
+        )}
+      </div>
+
       <style jsx>{`
         .custom-dropdown-menu {
           background-color: white;
         }
         .custom-dropdown-item {
-          margin-bottom: 8px; /* Adjust the value as needed */
+          margin-bottom: 8px;
         }
         .custom-dropdown-item:last-child {
           margin-bottom: 0;
