@@ -5,6 +5,7 @@ import clientPromise from '../../lib/mongodb';
 
 //Create the object
 type MusicPiece = {
+  id: number;
   title: string;
   composer: string;
   level_id: number;
@@ -32,6 +33,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         },
         {
           $sort: {
+            level_id: 1,
             composer: 1,
             title: 1,
           },

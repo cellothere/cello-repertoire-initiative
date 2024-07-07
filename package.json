@@ -13,6 +13,7 @@
     "@nextui-org/react": "^2.4.2",
     "dotenv": "^16.4.5",
     "emailjs-com": "^3.2.0",
+    "feather-icons-react": "^0.7.0",
     "mongodb": "^6.8.0",
     "mongoose": "^8.4.4",
     "next": "14.2.4",
