@@ -1,9 +1,11 @@
 import { NextPage } from 'next';
 import Head from 'next/head';
 import { useEffect, useState } from 'react';
+import Link from 'next/link'; // Import Link from Next.js
 import NavbarMain from '@/components/navbar-main';
 
 interface MusicPiece {
+  id: string; // Add id field for each piece
   title: string;
   composer: string;
   level_id: string;
@@ -25,7 +27,6 @@ const getLevelDescription = (level_id: string): string => {
     default: return 'Unknown Level';
   }
 };
-
 const Music: NextPage = () => {
   const [pieces, setPieces] = useState<MusicPiece[]>([]);
   const [filteredPieces, setFilteredPieces] = useState<MusicPiece[]>([]);
@@ -45,7 +46,7 @@ const Music: NextPage = () => {
   }, []);
 
   useEffect(() => {
-    const filtered = pieces.filter(piece => 
+    const filtered = pieces.filter(piece =>
       piece.title.toLowerCase().includes(filter.toLowerCase()) ||
       piece.composer.toLowerCase().includes(filter.toLowerCase())
     );
@@ -58,15 +59,15 @@ const Music: NextPage = () => {
         <title>Cello Music</title>
       </Head>
       <NavbarMain />
-      <div className="flex mt-16"> {/* Adjust margin to account for Navbar */}
-        <aside className="fixed top-24 left-0 h-full w-1/4 p-5 "> 
+      <div className="flex mt-16">
+        <aside className="fixed top-24 left-0 h-full w-1/4 p-5 ">
           <h2 className="text-xl font-bold mb-4">Filter</h2>
           <input
             type="text"
             placeholder="Search by title or composer"
             value={filter}
             onChange={(e) => setFilter(e.target.value)}
-            className="w-full p-2 border border-gray-300 rounded"
+            className="w-full p-2 border border-gray-300 rounded text-black font-mono"
           />
         </aside>
         <main className="ml-1/4 container mx-auto p-4">
@@ -79,7 +80,10 @@ const Music: NextPage = () => {
                 <div className="border-b border-gray-300 my-2"></div>
                 <div className="flex justify-between items-center">
                   <p className="text-gray-600">{getLevelDescription(piece.level_id)}</p>
-                  <a href="#" className="text-blue-500 hover:underline">View Detail</a>
+                  {/* Use Link component for dynamic routing */}
+                  <Link href={`/music/${piece.id}`}>
+                    <p className="text-blue-500 hover:underline">View Detail</p>
+                  </Link>
                 </div>
               </div>
             ))}

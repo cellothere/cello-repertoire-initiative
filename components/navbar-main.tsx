@@ -30,7 +30,7 @@ const NavbarMain = () => {
       </div>
       <nav className="hidden md:flex">
         <Link href="/">
-          <button className="bg-black hover:bg-teal-400 text-white font-bold py-2 px-4 rounded mx-2">
+          <button className="bg-black hover:bg-teal-600 text-white font-bold py-2 px-4 rounded mx-2">
             Home
           </button>
         </Link>
@@ -38,7 +38,7 @@ const NavbarMain = () => {
           onMouseEnter={() => setIsHovered(true)}
           onMouseLeave={() => setIsHovered(false)}
           isOpen={isHovered}
-          className="bg-white"
+          className="bg-white font-sans"
         >
           <DropdownTrigger>
             <Button
@@ -79,9 +79,9 @@ const NavbarMain = () => {
             </DropdownItem>
           </DropdownMenu>
         </Dropdown>
-        <Link href="/contact">
-          <button className="bg-black hover:bg-teal-400 text-white font-bold py-2 px-4 rounded mx-2">
-            Contact
+        <Link href="/About">
+          <button className="bg-black hover:bg-teal-600 text-white font-bold py-2 px-4 rounded mx-2">
+            About
           </button>
         </Link>
       </nav>

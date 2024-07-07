@@ -37,7 +37,7 @@ const Home: NextPage = () => {
       <main className={`p-4 flex flex-col items-center justify-center ${isMobileView ? 'mobile-view' : ''} ${contentVisible ? 'move-up' : ''}`} style={{ marginTop: isMobileView ? '90px' : '0' }}>
         {!isMobileView && contentVisible && (
           <>
-            <h1 className="text-4xl font-bold mb-4">Explore, Discover, Teach</h1>
+            <h1 className="text-4xl font-mono font-bold mb-4">Explore, Discover, Teach</h1>
             <p className="text-center">Connecting Teachers to Diverse Musical Voices.</p>
           </>
         )}
