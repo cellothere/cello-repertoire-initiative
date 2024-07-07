@@ -6,6 +6,7 @@ import { useEffect, useState } from 'react';
 
 const Home: NextPage = () => {
   const [isMobileView, setIsMobileView] = useState(false);
+  const [contentMoved, setContentMoved] = useState(false);
 
   useEffect(() => {
     // Check if viewport width is less than or equal to 768px (typical mobile view)
@@ -24,6 +25,7 @@ const Home: NextPage = () => {
       const mainContent = document.querySelector('main');
       if (mainContent) {
         mainContent.classList.add('move-up');
+        setContentMoved(true); // Update state to show more content
       }
     }, 500); // 500 milliseconds delay
   }, []);
@@ -45,7 +47,7 @@ const Home: NextPage = () => {
           Find music <FaArrowRight className="inline-block ml-2" />
         </button>
         {/* Temporary content */}
-        <div className="hidden mt-8">
+        <div className={`mt-8 ${contentMoved ? '' : 'hidden'}`} id="afterMoveUp">
           {/* Placeholder content */}
           <p>More content...</p>
         </div>
