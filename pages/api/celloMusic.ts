@@ -36,6 +36,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             level_id: 1,
             composer: 1,
             title: 1,
+            id: 1
           },
         },
         {
@@ -50,6 +51,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 composer: '$composerDetails.composer_name',
                 level_id: '$level_id',
                 description: '$description',
+                id: '$id'
               },
             },
             count: { $sum: 1 },

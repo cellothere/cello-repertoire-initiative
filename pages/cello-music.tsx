@@ -5,7 +5,7 @@ import Link from 'next/link'; // Import Link from Next.js
 import NavbarMain from '@/components/navbar-main';
 
 interface MusicPiece {
-  id: string; // Add id field for each piece
+  id: string; 
   title: string;
   composer: string;
   level_id: string;
@@ -79,7 +79,7 @@ const Music: NextPage = () => {
                 <p className="text-gray-600">by {piece.composer}</p>
                 <div className="border-b border-gray-300 my-2"></div>
                 <div className="flex justify-between items-center">
-                  <p className="text-gray-600">{getLevelDescription(piece.level_id)}</p>
+                  <p className="text-gray-600">{getLevelDescription(piece.level_id)} </p>
                   {/* Use Link component for dynamic routing */}
                   <Link href={`/music/${piece.id}`}>
                     <p className="text-blue-500 hover:underline">View Detail</p>
