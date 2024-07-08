@@ -121,7 +121,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
     { $match: { id } },
     {
       $lookup: {
-        from: 'composer',
+        from: 'composers',
         localField: 'composer_id',
         foreignField: 'id',
         as: 'composerDetails',
