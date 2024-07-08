@@ -81,7 +81,7 @@ const Music: NextPage = () => {
                 <div className="flex justify-between items-center">
                   <p className="text-gray-600">{getLevelDescription(piece.level_id)} </p>
                   {/* Use Link component for dynamic routing */}
-                  <Link href={`/music/${piece.id}`}>
+                  <Link href={`/piece/${piece.id}`}>
                     <p className="text-blue-500 hover:underline">View Detail</p>
                   </Link>
                 </div>
