@@ -26,6 +26,7 @@
     "react": "^18",
     "react-dom": "^18",
     "react-icons": "^5.2.1",
+    "react-youtube": "^10.1.0",
     "remark": "^13.0.0",
     "remark-mdx": "^2.3.0"
   },

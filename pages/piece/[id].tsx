@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { GetServerSideProps, NextPage } from 'next';
 import Link from 'next/link';
 import Head from 'next/head';
@@ -9,13 +9,14 @@ import { HiMusicNote } from "react-icons/hi";
 import { BsFileEarmarkMusicFill } from "react-icons/bs";
 import { FaArrowRight } from 'react-icons/fa';
 import Accordion from '@mui/material/Accordion';
-import AccordionActions from '@mui/material/AccordionActions';
 import AccordionSummary from '@mui/material/AccordionSummary';
 import AccordionDetails from '@mui/material/AccordionDetails';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import { AiFillQuestionCircle } from "react-icons/ai";
+import YouTube, { YouTubeProps } from 'react-youtube';
+import VideoIframe from '@/components/youtube-iframe'
 
-import Button from '@mui/material/Button';
+
 
 interface PieceProps {
   piece: {
@@ -58,140 +59,169 @@ const getLevelDescription = (level_id: string): string => {
   }
 };
 
+const videoId = "ybwuiP6v7hk";
+  const videoTitle = "[전인혁작곡] 야다(Yada) - 약속 (2019 ver)";
+
 const Piece: NextPage<PieceProps> = ({ piece, composerInfo }) => {
-  
-  
+  const [videoId1, setVideoId1] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (piece && piece.audio_link && piece.audio_link.length > 1) {
+      const audioLink1 = piece.audio_link[0];
+      setVideoId1(audioLink1.slice(-11));
+    }
+  }, [piece]);
+
   if (!piece) {
     return <LoadingAnimation />;
   }
+
+  const onPlayerReady: YouTubeProps['onReady'] = (event) => {
+    event.target.pauseVideo();
+  }
+
+  const opts: YouTubeProps['opts'] = {
+    height: '400',
+    width: '550',
+    playerVars: {
+      autoplay: 1,
+    },
+  };
 
   return (
     <div>
       <Head>
         <title>{piece.title}</title>
       </Head>
-
+  
       <NavbarMain />
-      <div className="container mx-auto p-4 mt-5">
-        <div className="flex justify-between items-center mb-2">
-          <h1 className="text-3xl font-bold">{piece.title}</h1>
-          <button className="bg-black text-white px-6 py-3 rounded-lg mt-4 transition-transform hover:scale-110}">
-            <Link href="../">
-              Back to Home <FaArrowRight className="inline-block ml-2" />
-            </Link>
-          </button>
-        </div>
-
-        <div className="flex items-center mb-2">
-          <p className="text-xl mb-2 mr-1">by {' '}
-            <Link href={composerInfo?.articles[0] || ''} className="underline">{composerInfo?.composer_name || 'Unknown Composer'}</Link>
-          </p>
-
-          <div className="flex items-center">
-            <p className="text-md mb-2 text-lg italic mr-1"> {' - '} {getLevelDescription(piece.level_id.toString())}</p>
-            <AiFillQuestionCircle className="mb-2" />
+  
+      <main className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 mt-5">
+        <div className="container mx-auto">
+          <div className="flex flex-col justify-between items-start mb-2">
+            <h1 className="text-3xl font-bold">{piece.title}</h1>
+            <div className="flex flex-col items-start mb-2">
+              <p className="text-xl mb-2">by{' '}
+                <Link href={composerInfo?.articles[0] || ''} className="underline">{composerInfo?.composer_name || 'Unknown Composer'}</Link>
+              </p>
+              <div className="flex items-center">
+                <p className="text-md text-lg italic mr-1">{' - '}{getLevelDescription(piece.level_id.toString())}</p>
+                <AiFillQuestionCircle className="mb-2" />
+              </div>
+            </div>
           </div>
 
+          <Accordion className="w-full md:w-[600px]">
+            <AccordionSummary
+              expandIcon={<ExpandMoreIcon />}
+              aria-controls="panel1-content"
+              id="panel1-header"
+              className="ml-1 text-lg font-bold bg-clip-text text-transparent bg-gradient-to-br"
+            >
+              Info
+            </AccordionSummary>
+            <div className="border-b border-gray-300 my-1"></div>
+            <AccordionDetails>
+              <p className="text-md mb-2 font-bold">Description:</p>
+              {piece.description || 'No description available.'}
+              <p className="mb-4"></p>
+              {piece.composition_year && <p className="text-md mb-4"><strong>Composition Year: </strong> {piece.composition_year}</p>}
+              {piece.duration && <p className="text-md mb-4"> <strong>Duration: </strong>{piece.duration}</p>}
+              <p className="text-md mb-4"><strong>Arrangement of Original? </strong>{piece.isArrangement ? 'Yes' : 'No'}</p>
+              <p className="text-md mb-4"><strong>Public Domain? </strong> {piece.is_public_domain ? 'Yes' : 'No'}</p>
+              {piece.publisher_info && <p className="text-md mb-4"><strong>Publisher Info: </strong> {piece.publisher_info}</p>}
+              {/* {piece.coverImage && <img src={piece.coverImage} alt={piece.title} />} */}
+            </AccordionDetails>
+          </Accordion>
+  
+          <Accordion className="w-full md:w-[600px]">
+            <AccordionSummary
+              expandIcon={<ExpandMoreIcon />}
+              aria-controls="panel2-content"
+              id="panel2-header"
+              className="ml-1 text-lg font-bold bg-clip-text text-transparent bg-gradient-to-br"
+            >
+              Technical Overview
+            </AccordionSummary>
+            <div className="border-b border-gray-300 my-1"></div>
+            <AccordionDetails>
+              {piece.technical_overview || 'No description available.'}
+            </AccordionDetails>
+          </Accordion>
+  
+          <Accordion className="w-full md:w-[600px]">
+            <AccordionSummary
+              expandIcon={<ExpandMoreIcon />}
+              aria-controls="panel3-content"
+              id="panel3-header"
+              className="ml-1 text-lg font-bold bg-clip-text text-transparent bg-gradient-to-br"
+            >
+              Where to buy/download
+            </AccordionSummary>
+            <div className="border-b border-gray-300 my-1"></div>
+            <AccordionDetails>
+              {piece.where_to_buy_or_download.length > 0 && (
+                <div className="text-md mb-4">
+                  {piece.where_to_buy_or_download.map((link, index) => (
+                    link && (
+                      <div key={index}>
+                        <BsFileEarmarkMusicFill style={{ display: 'inline-block', verticalAlign: 'middle' }} />
+                        <a href={link} target="_blank" rel="noopener noreferrer" style={{ display: 'inline-block', verticalAlign: 'middle', marginLeft: '5px' }}>
+                          {link}
+                        </a>
+                        <br />
+                      </div>
+                    )
+                  ))}
+                </div>
+              )}
+            </AccordionDetails>
+          </Accordion>
+  
+          <Accordion className="w-full md:w-[600px]">
+            <AccordionSummary
+              expandIcon={<ExpandMoreIcon />}
+              aria-controls="panel4-content"
+              id="panel4-header"
+              className="ml-1 text-lg font-bold bg-clip-text text-transparent bg-gradient-to-br"
+            >
+              Audio
+            </AccordionSummary>
+            <div className="border-b border-gray-300 my-1"></div>
+            <AccordionDetails>
+              {piece.audio_link.length > 0 && (
+                <div className="text-md mb-4">
+                  {piece.audio_link.map((link, index) => (
+                    link && (
+                      <div key={index}>
+                        <HiMusicNote style={{ display: 'inline-block', verticalAlign: 'middle' }} />
+                        <a href={link} target="_blank" rel="noopener noreferrer" style={{ display: 'inline-block', verticalAlign: 'middle', marginLeft: '5px' }}>
+                          {link}
+                        </a>
+                        <br />
+                      </div>
+                    )
+                  ))}
+                </div>
+              )}
+            </AccordionDetails>
+          </Accordion>
         </div>
-        <Accordion style={{ width: '600px' }}>
-          <AccordionSummary
-            expandIcon={<ExpandMoreIcon />}
-            aria-controls="panel1-content"
-            id="panel1-header" className="ml-1 text-lg font-bold bg-clip-text text-transparent bg-gradient-to-br"
-          >
-            Info
-          </AccordionSummary>
-          <div className="border-b border-gray-300 my-1"></div>
-          <AccordionDetails>
-          <p className="text-md mb-2 font-bold">Description:</p>
-            {piece.description || 'No description available.'}
-            <p className="mb-4"></p>
-            {piece.composition_year && <p className="text-md mb-4">Composition Year: {piece.composition_year}</p>}
-            {piece.duration && <p className="text-md mb-4">Duration: {piece.duration}</p>}
-            <p className="text-md mb-4">Arrangement of Original? {piece.isArrangement ? 'Yes' : 'No'}</p>
-            <p className="text-md mb-4">Public Domain? (US): {piece.is_public_domain ? 'Yes' : 'No'}</p>
-            {piece.publisher_info && <p className="text-md mb-4">Publisher Info: {piece.publisher_info}</p>}
-            {piece.coverImage && <img src={piece.coverImage} alt={piece.title} />}
-          </AccordionDetails>
-        </Accordion>
+  
+        <div className="container mx-auto flex flex-col items-center">
+          <div className="w-full flex justify-end">
+            <button className="bg-black text-white px-4 py-2 mb-3 rounded-lg transition-transform hover:scale-105">
+              <Link href="../">
+                Back to Home <FaArrowRight className="inline-block ml-2" />
+              </Link>
+            </button>
+          </div>
+          {videoId1 && <div className="w-full">
+            <VideoIframe videoId={videoId1} title=""/>
+          </div>}
+        </div>
 
-        <Accordion style={{ width: '600px' }}>
-          <AccordionSummary
-            expandIcon={<ExpandMoreIcon />}
-            aria-controls="panel1-content"
-            id="panel1-header"
-            className="ml-1 text-lg font-bold bg-clip-text text-transparent bg-gradient-to-br"
-          >
-            Technical Overview
-          </AccordionSummary>
-          <div className="border-b border-gray-300 my-1"></div>
-          <AccordionDetails>
-            {piece.technical_overview || 'No description available.'}
-          </AccordionDetails>
-        </Accordion>
-
-        <Accordion style={{ width: '600px' }}>
-          <AccordionSummary
-            expandIcon={<ExpandMoreIcon />}
-            aria-controls="panel1-content"
-            id="panel1-header"
-            className="ml-1 text-lg font-bold bg-clip-text text-transparent bg-gradient-to-br"
-          >
-            Where to buy/download
-          </AccordionSummary>
-          <div className="border-b border-gray-300 my-1"></div>
-          <AccordionDetails>
-            {piece.where_to_buy_or_download.length > 0 && (
-              <div className="text-md mb-4">
-                {piece.where_to_buy_or_download.map((link, index) => (
-                  link && (
-                    <div key={index} >
-                      <BsFileEarmarkMusicFill style={{ display: 'inline-block', verticalAlign: 'middle' }} />
-                      <a href={link} target="_blank" rel="noopener noreferrer" style={{ display: 'inline-block', verticalAlign: 'middle', marginLeft: '5px' }}>
-                        {link}
-                      </a>
-                      <br />
-                    </div>
-                  )
-                ))}
-              </div>
-            )}
-          </AccordionDetails>
-        </Accordion>
-
-        <Accordion style={{ width: '600px' }}>
-          <AccordionSummary
-            expandIcon={<ExpandMoreIcon />}
-            aria-controls="panel1-content"
-            id="panel1-header"
-            className="ml-1 text-lg font-bold bg-clip-text text-transparent bg-gradient-to-br"
-          >
-            Audio
-          </AccordionSummary>
-          <div className="border-b border-gray-300 my-1"></div>
-          <AccordionDetails>
-            {piece.where_to_buy_or_download.length > 0 && (
-              <div className="text-md mb-4">
-                {piece.audio_link.length > 0 && (
-                  <div className="text-md mb-4">
-                    {piece.audio_link.map((link, index) => (
-                      link && (
-                        <div key={index}>
-                          <HiMusicNote style={{ display: 'inline-block', verticalAlign: 'middle' }} />
-                          <a href={link} target="_blank" rel="noopener noreferrer" style={{ display: 'inline-block', verticalAlign: 'middle', marginLeft: '5px' }}>
-                            {link}
-                          </a>
-                          <br />
-                        </div>
-                      )
-                    ))}
-                  </div>
-                )}
-              </div>
-            )}
-          </AccordionDetails>
-        </Accordion>
-      </div>
+      </main>
     </div>
   );
 };
@@ -213,7 +243,6 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
     },
     { $unwind: '$composerDetails' },
   ]).next();
-
   return {
     props: {
       piece: piece ? {
