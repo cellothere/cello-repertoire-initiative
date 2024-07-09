@@ -1,5 +1,8 @@
 import { useState } from 'react';
 import { Dropdown, Link, DropdownTrigger, DropdownMenu, DropdownItem, Button } from "@nextui-org/react";
+import { RxHamburgerMenu } from "react-icons/rx";
+import { FaSearch } from "react-icons/fa";
+import { BiSolidHomeCircle } from "react-icons/bi";
 
 const NavbarMain = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -21,7 +24,7 @@ const NavbarMain = () => {
           <span className="ml-8 text-xl font-bold bg-clip-text text-transparent bg-gradient-to-br">Cello Repertoire Initiative</span>
         </Link>
       </div>
-      <div className="flex-grow max-w-lg mx-4">
+      <div className="flex-grow max-w-lg mx-4" id="searchMenu">
         <input
           type="text"
           placeholder="Find music, composers, and resources..."
@@ -89,13 +92,15 @@ const NavbarMain = () => {
 
       {/* Mobile Menu */}
       <div className="md:hidden flex items-center">
+        <FaSearch size={25} className="mr-4"/>
+        <BiSolidHomeCircle size={30} className="mr-3"/>
         <Button
           variant="flat"
           onClick={toggleMenu}
           aria-label="Toggle Menu"
-          className="bg-black text-white font-bold py-2 px-4 rounded mx-2"
+          className="bg-black text-white font-bold py-2 px-2 rounded mx-2"
         >
-          Menu
+        <RxHamburgerMenu />
         </Button>
         {isMenuOpen && (
           <div className="absolute top-16 right-0 bg-white w-48 border border-gray-400 rounded shadow-lg">
@@ -131,6 +136,9 @@ const NavbarMain = () => {
 
         @media (max-width: 768px) {
           #navName {
+            display: none;
+          }
+          #searchMenu {
             display: none;
           }
         }
