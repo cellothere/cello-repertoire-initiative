@@ -93,18 +93,19 @@ const Piece: NextPage<PieceProps> = ({ piece, composerInfo }) => {
           </div>
 
         </div>
-        <Accordion>
+        <Accordion style={{ width: '600px' }}>
           <AccordionSummary
             expandIcon={<ExpandMoreIcon />}
             aria-controls="panel1-content"
-            id="panel1-header"
+            id="panel1-header" className="ml-1 text-lg font-bold bg-clip-text text-transparent bg-gradient-to-br"
           >
-            Description
+            Info
           </AccordionSummary>
+          <div className="border-b border-gray-300 my-1"></div>
           <AccordionDetails>
+          <p className="text-md mb-2 font-bold">Description:</p>
             {piece.description || 'No description available.'}
-
-            Details:
+            <p className="mb-4"></p>
             {piece.composition_year && <p className="text-md mb-4">Composition Year: {piece.composition_year}</p>}
             {piece.duration && <p className="text-md mb-4">Duration: {piece.duration}</p>}
             <p className="text-md mb-4">Arrangement of Original? {piece.isArrangement ? 'Yes' : 'No'}</p>
@@ -114,27 +115,31 @@ const Piece: NextPage<PieceProps> = ({ piece, composerInfo }) => {
           </AccordionDetails>
         </Accordion>
 
-        <Accordion>
+        <Accordion style={{ width: '600px' }}>
           <AccordionSummary
             expandIcon={<ExpandMoreIcon />}
             aria-controls="panel1-content"
             id="panel1-header"
+            className="ml-1 text-lg font-bold bg-clip-text text-transparent bg-gradient-to-br"
           >
             Technical Overview
           </AccordionSummary>
+          <div className="border-b border-gray-300 my-1"></div>
           <AccordionDetails>
             {piece.technical_overview || 'No description available.'}
           </AccordionDetails>
         </Accordion>
 
-        <Accordion>
+        <Accordion style={{ width: '600px' }}>
           <AccordionSummary
             expandIcon={<ExpandMoreIcon />}
             aria-controls="panel1-content"
             id="panel1-header"
+            className="ml-1 text-lg font-bold bg-clip-text text-transparent bg-gradient-to-br"
           >
             Where to buy/download
           </AccordionSummary>
+          <div className="border-b border-gray-300 my-1"></div>
           <AccordionDetails>
             {piece.where_to_buy_or_download.length > 0 && (
               <div className="text-md mb-4">
@@ -154,14 +159,16 @@ const Piece: NextPage<PieceProps> = ({ piece, composerInfo }) => {
           </AccordionDetails>
         </Accordion>
 
-        <Accordion>
+        <Accordion style={{ width: '600px' }}>
           <AccordionSummary
             expandIcon={<ExpandMoreIcon />}
             aria-controls="panel1-content"
             id="panel1-header"
+            className="ml-1 text-lg font-bold bg-clip-text text-transparent bg-gradient-to-br"
           >
             Audio
           </AccordionSummary>
+          <div className="border-b border-gray-300 my-1"></div>
           <AccordionDetails>
             {piece.where_to_buy_or_download.length > 0 && (
               <div className="text-md mb-4">
