@@ -18,11 +18,13 @@ const LoadingAnimation: React.FC = () => {
   }, [noteCount]); // useEffect dependency on noteCount
 
   return (
-    <div>
-      Loading{' '}
-      {[...Array(noteCount)].map((_, index) => (
-        <HiMusicNote key={index} style={{ display: 'inline-block', verticalAlign: 'middle' }} />
-      ))}
+    <div className="flex items-center font-mono justify-center min-h-screen text-xl">
+      <div>
+        Loading{' '}
+        {[...Array(noteCount)].map((_, index) => (
+          <HiMusicNote key={index} style={{ display: 'inline-block', verticalAlign: 'middle' }} />
+        ))}
+      </div>
     </div>
   );
 };

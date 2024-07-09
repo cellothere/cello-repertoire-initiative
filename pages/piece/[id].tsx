@@ -7,6 +7,8 @@ import NavbarMain from '@/components/navbar-main';
 import LoadingAnimation from '@/components/loading-animation';
 import { HiMusicNote } from "react-icons/hi"; 
 import { BsFileEarmarkMusicFill } from "react-icons/bs";
+import { Button } from '@nextui-org/react';
+import { FaArrowRight } from 'react-icons/fa';
 
 interface PieceProps {
   piece: {
@@ -51,7 +53,7 @@ const getLevelDescription = (level_id: string): string => {
 
 const Piece: NextPage<PieceProps> = ({ piece, composerInfo }) => {
   if (!piece) {
-    return <LoadingAnimation />; // Use the LoadingAnimation component here
+    return <LoadingAnimation />; 
   }
 
   return (
@@ -60,8 +62,15 @@ const Piece: NextPage<PieceProps> = ({ piece, composerInfo }) => {
         <title>{piece.title}</title>
       </Head>
       <NavbarMain />
-      <div className="container mx-auto p-4 mt-16">
-        <h1 className="text-3xl font-bold mb-4">{piece.title}</h1>
+      <div className="container mx-auto p-4 mt-5">
+        <div className="flex justify-between items-center mb-2">
+          <h1 className="text-3xl font-bold">{piece.title}</h1>
+          <button className="bg-black text-white px-6 py-3 rounded-lg mt-4 transition-transform hover:scale-110}">
+          <Link href="../">
+          Back to Home <FaArrowRight className="inline-block ml-2" />
+          </Link>
+        </button>
+        </div>
         <p className="text-xl mb-2">by {' '}
           <Link href={composerInfo?.articles[0] || ''} className="underline">{composerInfo?.composer_name || 'Unknown Composer'}</Link>
         </p>
@@ -106,7 +115,6 @@ const Piece: NextPage<PieceProps> = ({ piece, composerInfo }) => {
           </div>
         )}
         {piece.coverImage && <img src={piece.coverImage} alt={piece.title} />}
-        <Link href="/cello-music">Back to Music</Link>
       </div>
     </div>
   );
@@ -138,12 +146,12 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
         composer_id: piece.composer_id || '',
         composition_year: piece.composition_year || '',
         level_id: piece.level_id || 0,
-        isArrangement: piece.isArrangement,
+        isArrangement: piece.isArrangement || false,
         audio_link: piece.audio_link || [],
         publisher_info: piece.publisher_info || '',
         description: piece.description || '',
         technical_overview: piece.technical_overview || '',
-        is_public_domain: piece.is_public_domain,
+        is_public_domain: piece.is_public_domain || false,
         where_to_buy_or_download: piece.where_to_buy_or_download || [],
         duration: piece.duration || '',
         coverImage: piece.coverImage || '',

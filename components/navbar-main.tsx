@@ -38,13 +38,14 @@ const NavbarMain = () => {
           onMouseEnter={() => setIsHovered(true)}
           onMouseLeave={() => setIsHovered(false)}
           isOpen={isHovered}
-          className="bg-white font-sans"
+          className="bg-white font-sans w-32"
         >
           <DropdownTrigger>
             <Button
               className="bg-black text-white font-bold py-2 px-4 rounded mx-2"
               onMouseEnter={() => setIsHovered(true)}
               onMouseLeave={() => setIsHovered(false)}
+              
             >
               <Link href="/cello-music">
                 Music
@@ -59,22 +60,22 @@ const NavbarMain = () => {
           >
             <DropdownItem className="custom-dropdown-item text-black bg-white-500 text-black p-2">
               <Link href="#">
-                Violin Sheet Music
+                Violin
               </Link>
             </DropdownItem>
             <DropdownItem className="custom-dropdown-item text-black p-2">
               <Link href="#">
-                Viola Sheet Music
+                Viola 
               </Link>
             </DropdownItem>
             <DropdownItem className="custom-dropdown-item text-black p-2">
               <Link href="cello-music">
-                Cello Sheet Music
+                Cello
               </Link>
             </DropdownItem>
             <DropdownItem className="custom-dropdown-item text-black p-2">
               <Link href="#">
-                Bass Sheet Music
+                Bass
               </Link>
             </DropdownItem>
           </DropdownMenu>
