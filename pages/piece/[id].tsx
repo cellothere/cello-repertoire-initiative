@@ -1,14 +1,21 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { GetServerSideProps, NextPage } from 'next';
 import Link from 'next/link';
 import Head from 'next/head';
 import clientPromise from '@/lib/mongodb';
 import NavbarMain from '@/components/navbar-main';
 import LoadingAnimation from '@/components/loading-animation';
-import { HiMusicNote } from "react-icons/hi"; 
+import { HiMusicNote } from "react-icons/hi";
 import { BsFileEarmarkMusicFill } from "react-icons/bs";
-import { Button } from '@nextui-org/react';
 import { FaArrowRight } from 'react-icons/fa';
+import Accordion from '@mui/material/Accordion';
+import AccordionActions from '@mui/material/AccordionActions';
+import AccordionSummary from '@mui/material/AccordionSummary';
+import AccordionDetails from '@mui/material/AccordionDetails';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import { AiFillQuestionCircle } from "react-icons/ai";
+
+import Button from '@mui/material/Button';
 
 interface PieceProps {
   piece: {
@@ -52,8 +59,10 @@ const getLevelDescription = (level_id: string): string => {
 };
 
 const Piece: NextPage<PieceProps> = ({ piece, composerInfo }) => {
+  
+  
   if (!piece) {
-    return <LoadingAnimation />; 
+    return <LoadingAnimation />;
   }
 
   return (
@@ -61,60 +70,120 @@ const Piece: NextPage<PieceProps> = ({ piece, composerInfo }) => {
       <Head>
         <title>{piece.title}</title>
       </Head>
+
       <NavbarMain />
       <div className="container mx-auto p-4 mt-5">
         <div className="flex justify-between items-center mb-2">
           <h1 className="text-3xl font-bold">{piece.title}</h1>
           <button className="bg-black text-white px-6 py-3 rounded-lg mt-4 transition-transform hover:scale-110}">
-          <Link href="../">
-          Back to Home <FaArrowRight className="inline-block ml-2" />
-          </Link>
-        </button>
+            <Link href="../">
+              Back to Home <FaArrowRight className="inline-block ml-2" />
+            </Link>
+          </button>
         </div>
-        <p className="text-xl mb-2">by {' '}
-          <Link href={composerInfo?.articles[0] || ''} className="underline">{composerInfo?.composer_name || 'Unknown Composer'}</Link>
-        </p>
-        <p className="text-md mb-2">{getLevelDescription(piece.level_id.toString())}</p>
-        <p className="text-md mb-4">{piece.description || 'No description available.'}</p>
-        {piece.technical_overview && <p className="text-md mb-4">Technical Overview: {piece.technical_overview}</p>}
-        {piece.composition_year && <p className="text-md mb-4">Composition Year: {piece.composition_year}</p>}
-        {piece.duration && <p className="text-md mb-4">Duration: {piece.duration}</p>}
-        <p className="text-md mb-4">Arrangement of Original? {piece.isArrangement ? 'Yes' : 'No'}</p>
-        <p className="text-md mb-4">Public Domain? (US): {piece.is_public_domain ? 'Yes' : 'No'}</p>
-        {piece.publisher_info && <p className="text-md mb-4">Publisher Info: {piece.publisher_info}</p>}
-        {piece.audio_link.length > 0 && (
-          <div className="text-md mb-4">
-            <p>Audio Links:</p>
-            {piece.audio_link.map((link, index) => (
-              link && (
-                <div key={index}>
-                  <HiMusicNote style={{ display: 'inline-block', verticalAlign: 'middle' }} />
-                  <a href={link} target="_blank" rel="noopener noreferrer" style={{ display: 'inline-block', verticalAlign: 'middle', marginLeft: '5px' }}>
-                    {link}
-                  </a>
-                  <br />
-                </div>
-              )
-            ))}
+
+        <div className="flex items-center mb-2">
+          <p className="text-xl mb-2 mr-1">by {' '}
+            <Link href={composerInfo?.articles[0] || ''} className="underline">{composerInfo?.composer_name || 'Unknown Composer'}</Link>
+          </p>
+
+          <div className="flex items-center">
+            <p className="text-md mb-2 text-lg italic mr-1"> {' - '} {getLevelDescription(piece.level_id.toString())}</p>
+            <AiFillQuestionCircle className="mb-2" />
           </div>
-        )}
-        {piece.where_to_buy_or_download.length > 0 && (
-          <div className="text-md mb-4">
-            <p>Where to Buy or Download:</p>
-            {piece.where_to_buy_or_download.map((link, index) => (
-              link && (
-                <div key={index} >
-                  <BsFileEarmarkMusicFill style={{ display: 'inline-block', verticalAlign: 'middle' }} />
-                  <a href={link} target="_blank" rel="noopener noreferrer" style={{ display: 'inline-block', verticalAlign: 'middle', marginLeft: '5px' }}>
-                    {link}
-                  </a>
-                  <br />
-                </div>
-              )
-            ))}
-          </div>
-        )}
-        {piece.coverImage && <img src={piece.coverImage} alt={piece.title} />}
+
+        </div>
+        <Accordion>
+          <AccordionSummary
+            expandIcon={<ExpandMoreIcon />}
+            aria-controls="panel1-content"
+            id="panel1-header"
+          >
+            Description
+          </AccordionSummary>
+          <AccordionDetails>
+            {piece.description || 'No description available.'}
+
+            Details:
+            {piece.composition_year && <p className="text-md mb-4">Composition Year: {piece.composition_year}</p>}
+            {piece.duration && <p className="text-md mb-4">Duration: {piece.duration}</p>}
+            <p className="text-md mb-4">Arrangement of Original? {piece.isArrangement ? 'Yes' : 'No'}</p>
+            <p className="text-md mb-4">Public Domain? (US): {piece.is_public_domain ? 'Yes' : 'No'}</p>
+            {piece.publisher_info && <p className="text-md mb-4">Publisher Info: {piece.publisher_info}</p>}
+            {piece.coverImage && <img src={piece.coverImage} alt={piece.title} />}
+          </AccordionDetails>
+        </Accordion>
+
+        <Accordion>
+          <AccordionSummary
+            expandIcon={<ExpandMoreIcon />}
+            aria-controls="panel1-content"
+            id="panel1-header"
+          >
+            Technical Overview
+          </AccordionSummary>
+          <AccordionDetails>
+            {piece.technical_overview || 'No description available.'}
+          </AccordionDetails>
+        </Accordion>
+
+        <Accordion>
+          <AccordionSummary
+            expandIcon={<ExpandMoreIcon />}
+            aria-controls="panel1-content"
+            id="panel1-header"
+          >
+            Where to buy/download
+          </AccordionSummary>
+          <AccordionDetails>
+            {piece.where_to_buy_or_download.length > 0 && (
+              <div className="text-md mb-4">
+                {piece.where_to_buy_or_download.map((link, index) => (
+                  link && (
+                    <div key={index} >
+                      <BsFileEarmarkMusicFill style={{ display: 'inline-block', verticalAlign: 'middle' }} />
+                      <a href={link} target="_blank" rel="noopener noreferrer" style={{ display: 'inline-block', verticalAlign: 'middle', marginLeft: '5px' }}>
+                        {link}
+                      </a>
+                      <br />
+                    </div>
+                  )
+                ))}
+              </div>
+            )}
+          </AccordionDetails>
+        </Accordion>
+
+        <Accordion>
+          <AccordionSummary
+            expandIcon={<ExpandMoreIcon />}
+            aria-controls="panel1-content"
+            id="panel1-header"
+          >
+            Audio
+          </AccordionSummary>
+          <AccordionDetails>
+            {piece.where_to_buy_or_download.length > 0 && (
+              <div className="text-md mb-4">
+                {piece.audio_link.length > 0 && (
+                  <div className="text-md mb-4">
+                    {piece.audio_link.map((link, index) => (
+                      link && (
+                        <div key={index}>
+                          <HiMusicNote style={{ display: 'inline-block', verticalAlign: 'middle' }} />
+                          <a href={link} target="_blank" rel="noopener noreferrer" style={{ display: 'inline-block', verticalAlign: 'middle', marginLeft: '5px' }}>
+                            {link}
+                          </a>
+                          <br />
+                        </div>
+                      )
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+          </AccordionDetails>
+        </Accordion>
       </div>
     </div>
   );

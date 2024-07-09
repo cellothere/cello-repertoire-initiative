@@ -69,7 +69,7 @@ const NavbarMain = () => {
               </Link>
             </DropdownItem>
             <DropdownItem className="custom-dropdown-item text-black p-2">
-              <Link href="cello-music">
+              <Link href="/cello-music">
                 Cello
               </Link>
             </DropdownItem>
