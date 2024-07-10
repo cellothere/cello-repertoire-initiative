@@ -111,7 +111,7 @@ const Piece: NextPage<PieceProps> = ({ piece, composerInfo }) => {
             </div>
           </div>
 
-          <Accordion className="w-full md:w-[600px]">
+          <Accordion className="w-full md:w-[600px]" defaultExpanded>
             <AccordionSummary
               expandIcon={<ExpandMoreIcon />}
               aria-controls="panel1-content"
