@@ -94,7 +94,7 @@ const Contribute: NextPage<ContributeProps> = () => {
                                         className="form-textarea w-full p-2 rounded bg-gray-300 border border-gray-600 text-black h-24"
                                     ></textarea>
                                 </div>
-                                <button type="submit" className="btn btn-primary w-full bg-black text-white px-6 py-3 w-30px rounded-lg mt-4 transition-transform hover:scale-105">Submit</button>
+                                <button type="submit" className="btn btn-primary bg-black text-white px-6 py-3 w-10px rounded-lg mt-4 transition-transform hover:scale-105">Submit</button>
                             </form>
                         </>
                     ) : (

@@ -211,8 +211,8 @@ const Piece: NextPage<PieceProps> = ({ piece, composerInfo }) => {
         <div className="container mx-auto flex flex-col items-center">
           <div className="w-full flex justify-end">
             <button className="bg-black text-white px-4 py-2 mb-3 rounded-lg transition-transform hover:scale-105">
-              <Link href="../">
-                Back to Home <FaArrowRight className="inline-block ml-2" />
+              <Link href="../cello-music">
+                Back to Music <FaArrowRight className="inline-block ml-2" />
               </Link>
             </button>
           </div>
