@@ -3,7 +3,7 @@ import Head from 'next/head';
 import NavbarMain from '@/components/navbar-main';
 import { FaArrowRight } from 'react-icons/fa';
 import { useEffect, useState } from 'react';
-import { Link } from "@nextui-org/react";
+import { Link } from '@nextui-org/react';
 
 const Home: NextPage = () => {
   const [isMobileView, setIsMobileView] = useState(false);
@@ -14,15 +14,18 @@ const Home: NextPage = () => {
       setIsMobileView(window.innerWidth <= 768);
     };
 
-    handleResize();
+    handleResize(); // Set initial value
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
   useEffect(() => {
-    setTimeout(() => {
+    // Ensure the effect runs only once to set the content visibility
+    const timer = setTimeout(() => {
       setContentVisible(true);
     }, 0);
+
+    return () => clearTimeout(timer);
   }, []);
 
   return (
@@ -95,9 +98,9 @@ const Home: NextPage = () => {
             transform: translateY(-50%);
           }
 
-          .mobile-view #images-container {
+          #images-container {
             flex-direction: column;
-            space-y: 6;
+            gap: 1.5rem; /* Adjust for spacing */
           }
         }
       `}</style>
