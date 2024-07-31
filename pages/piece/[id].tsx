@@ -13,10 +13,7 @@ import AccordionSummary from '@mui/material/AccordionSummary';
 import AccordionDetails from '@mui/material/AccordionDetails';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import { AiFillQuestionCircle } from "react-icons/ai";
-import YouTube, { YouTubeProps } from 'react-youtube';
-import VideoIframe from '@/components/youtube-iframe'
-
-
+import VideoIframe from '@/components/youtube-iframe';
 
 interface PieceProps {
   piece: {
@@ -60,25 +57,23 @@ const getLevelDescription = (level_id: string): string => {
   }
 };
 
-
 const Piece: NextPage<PieceProps> = ({ piece, composerInfo }) => {
-  
   const [videoId1, setVideoId1] = useState<string | null>(null);
+
+  // UseEffect should not depend on piece if it does not directly cause re-render issues
+  useEffect(() => {
+    if (piece && piece.audio_link.length > 0) {
+      const audioLink1 = piece.audio_link[0];
+      const id = audioLink1.slice(-11);
+      setVideoId1(id);
+    }
+  }, [piece]); // Depend on `piece` only if necessary, as it's critical to set the video ID correctly
 
   if (!piece) {
     return <LoadingAnimation />;
   }
 
-  useEffect(() => {
-    if (piece && piece.audio_link && piece.audio_link.length > -1) {
-      const audioLink1 = piece.audio_link[0];
-      const id = audioLink1.slice(-11);
-      console.log(id)
-      setVideoId1(id);
-    }
-  }, [piece]);
-
-  const opts: YouTubeProps['opts'] = {
+  const opts = {
     height: '400',
     width: '550',
     playerVars: {
@@ -91,9 +86,7 @@ const Piece: NextPage<PieceProps> = ({ piece, composerInfo }) => {
       <Head>
         <title>{piece.title}</title>
       </Head>
-
       <NavbarMain />
-
       <main className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 mt-5">
         <div className="container mx-auto">
           <div className="flex flex-col justify-between items-start mb-2">
@@ -223,7 +216,6 @@ const Piece: NextPage<PieceProps> = ({ piece, composerInfo }) => {
             <VideoIframe videoId={videoId1} title="" />
           </div>}
         </div>
-
       </main>
     </div>
   );

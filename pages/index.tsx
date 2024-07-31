@@ -3,29 +3,29 @@ import Head from 'next/head';
 import NavbarMain from '@/components/navbar-main';
 import { FaArrowRight } from 'react-icons/fa';
 import { useEffect, useState } from 'react';
-import { Link } from "@nextui-org/react";
-
+import { Link } from '@nextui-org/react';
 
 const Home: NextPage = () => {
   const [isMobileView, setIsMobileView] = useState(false);
   const [contentVisible, setContentVisible] = useState(false);
 
   useEffect(() => {
-    // Check if viewport width is less than or equal to 768px (typical mobile view)
     const handleResize = () => {
       setIsMobileView(window.innerWidth <= 768);
     };
 
-    handleResize(); // Check initial viewport size
-    window.addEventListener('resize', handleResize); // Listen to window resize events
-    return () => window.removeEventListener('resize', handleResize); // Clean up event listener
+    handleResize(); // Set initial value
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
   }, []);
 
   useEffect(() => {
-    // Show content after initial animation
-    setTimeout(() => {
+    // Ensure the effect runs only once to set the content visibility
+    const timer = setTimeout(() => {
       setContentVisible(true);
     }, 0);
+
+    return () => clearTimeout(timer);
   }, []);
 
   return (
@@ -34,18 +34,16 @@ const Home: NextPage = () => {
         <title>Cello Repertoire Initiative</title>
       </Head>
       <NavbarMain />
-      <main className={`p-4 flex flex-col items-center justify-center ${isMobileView ? 'mobile-view' : ''} ${contentVisible ? 'move-up' : ''}`} style={{ marginTop: isMobileView ? '90px' : '0' }}>
-        {!isMobileView && contentVisible && (
-          <>
-            <h1 className="text-4xl font-mono font-bold mb-4">Explore, Discover, Teach</h1>
-            <p className="text-center">Connecting Teachers to Diverse Musical Voices.</p>
-          </>
-        )}
+      <main className={`p-8 flex flex-col items-center justify-center ${isMobileView ? 'mobile-view' : ''} ${contentVisible ? 'move-up' : ''}`} style={{ marginTop: isMobileView ? '30px' : '0' }}>
+        <h1 className={`text-4xl font-mono font-bold mb-4 text-center ${isMobileView ? 'mobile-title' : ''}`}>
+          Explore, Discover, Teach
+        </h1>
+        <p className="text-center mb-5">Connecting Teachers to Diverse Musical Voices.</p>
         <button className={`bg-black text-white px-6 py-3 rounded-lg mt-4 transition-transform hover:scale-110 ${isMobileView ? 'mobile-view' : ''}`}>
           Find music <FaArrowRight className="inline-block ml-2" />
         </button>
         <div className={`mt-8 ${contentVisible ? '' : 'hidden'}`} id="afterMoveUp">
-          <div className="flex space-x-6" id="desktop-images">
+          <div className={`flex ${isMobileView ? 'flex-col space-y-6' : 'space-x-6'}`} id="images-container">
             <Link href="/cello-music">
               <div className="relative hover:scale-105 duration-300">
                 <img src="/assets/violin2.png" className="w-80 h-120 rounded-lg hover:opacity-75 transition-opacity duration-300" />
@@ -55,7 +53,6 @@ const Home: NextPage = () => {
                 </div>
               </div>
             </Link>
-            <div className="m-20" />
             <Link href="/cello-music">
               <div className="relative hover:scale-105 duration-300">
                 <img src="/assets/cellist3.png" className="w-80 h-120 rounded-lg hover:opacity-75 transition-opacity duration-300" />
@@ -64,8 +61,6 @@ const Home: NextPage = () => {
                 </div>
               </div>
             </Link>
-            <div className="m-20" />
-
             <Link href="/contribute">
               <div className="relative hover:scale-105 duration-300">
                 <img src="/assets/contribute.png" className="w-80 h-120 rounded-lg hover:opacity-75 transition-opacity duration-300" />
@@ -84,15 +79,28 @@ const Home: NextPage = () => {
           transition: transform 1.5s ease-in-out;
         }
 
+        .mobile-title {
+          white-space: pre-wrap;
+        }
+
         @media (max-width: 768px) {
-          .mobile-view h1,
-          .mobile-view p, 
-          .mobile-view #desktop-images {
-            display: none;
+          .mobile-title {
+            white-space: pre-wrap;
+            text-align: center;
+            line-height: 1.2;
+          }
+
+          .mobile-view p {
+            display: block;
           }
 
           .mobile-view button {
             transform: translateY(-50%);
+          }
+
+          #images-container {
+            flex-direction: column;
+            gap: 1.5rem; /* Adjust for spacing */
           }
         }
       `}</style>
