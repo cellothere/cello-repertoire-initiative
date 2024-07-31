@@ -27,6 +27,7 @@ interface PieceProps {
     level_id: number;
     isArrangement: boolean;
     audio_link: string[];
+    instrumentation: string[];
     publisher_info: string;
     description: string;
     technical_overview: string;
@@ -59,26 +60,23 @@ const getLevelDescription = (level_id: string): string => {
   }
 };
 
-const videoId = "ybwuiP6v7hk";
-  const videoTitle = "[전인혁작곡] 야다(Yada) - 약속 (2019 ver)";
 
 const Piece: NextPage<PieceProps> = ({ piece, composerInfo }) => {
+  
   const [videoId1, setVideoId1] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (piece && piece.audio_link && piece.audio_link.length > 1) {
-      const audioLink1 = piece.audio_link[0];
-      setVideoId1(audioLink1.slice(-11));
-    }
-  }, [piece]);
 
   if (!piece) {
     return <LoadingAnimation />;
   }
 
-  const onPlayerReady: YouTubeProps['onReady'] = (event) => {
-    event.target.pauseVideo();
-  }
+  useEffect(() => {
+    if (piece && piece.audio_link && piece.audio_link.length > -1) {
+      const audioLink1 = piece.audio_link[0];
+      const id = audioLink1.slice(-11);
+      console.log(id)
+      setVideoId1(id);
+    }
+  }, [piece]);
 
   const opts: YouTubeProps['opts'] = {
     height: '400',
@@ -93,9 +91,9 @@ const Piece: NextPage<PieceProps> = ({ piece, composerInfo }) => {
       <Head>
         <title>{piece.title}</title>
       </Head>
-  
+
       <NavbarMain />
-  
+
       <main className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 mt-5">
         <div className="container mx-auto">
           <div className="flex flex-col justify-between items-start mb-2">
@@ -126,6 +124,11 @@ const Piece: NextPage<PieceProps> = ({ piece, composerInfo }) => {
               {piece.description || 'No description available.'}
               <p className="mb-4"></p>
               {piece.composition_year && <p className="text-md mb-4"><strong>Composition Year: </strong> {piece.composition_year}</p>}
+              {piece.instrumentation && (
+                <p className="text-md mb-4">
+                  <strong>Instrumentation: </strong> {piece.instrumentation.join(', ')}
+                </p>
+              )}
               {piece.duration && <p className="text-md mb-4"> <strong>Duration: </strong>{piece.duration}</p>}
               <p className="text-md mb-4"><strong>Arrangement of Original? </strong>{piece.isArrangement ? 'Yes' : 'No'}</p>
               <p className="text-md mb-4"><strong>Public Domain? </strong> {piece.is_public_domain ? 'Yes' : 'No'}</p>
@@ -133,7 +136,7 @@ const Piece: NextPage<PieceProps> = ({ piece, composerInfo }) => {
               {/* {piece.coverImage && <img src={piece.coverImage} alt={piece.title} />} */}
             </AccordionDetails>
           </Accordion>
-  
+
           <Accordion className="w-full md:w-[600px]">
             <AccordionSummary
               expandIcon={<ExpandMoreIcon />}
@@ -148,7 +151,7 @@ const Piece: NextPage<PieceProps> = ({ piece, composerInfo }) => {
               {piece.technical_overview || 'No description available.'}
             </AccordionDetails>
           </Accordion>
-  
+
           <Accordion className="w-full md:w-[600px]">
             <AccordionSummary
               expandIcon={<ExpandMoreIcon />}
@@ -177,7 +180,7 @@ const Piece: NextPage<PieceProps> = ({ piece, composerInfo }) => {
               )}
             </AccordionDetails>
           </Accordion>
-  
+
           <Accordion className="w-full md:w-[600px]">
             <AccordionSummary
               expandIcon={<ExpandMoreIcon />}
@@ -207,7 +210,7 @@ const Piece: NextPage<PieceProps> = ({ piece, composerInfo }) => {
             </AccordionDetails>
           </Accordion>
         </div>
-  
+
         <div className="container mx-auto flex flex-col items-center">
           <div className="w-full flex justify-end">
             <button className="bg-black text-white px-4 py-2 mb-3 rounded-lg transition-transform hover:scale-105">
@@ -217,7 +220,7 @@ const Piece: NextPage<PieceProps> = ({ piece, composerInfo }) => {
             </button>
           </div>
           {videoId1 && <div className="w-full">
-            <VideoIframe videoId={videoId1} title=""/>
+            <VideoIframe videoId={videoId1} title="" />
           </div>}
         </div>
 
@@ -243,6 +246,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
     },
     { $unwind: '$composerDetails' },
   ]).next();
+  
   return {
     props: {
       piece: piece ? {
@@ -253,6 +257,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
         level_id: piece.level_id || 0,
         isArrangement: piece.isArrangement || false,
         audio_link: piece.audio_link || [],
+        instrumentation: piece.instrumentation || [],
         publisher_info: piece.publisher_info || '',
         description: piece.description || '',
         technical_overview: piece.technical_overview || '',

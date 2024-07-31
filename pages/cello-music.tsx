@@ -60,9 +60,6 @@ const Music: NextPage = () => {
       </Head>
       <NavbarMain />
 
-
-
-
       <div className="flex mt-16">
         <aside className="fixed top-24 left-0 h-full w-1/4 p-5 ">
           <h2 className="text-xl font-bold mb-4">Filter</h2>
