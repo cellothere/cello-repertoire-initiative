@@ -60,7 +60,7 @@ const Contribute: NextPage<ContributeProps> = () => {
                                         value={pieceName}
                                         onChange={(e) => setPieceName(e.target.value)}
                                         required
-                                        className="form-input w-full p-2 rounded bg-gray-300 border border-gray-600 text-black"
+                                        className="form-input w-full p-2 rounded bg-white border border-gray-600 text-black"
                                     />
                                 </div>
                                 <div>
@@ -71,7 +71,7 @@ const Contribute: NextPage<ContributeProps> = () => {
                                         value={composer}
                                         onChange={(e) => setComposer(e.target.value)}
                                         required
-                                        className="form-input w-full p-2 rounded bg-gray-300 border border-gray-600 text-black"
+                                        className="form-input w-full p-2 rounded bg-white border border-gray-600 text-black"
                                     />
                                 </div>
                                 <div>
@@ -82,7 +82,7 @@ const Contribute: NextPage<ContributeProps> = () => {
                                         value={whereToBuyOrDownload}
                                         onChange={(e) => setWhereToBuyOrDownload(e.target.value)}
                                         required
-                                        className="form-input w-full p-2 rounded bg-gray-300 border border-gray-600 text-black"
+                                        className="form-input w-full p-2 rounded bg-white border border-gray-600 text-black"
                                     />
                                 </div>
                                 <div>
@@ -91,7 +91,7 @@ const Contribute: NextPage<ContributeProps> = () => {
                                         id="description"
                                         value={description}
                                         onChange={(e) => setDescription(e.target.value)}
-                                        className="form-textarea w-full p-2 rounded bg-gray-300 border border-gray-600 text-black h-24"
+                                        className="form-textarea w-full p-2 rounded bg-white border border-gray-600 text-black h-24"
                                     ></textarea>
                                 </div>
                                 <button type="submit" className="btn btn-primary bg-black text-white px-6 py-3 w-10px rounded-lg mt-4 transition-transform hover:scale-105">Submit</button>

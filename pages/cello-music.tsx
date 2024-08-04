@@ -28,6 +28,12 @@ const getLevelDescription = (level_id: string): string => {
   }
 };
 
+const accordionContent = {
+  Level: ['Beginner', 'Advanced', 'Professional'],
+  Instrumentation: ['Solo', 'Duet', 'Trio', 'Quartet'],
+  Composer: ['Beethoven', 'Bach', 'Brahms', 'Mozart']
+};
+
 const Music: NextPage = () => {
   const [pieces, setPieces] = useState<MusicPiece[]>([]);
   const [filteredPieces, setFilteredPieces] = useState<MusicPiece[]>([]);
@@ -88,7 +94,7 @@ const Music: NextPage = () => {
           />
 
           <div id="accordion">
-            {['Level', 'Instrumentation', 'Composer'].map((item, index) => (
+            {Object.entries(accordionContent).map(([key, content], index) => (
               <div key={index}>
                 <h2 id={`accordion-heading-${index}`}>
                   <button
@@ -98,7 +104,7 @@ const Music: NextPage = () => {
                     aria-expanded={openAccordion === index}
                     aria-controls={`accordion-body-${index}`}
                   >
-                    <span>{item}</span>
+                    <span>{key}</span>
                     <svg className={`w-3 h-3 transition-transform ${openAccordion === index ? 'rotate-180' : ''}`} aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 10 6">
                       <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5 5 1 1 5"/>
                     </svg>
@@ -106,7 +112,12 @@ const Music: NextPage = () => {
                 </h2>
                 <div id={`accordion-body-${index}`} className={`transition-max-height overflow-hidden ${openAccordion === index ? 'max-h-96' : 'max-h-0'} bg-white border border-gray-200 dark:bg-gray-900 dark:border-gray-700`}>
                   <div className="p-5">
-                    <p className="mb-2 text-gray-500 dark:text-gray-400">Details about {item}.</p>
+                    <p className="mb-2 text-gray-500 dark:text-gray-400">Select {key}:</p>
+                    <ul className="list-disc pl-5">
+                      {content.map((item, i) => (
+                        <li key={i} className="text-gray-600 dark:text-gray-400">{item}</li>
+                      ))}
+                    </ul>
                   </div>
                 </div>
               </div>
@@ -133,7 +144,7 @@ const Music: NextPage = () => {
             />
 
             <div id="accordion">
-              {['Level', 'Instrumentation', 'Composer'].map((item, index) => (
+              {Object.entries(accordionContent).map(([key, content], index) => (
                 <div key={index}>
                   <h2 id={`accordion-heading-${index}`}>
                     <button
@@ -143,7 +154,7 @@ const Music: NextPage = () => {
                       aria-expanded={openAccordion === index}
                       aria-controls={`accordion-body-${index}`}
                     >
-                      <span>{item}</span>
+                      <span>{key}</span>
                       <svg className={`w-3 h-3 transition-transform ${openAccordion === index ? 'rotate-180' : ''}`} aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 10 6">
                         <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5 5 1 1 5"/>
                       </svg>
@@ -151,7 +162,12 @@ const Music: NextPage = () => {
                   </h2>
                   <div id={`accordion-body-${index}`} className={`transition-max-height overflow-hidden ${openAccordion === index ? 'max-h-96' : 'max-h-0'} bg-white border border-gray-200 dark:bg-gray-900 dark:border-gray-700`}>
                     <div className="p-5">
-                      <p className="mb-2 text-gray-500 dark:text-gray-400">Details about {item}.</p>
+                      <p className="mb-2 text-gray-500 dark:text-gray-400">Select {key}:</p>
+                      <ul className="list-disc pl-5">
+                        {content.map((item, i) => (
+                          <li key={i} className="text-gray-600 dark:text-gray-400">{item}</li>
+                        ))}
+                      </ul>
                     </div>
                   </div>
                 </div>
