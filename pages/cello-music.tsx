@@ -73,15 +73,7 @@ const Music: NextPage = () => {
       </Head>
       <NavbarMain />
 
-      <div className="flex mt-16">
-        {/* Filter button for mobile view */}
-        <button 
-          className="md:hidden fixed top-24 left-0 w-full p-3 bg-blue-500 text-white font-bold"
-          onClick={() => setIsFilterVisible(true)}
-        >
-          Filter
-        </button>
-
+      <div className="flex mt-1">
         {/* Fixed filter section */}
         <aside className="hidden md:block fixed top-24 left-0 w-64 h-full p-5 border-r-4 border-gray-100">
           <h2 className="text-xl color-black font-bold mb-4">Filter</h2>
@@ -106,7 +98,7 @@ const Music: NextPage = () => {
                   >
                     <span>{key}</span>
                     <svg className={`w-3 h-3 transition-transform ${openAccordion === index ? 'rotate-180' : ''}`} aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 10 6">
-                      <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5 5 1 1 5"/>
+                      <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5 5 1 1 5" />
                     </svg>
                   </button>
                 </h2>
@@ -128,7 +120,7 @@ const Music: NextPage = () => {
         {/* Filter splash screen for mobile view */}
         {isFilterVisible && (
           <div className="md:hidden fixed inset-0 bg-white z-50 overflow-y-auto p-5">
-            <button 
+            <button
               className="absolute top-5 right-5 bg-red-500 text-white p-2 rounded"
               onClick={() => setIsFilterVisible(false)}
             >
@@ -156,7 +148,7 @@ const Music: NextPage = () => {
                     >
                       <span>{key}</span>
                       <svg className={`w-3 h-3 transition-transform ${openAccordion === index ? 'rotate-180' : ''}`} aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 10 6">
-                        <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5 5 1 1 5"/>
+                        <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5 5 1 1 5" />
                       </svg>
                     </button>
                   </h2>
@@ -178,7 +170,17 @@ const Music: NextPage = () => {
 
         {/* Main content area */}
         <main className="md:ml-64 container mx-auto p-4">
-          <h1 className="text-3xl font-bold text-center my-6">Cello Music</h1>
+          <div className="flex items-center justify-between">
+            <h1 className="text-3xl font-bold text-center my-6">Cello Music</h1>
+            {!isFilterVisible && (
+              <button
+                className="md:hidden w-24 p-3 bg-black text-white font-bold z-0 rounded-lg"
+                onClick={() => setIsFilterVisible(true)}
+              >
+                Filter
+              </button>
+            )}
+          </div>
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
             {filteredPieces.map((piece, index) => (
               <div key={index} className="bg-white shadow-md rounded-lg p-4">
@@ -195,6 +197,7 @@ const Music: NextPage = () => {
             ))}
           </div>
         </main>
+
       </div>
     </div>
   );

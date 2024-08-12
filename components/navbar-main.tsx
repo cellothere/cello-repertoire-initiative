@@ -92,8 +92,12 @@ const NavbarMain = () => {
 
       {/* Mobile Menu */}
       <div className="md:hidden flex items-center">
+      <Link href="/">
         <FaSearch size={25} className="mr-4"/>
+        </Link>
+        <Link href="/">
         <BiSolidHomeCircle size={30} className="mr-3"/>
+        </Link>
         <Button
           variant="flat"
           onClick={toggleMenu}
@@ -103,7 +107,7 @@ const NavbarMain = () => {
         <RxHamburgerMenu />
         </Button>
         {isMenuOpen && (
-          <div className="absolute top-16 right-0 bg-white w-48 border border-gray-400 rounded shadow-lg">
+          <div className="z-50 mt-1 absolute top-16 right-0 bg-white w-48 border border-gray-400 rounded shadow-lg">
             <Link href="/">
               <button className="w-full py-2 px-4 text-left hover:bg-gray-200">
                 Home
