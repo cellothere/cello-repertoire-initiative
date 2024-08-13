@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import NavbarMain from '@/components/navbar-main';
 import FilterAside from '@/components/filter-search';
+import MobileFilterAccordion from '@/components/mobile-filter-search';
 
 interface MusicPiece {
   id: string;
@@ -90,7 +91,19 @@ const Music: NextPage = () => {
               className="w-full p-2 border border-gray-300 rounded text-black font-mono mb-4"
             />
 
-            {/* Note: The mobile view splash screen accordion can be managed similarly in its own component if needed */}
+{isFilterVisible && (
+  <div className="md:hidden fixed inset-0 bg-white z-50 overflow-y-auto p-5">
+    <button
+      className="absolute top-5 right-5 bg-red-500 text-white p-2 rounded"
+      onClick={() => setIsFilterVisible(false)}
+    >
+      Close
+    </button>
+
+    {/* Mobile filter accordion component */}
+    <MobileFilterAccordion filter={filter} setFilter={setFilter} accordionContent={accordionContent} />
+  </div>
+)}
           </div>
         )}
 
