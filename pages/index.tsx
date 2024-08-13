@@ -4,6 +4,7 @@ import NavbarMain from '@/components/navbar-main';
 import { FaArrowRight } from 'react-icons/fa';
 import { useEffect, useState } from 'react';
 import { Link } from '@nextui-org/react';
+import { Analytics } from "@vercel/analytics/react"
 
 const Home: NextPage = () => {
   const [isMobileView, setIsMobileView] = useState(false);
@@ -72,6 +73,7 @@ const Home: NextPage = () => {
             </Link>
           </div>
         </div>
+        <Analytics />
       </main>
       <style jsx>{`
         .move-up {
