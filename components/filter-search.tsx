@@ -4,9 +4,11 @@ interface FilterAsideProps {
   filter: string;
   setFilter: (value: string) => void;
   accordionContent: Record<string, string[]>;
+  selectedComposers: string[];
+  toggleComposerSelection: (composer: string) => void;
 }
 
-const FilterAside: React.FC<FilterAsideProps> = ({ filter, setFilter, accordionContent }) => {
+const FilterAside: React.FC<FilterAsideProps> = ({ filter, setFilter, accordionContent, selectedComposers, toggleComposerSelection }) => {
   const [openAccordion, setOpenAccordion] = useState<number | null>(null);
 
   const toggleAccordion = (index: number) => {
@@ -46,7 +48,17 @@ const FilterAside: React.FC<FilterAsideProps> = ({ filter, setFilter, accordionC
                 <p className="mb-2 text-gray-500 dark:text-gray-400">Select {key}:</p>
                 <ul className="list-disc pl-5">
                   {content.map((item, i) => (
-                    <li key={i} className="text-gray-600 dark:text-gray-400">{item}</li>
+                    <li key={i} className="text-gray-600 dark:text-gray-400">
+                      <label>
+                        <input
+                          type="checkbox"
+                          checked={selectedComposers.includes(item)}
+                          onChange={() => toggleComposerSelection(item)}
+                          className="mr-2"
+                        />
+                        {item}
+                      </label>
+                    </li>
                   ))}
                 </ul>
               </div>

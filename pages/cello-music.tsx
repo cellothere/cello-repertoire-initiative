@@ -13,6 +13,10 @@ interface MusicPiece {
   level_id: string;
 }
 
+interface Composer {
+  composer_name: string;
+}
+
 const getLevelDescription = (level_id: string): string => {
   const level = parseInt(level_id, 10);
   switch (level) {
@@ -30,17 +34,17 @@ const getLevelDescription = (level_id: string): string => {
   }
 };
 
-const accordionContent = {
-  Level: ['Beginner', 'Advanced', 'Professional'],
-  Instrumentation: ['Solo', 'Duet', 'Trio', 'Quartet'],
-  Composer: ['Beethoven', 'Bach', 'Brahms', 'Mozart']
-};
-
 const Music: NextPage = () => {
   const [pieces, setPieces] = useState<MusicPiece[]>([]);
   const [filteredPieces, setFilteredPieces] = useState<MusicPiece[]>([]);
   const [filter, setFilter] = useState<string>('');
   const [isFilterVisible, setIsFilterVisible] = useState<boolean>(false);
+  const [accordionContent, setAccordionContent] = useState({
+    Level: ['Beginner', 'Advanced', 'Professional'],
+    Instrumentation: ['Solo', 'Duet', 'Trio', 'Quartet'],
+    Composer: [] as string[],
+  });
+  const [selectedComposers, setSelectedComposers] = useState<string[]>([]);
 
   useEffect(() => {
     const fetchPieces = async () => {
@@ -56,12 +60,35 @@ const Music: NextPage = () => {
   }, []);
 
   useEffect(() => {
+    const fetchComposers = async () => {
+      const res = await fetch('/api/composers');
+      const data = await res.json();
+      const composerNames = data.flatMap((group: { composers: Composer[] }) =>
+        group.composers.map((composer) => composer.composer_name)
+      );
+      setAccordionContent((prevContent) => ({
+        ...prevContent,
+        Composer: composerNames,
+      }));
+    };
+
+    fetchComposers();
+  }, []);
+
+  useEffect(() => {
     const filtered = pieces.filter(piece =>
-      piece.title.toLowerCase().includes(filter.toLowerCase()) ||
-      piece.composer.toLowerCase().includes(filter.toLowerCase())
+      (piece.title.toLowerCase().includes(filter.toLowerCase()) ||
+        piece.composer.toLowerCase().includes(filter.toLowerCase())) &&
+      (selectedComposers.length === 0 || selectedComposers.includes(piece.composer))
     );
     setFilteredPieces(filtered);
-  }, [filter, pieces]);
+  }, [filter, pieces, selectedComposers]);
+
+  const toggleComposerSelection = (composer: string) => {
+    setSelectedComposers(prev =>
+      prev.includes(composer) ? prev.filter(c => c !== composer) : [...prev, composer]
+    );
+  };
 
   return (
     <div>
@@ -71,9 +98,14 @@ const Music: NextPage = () => {
       <NavbarMain />
 
       <div className="flex mt-1">
-        <FilterAside filter={filter} setFilter={setFilter} accordionContent={accordionContent} />
+        <FilterAside
+          filter={filter}
+          setFilter={setFilter}
+          accordionContent={accordionContent}
+          selectedComposers={selectedComposers}
+          toggleComposerSelection={toggleComposerSelection}
+        />
 
-        {/* Filter splash screen for mobile view */}
         {isFilterVisible && (
           <div className="md:hidden fixed inset-0 bg-white z-50 overflow-y-auto p-5">
             <button
@@ -91,23 +123,16 @@ const Music: NextPage = () => {
               className="w-full p-2 border border-gray-300 rounded text-black font-mono mb-4"
             />
 
-{isFilterVisible && (
-  <div className="md:hidden fixed inset-0 bg-white z-50 overflow-y-auto p-5">
-    <button
-      className="absolute top-5 right-5 bg-red-500 text-white p-2 rounded"
-      onClick={() => setIsFilterVisible(false)}
-    >
-      Close
-    </button>
-
-    {/* Mobile filter accordion component */}
-    <MobileFilterAccordion filter={filter} setFilter={setFilter} accordionContent={accordionContent} />
-  </div>
-)}
+            <MobileFilterAccordion
+              filter={filter}
+              setFilter={setFilter}
+              accordionContent={accordionContent}
+              selectedComposers={selectedComposers}
+              toggleComposerSelection={toggleComposerSelection}
+            />
           </div>
         )}
 
-        {/* Main content area */}
         <main className="md:ml-64 container mx-auto p-4">
           <div className="flex items-center justify-between">
             <h1 className="text-3xl font-bold text-center my-6">Cello Music</h1>
@@ -136,7 +161,6 @@ const Music: NextPage = () => {
             ))}
           </div>
         </main>
-
       </div>
     </div>
   );
