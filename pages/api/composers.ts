@@ -5,7 +5,7 @@ import clientPromise from '../../lib/mongodb';
 
 // Define the Composer type
 type Composer = {
-  composer_name: string;
+  composer_full_ame: string;
   composer_bio: string;
   wikipedia_article: string;
 };
@@ -19,17 +19,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       .aggregate<Composer>([
         {
           $sort: {
-            composer_name: 1,
+            composer_full_name: 1,
           },
         },
         {
           $group: {
             _id: {
-              $toLower: { $substrCP: ['$composer_name', 0, 1] },
+              $toLower: { $substrCP: ['$composer_full_name', 0, 1] },
             },
             composers: {
               $push: {
-                composer_name: '$composer_name',
+                composer_full_name: '$composer_full_name',
                 composer_bio: '$composer_bio',
                 wikipedia_article: '$wikipedia_article',
               },

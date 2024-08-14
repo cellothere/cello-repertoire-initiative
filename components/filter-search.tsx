@@ -81,22 +81,23 @@ const FilterAside: React.FC<FilterAsideProps> = ({
                 )}
                 <p className="mb-2 text-gray-500 dark:text-gray-400">Select {key}:</p>
                 <ul className="list-none pl-1">
-                  {content
-                    .filter((item) => item.toLowerCase().includes(composerSearch.toLowerCase())) // Filter composers
-                    .map((item, i) => (
-                      <li key={i} className="text-gray-600 dark:text-gray-400">
-                        <label>
-                          <input
-                            type="checkbox"
-                            checked={selectedComposers.includes(item)}
-                            onChange={() => toggleComposerSelection(item)}
-                            className="mr-2"
-                          />
-                          {item}
-                        </label>
-                      </li>
-                    ))}
-                </ul>
+  {content
+    .filter((item) => typeof item === 'string' && item.toLowerCase().includes(composerSearch.toLowerCase())) // Filter composers
+    .map((item, i) => (
+      <li key={i} className="text-gray-600 dark:text-gray-400">
+        <label>
+          <input
+            type="checkbox"
+            checked={selectedComposers.includes(item)}
+            onChange={() => toggleComposerSelection(item)}
+            className="mr-2"
+          />
+          {item}
+        </label>
+      </li>
+    ))}
+</ul>
+
               </div>
             </div>
           </div>

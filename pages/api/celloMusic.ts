@@ -48,7 +48,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             musicPieces: {
               $push: {
                 title: '$title',
-                composer: '$composerDetails.composer_name',
+                composer: '$composerDetails.composer_full_name',
                 level_id: '$level_id',
                 description: '$description',
                 id: '$id'

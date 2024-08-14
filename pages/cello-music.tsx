@@ -14,7 +14,7 @@ interface MusicPiece {
 }
 
 interface Composer {
-  composer_name: string;
+  composer_full_name: string;
 }
 
 const getLevelDescription = (level_id: string): string => {
@@ -64,7 +64,7 @@ const Music: NextPage = () => {
       const res = await fetch('/api/composers');
       const data = await res.json();
       const composerNames = data.flatMap((group: { composers: Composer[] }) =>
-        group.composers.map((composer) => composer.composer_name)
+        group.composers.map((composer) => composer.composer_full_name)
       );
       setAccordionContent((prevContent) => ({
         ...prevContent,

@@ -35,7 +35,7 @@ interface PieceProps {
   } | null;
 
   composerInfo: {
-    composer_name: string;
+    composer_full_name: string;
     articles: string[];
   } | null;
 }
@@ -93,7 +93,7 @@ const Piece: NextPage<PieceProps> = ({ piece, composerInfo }) => {
             <h1 className="text-3xl font-bold">{piece.title}</h1>
             <div className="flex flex-col items-start mb-2">
               <p className="text-xl mb-2">by{' '}
-                <Link href={composerInfo?.articles[0] || ''} className="underline">{composerInfo?.composer_name || 'Unknown Composer'}</Link>
+                <Link href={composerInfo?.articles[0] || ''} className="underline">{composerInfo?.composer_full_name || 'Unknown Composer'}</Link>
               </p>
               <div className="flex items-center">
                 <p className="text-md text-lg italic mr-1">{' - '}{getLevelDescription(piece.level_id.toString())}</p>
@@ -259,7 +259,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
         coverImage: piece.coverImage || '',
       } : null,
       composerInfo: piece ? {
-        composer_name: piece.composerDetails.composer_name || 'Unknown Composer',
+        composer_full_name: piece.composerDetails.composer_full_name || 'Unknown Composer',
         articles: piece.composerDetails.articles || []
       } : null,
     },
