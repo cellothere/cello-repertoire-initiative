@@ -16,10 +16,16 @@ const FilterAside: React.FC<FilterAsideProps> = ({
   toggleComposerSelection,
 }) => {
   const [openAccordion, setOpenAccordion] = useState<number | null>(null);
-  const [composerSearch, setComposerSearch] = useState<string>(''); // New state for composer search
+  const [composerSearch, setComposerSearch] = useState<string>(''); // State for composer search
 
   const toggleAccordion = (index: number) => {
     setOpenAccordion(openAccordion === index ? null : index);
+  };
+
+  const clearFilters = () => {
+    setFilter('');
+    setComposerSearch('');
+    selectedComposers.forEach(composer => toggleComposerSelection(composer)); // Unselect all composers
   };
 
   return (
@@ -32,6 +38,13 @@ const FilterAside: React.FC<FilterAsideProps> = ({
         onChange={(e) => setFilter(e.target.value)}
         className="w-full p-2 border border-gray-300 rounded text-black font-mono"
       />
+            {/* Clear Filters Button */}
+            <button
+        onClick={clearFilters}
+        className="w-full mt-4 mb-4 p-3 bg-black text-white rounded-lg font-bold rounded"
+      >
+        Clear Filters
+      </button>
 
       <div id="accordion">
         {Object.entries(accordionContent).map(([key, content], index) => (
@@ -89,6 +102,8 @@ const FilterAside: React.FC<FilterAsideProps> = ({
           </div>
         ))}
       </div>
+
+
     </aside>
   );
 };
