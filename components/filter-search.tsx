@@ -8,8 +8,15 @@ interface FilterAsideProps {
   toggleComposerSelection: (composer: string) => void;
 }
 
-const FilterAside: React.FC<FilterAsideProps> = ({ filter, setFilter, accordionContent, selectedComposers, toggleComposerSelection }) => {
+const FilterAside: React.FC<FilterAsideProps> = ({
+  filter,
+  setFilter,
+  accordionContent,
+  selectedComposers,
+  toggleComposerSelection,
+}) => {
   const [openAccordion, setOpenAccordion] = useState<number | null>(null);
+  const [composerSearch, setComposerSearch] = useState<string>(''); // New state for composer search
 
   const toggleAccordion = (index: number) => {
     setOpenAccordion(openAccordion === index ? null : index);
@@ -43,23 +50,39 @@ const FilterAside: React.FC<FilterAsideProps> = ({ filter, setFilter, accordionC
                 </svg>
               </button>
             </h2>
-            <div id={`accordion-body-${index}`} className={`transition-max-height overflow-hidden ${openAccordion === index ? 'max-h-96' : 'max-h-0'} bg-white border border-gray-200 dark:bg-gray-900 dark:border-gray-700`}>
-              <div className="p-5">
+            <div
+              id={`accordion-body-${index}`}
+              className={`transition-max-height overflow-hidden ${openAccordion === index ? 'max-h-96' : 'max-h-0'} bg-white border border-gray-200 dark:bg-gray-900 dark:border-gray-700`}
+            >
+              <div className="p-5 max-h-80 overflow-y-auto">
+                {key === 'Composer' && (
+                  <div className="mb-4">
+                    <input
+                      type="text"
+                      placeholder="Search composers..."
+                      value={composerSearch}
+                      onChange={(e) => setComposerSearch(e.target.value)}
+                      className="w-full p-2 border border-gray-300 rounded text-black font-mono"
+                    />
+                  </div>
+                )}
                 <p className="mb-2 text-gray-500 dark:text-gray-400">Select {key}:</p>
-                <ul className="list-disc pl-5">
-                  {content.map((item, i) => (
-                    <li key={i} className="text-gray-600 dark:text-gray-400">
-                      <label>
-                        <input
-                          type="checkbox"
-                          checked={selectedComposers.includes(item)}
-                          onChange={() => toggleComposerSelection(item)}
-                          className="mr-2"
-                        />
-                        {item}
-                      </label>
-                    </li>
-                  ))}
+                <ul className="list-none pl-1">
+                  {content
+                    .filter((item) => item.toLowerCase().includes(composerSearch.toLowerCase())) // Filter composers
+                    .map((item, i) => (
+                      <li key={i} className="text-gray-600 dark:text-gray-400">
+                        <label>
+                          <input
+                            type="checkbox"
+                            checked={selectedComposers.includes(item)}
+                            onChange={() => toggleComposerSelection(item)}
+                            className="mr-2"
+                          />
+                          {item}
+                        </label>
+                      </li>
+                    ))}
                 </ul>
               </div>
             </div>
