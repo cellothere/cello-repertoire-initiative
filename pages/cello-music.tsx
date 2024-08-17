@@ -5,6 +5,10 @@ import Link from 'next/link';
 import NavbarMain from '@/components/navbar-main';
 import FilterAside from '@/components/filter-search';
 import MobileFilterAccordion from '@/components/mobile-filter-search';
+import { CiHeart } from "react-icons/ci";
+import { FaInfoCircle } from "react-icons/fa";
+
+
 
 interface MusicPiece {
   id: string;
@@ -139,18 +143,24 @@ const Music: NextPage = () => {
               </button>
             )}
           </div>
-          <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-5">
             {filteredPieces.map((piece, index) => (
               <div key={index} className="bg-white shadow-md rounded-lg p-4">
-                <h2 className="text-xl font-semibold text-gray-800">{piece.title}</h2>
+                <h2 className="text-l font-semibold text-gray-800">{piece.title}</h2>
                 <p className="text-gray-600">by {piece.composer}</p>
                 <div className="border-b border-gray-300 my-2"></div>
                 <div className="flex justify-between items-center">
                   <p className="text-gray-600">{piece.level}</p>
-                  <Link href={`/piece/${piece.id}`}>
-                    <p className="text-blue-500 hover:underline">View Detail</p>
-                  </Link>
                 </div>
+                <div className="flex justify-between items-center">
+                <div className="flex space-x-2">
+                    <CiHeart className="text-xl text-gray-600 hover:text-red-500 cursor-pointer" />
+                    <Link href={`/piece/${piece.id}`}>
+                      <FaInfoCircle className="text-xl text-blue-500 hover:text-blue-700 cursor-pointer" />
+                    </Link>
+                  </div>
+                  </div>
+
               </div>
             ))}
           </div>
