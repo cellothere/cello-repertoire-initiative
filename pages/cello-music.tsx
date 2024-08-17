@@ -10,29 +10,12 @@ interface MusicPiece {
   id: string;
   title: string;
   composer: string;
-  level_id: string;
+  level: string;
 }
 
 interface Composer {
   composer_full_name: string;
 }
-
-const getLevelDescription = (level_id: string): string => {
-  const level = parseInt(level_id, 10);
-  switch (level) {
-    case 1: return 'Early Beginner';
-    case 2: return 'Beginner';
-    case 3: return 'Late Beginner';
-    case 4: return 'Early Intermediate';
-    case 5: return 'Intermediate';
-    case 6:
-    case 7: return 'Late Intermediate';
-    case 8:
-    case 9: return 'Early Professional';
-    case 10: return 'Professional';
-    default: return 'Unknown Level';
-  }
-};
 
 const Music: NextPage = () => {
   const [pieces, setPieces] = useState<MusicPiece[]>([]);
@@ -40,17 +23,17 @@ const Music: NextPage = () => {
   const [filter, setFilter] = useState<string>('');
   const [isFilterVisible, setIsFilterVisible] = useState<boolean>(false);
   const [accordionContent, setAccordionContent] = useState({
-    Level: ['Beginner', 'Advanced', 'Professional'],
+    Level: ['Early Beginner', 'Beginner', 'Late Beginner', 'Early Intermediate', 'Intermediate', 'Late Intermediate', 'Early Advanced', 'Advanced', 'Professional'],
     Instrumentation: ['Solo', 'Duet', 'Trio', 'Quartet'],
     Composer: [] as string[],
   });
   const [selectedComposers, setSelectedComposers] = useState<string[]>([]);
+  const [selectedLevels, setSelectedLevels] = useState<string[]>([]); // Add this line
 
   useEffect(() => {
     const fetchPieces = async () => {
       const res = await fetch('/api/celloMusic');
       const data = await res.json();
-      console.log(data);  // Log the fetched data
       const flattenedPieces = data.flatMap((group: { musicPieces: MusicPiece[] }) => group.musicPieces);
       setPieces(flattenedPieces);
       setFilteredPieces(flattenedPieces);
@@ -79,14 +62,21 @@ const Music: NextPage = () => {
     const filtered = pieces.filter(piece =>
       (piece.title.toLowerCase().includes(filter.toLowerCase()) ||
         piece.composer.toLowerCase().includes(filter.toLowerCase())) &&
-      (selectedComposers.length === 0 || selectedComposers.includes(piece.composer))
+      (selectedComposers.length === 0 || selectedComposers.includes(piece.composer)) &&
+      (selectedLevels.length === 0 || selectedLevels.includes(piece.level)) // Add this condition
     );
     setFilteredPieces(filtered);
-  }, [filter, pieces, selectedComposers]);
+  }, [filter, pieces, selectedComposers, selectedLevels]); // Add selectedLevels
 
   const toggleComposerSelection = (composer: string) => {
     setSelectedComposers(prev =>
       prev.includes(composer) ? prev.filter(c => c !== composer) : [...prev, composer]
+    );
+  };
+
+  const toggleLevelSelection = (level: string) => { // Add this function
+    setSelectedLevels(prev =>
+      prev.includes(level) ? prev.filter(l => l !== level) : [...prev, level]
     );
   };
 
@@ -104,6 +94,8 @@ const Music: NextPage = () => {
           accordionContent={accordionContent}
           selectedComposers={selectedComposers}
           toggleComposerSelection={toggleComposerSelection}
+          selectedLevels={selectedLevels} // Add this line
+          toggleLevelSelection={toggleLevelSelection} // Add this line
         />
 
         {isFilterVisible && (
@@ -129,6 +121,8 @@ const Music: NextPage = () => {
               accordionContent={accordionContent}
               selectedComposers={selectedComposers}
               toggleComposerSelection={toggleComposerSelection}
+              selectedLevels={selectedLevels} // Add this line
+              toggleLevelSelection={toggleLevelSelection} // Add this line
             />
           </div>
         )}
@@ -152,7 +146,7 @@ const Music: NextPage = () => {
                 <p className="text-gray-600">by {piece.composer}</p>
                 <div className="border-b border-gray-300 my-2"></div>
                 <div className="flex justify-between items-center">
-                  <p className="text-gray-600">{getLevelDescription(piece.level_id)}</p>
+                  <p className="text-gray-600">{piece.level}</p>
                   <Link href={`/piece/${piece.id}`}>
                     <p className="text-blue-500 hover:underline">View Detail</p>
                   </Link>

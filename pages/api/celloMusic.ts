@@ -8,7 +8,7 @@ type MusicPiece = {
   id: number;
   title: string;
   composer: string;
-  level_id: number;
+  level: string;
 };
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -33,7 +33,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         },
         {
           $sort: {
-            level_id: 1,
             composer: 1,
             title: 1,
             id: 1
@@ -49,7 +48,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
               $push: {
                 title: '$title',
                 composer: '$composerDetails.composer_full_name',
-                level_id: '$level_id',
+                level: '$level',
                 description: '$description',
                 id: '$id'
               },

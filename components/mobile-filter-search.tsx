@@ -6,6 +6,8 @@ interface MobileFilterAccordionProps {
     accordionContent: Record<string, string[]>;
     selectedComposers: string[];
     toggleComposerSelection: (composer: string) => void;
+    selectedLevels: string[];
+    toggleLevelSelection: (level: string) => void;
 }
 
 const MobileFilterAccordion: React.FC<MobileFilterAccordionProps> = ({
@@ -14,9 +16,12 @@ const MobileFilterAccordion: React.FC<MobileFilterAccordionProps> = ({
     accordionContent,
     selectedComposers,
     toggleComposerSelection,
+    selectedLevels,
+    toggleLevelSelection,
 }) => {
     const [openAccordion, setOpenAccordion] = useState<number | null>(null);
-    const [composerSearch, setComposerSearch] = useState<string>(''); // New state for composer search
+    const [composerSearch, setComposerSearch] = useState<string>(''); // State for composer search
+    const [levelSearch, setLevelSearch] = useState<string>(''); // State for level search
 
     const toggleAccordion = (index: number) => {
         setOpenAccordion(openAccordion === index ? null : index);
@@ -26,6 +31,8 @@ const MobileFilterAccordion: React.FC<MobileFilterAccordionProps> = ({
         setFilter('');
         setComposerSearch('');
         selectedComposers.forEach(composer => toggleComposerSelection(composer)); // Unselect all composers
+        setLevelSearch('');
+        selectedLevels.forEach(level => toggleLevelSelection(level)); // Unselect all levels
     };
 
     return (
@@ -72,21 +79,44 @@ const MobileFilterAccordion: React.FC<MobileFilterAccordionProps> = ({
                                         />
                                     </div>
                                 )}
+
+                                {key === 'Level' && (
+                                    <div className="mb-4">
+                                        <input
+                                            type="text"
+                                            placeholder="Search levels..."
+                                            value={levelSearch}
+                                            onChange={(e) => setLevelSearch(e.target.value)}
+                                            className="w-full p-2 border border-gray-300 rounded text-black font-mono mb-4"
+                                        />
+                                    </div>
+                                )}
+                                
                                 <p className="mb-2 text-gray-500">Select {key}:</p>
                                 <ul className="list-none pl-0 max-h-64 overflow-y-auto"> {/* Updated for scrolling and removed bullet points */}
                                     {content
                                         .filter((item) =>
                                             typeof item === 'string' &&
-                                            item.toLowerCase().includes(composerSearch.toLowerCase())
-                                        ) // Filter composers based on search
+                                            (key === 'Composer'
+                                                ? item.toLowerCase().includes(composerSearch.toLowerCase())
+                                                : item.toLowerCase().includes(levelSearch.toLowerCase()))
+                                        ) // Filter composers and levels based on search
                                         .map((item, i) => (
                                             <li key={i} className="text-gray-600">
-                                                {key === 'Composer' ? (
+                                                {key === 'Composer' || key === 'Level' ? (
                                                     <label>
                                                         <input
                                                             type="checkbox"
-                                                            checked={selectedComposers.includes(item)}
-                                                            onChange={() => toggleComposerSelection(item)}
+                                                            checked={
+                                                                key === 'Composer'
+                                                                    ? selectedComposers.includes(item)
+                                                                    : selectedLevels.includes(item)
+                                                            }
+                                                            onChange={() =>
+                                                                key === 'Composer'
+                                                                    ? toggleComposerSelection(item)
+                                                                    : toggleLevelSelection(item)
+                                                            }
                                                             className="mr-2"
                                                         />
                                                         {item}

@@ -21,7 +21,7 @@ interface PieceProps {
     title: string;
     composer_id: string;
     composition_year: string;
-    level_id: number;
+    level: string;
     isArrangement: boolean;
     audio_link: string[];
     instrumentation: string[];
@@ -40,22 +40,7 @@ interface PieceProps {
   } | null;
 }
 
-const getLevelDescription = (level_id: string): string => {
-  const level = parseInt(level_id, 10);
-  switch (level) {
-    case 1: return 'Early Beginner';
-    case 2: return 'Beginner';
-    case 3: return 'Late Beginner';
-    case 4: return 'Early Intermediate';
-    case 5: return 'Intermediate';
-    case 6:
-    case 7: return 'Late Intermediate';
-    case 8:
-    case 9: return 'Early Professional';
-    case 10: return 'Professional';
-    default: return 'Unknown Level';
-  }
-};
+
 
 const Piece: NextPage<PieceProps> = ({ piece, composerInfo }) => {
   const [videoId1, setVideoId1] = useState<string | null>(null);
@@ -96,7 +81,7 @@ const Piece: NextPage<PieceProps> = ({ piece, composerInfo }) => {
                 <Link href={composerInfo?.articles[0] || ''} className="underline">{composerInfo?.composer_full_name || 'Unknown Composer'}</Link>
               </p>
               <div className="flex items-center">
-                <p className="text-md text-lg italic mr-1">{' - '}{getLevelDescription(piece.level_id.toString())}</p>
+                <p className="text-md text-lg italic mr-1">{' - '}{piece.level}</p>
                 <AiFillQuestionCircle className="mb-2" />
               </div>
             </div>
@@ -246,7 +231,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
         title: piece.title || '',
         composer_id: piece.composer_id || '',
         composition_year: piece.composition_year || '',
-        level_id: piece.level_id || 0,
+        level: piece.level || 'Unknown',
         isArrangement: piece.isArrangement || false,
         audio_link: piece.audio_link || [],
         instrumentation: piece.instrumentation || [],
