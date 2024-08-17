@@ -145,13 +145,12 @@ const Music: NextPage = () => {
           </div>
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-5">
             {filteredPieces.map((piece, index) => (
-              <div key={index} className="bg-white shadow-md rounded-lg p-4">
+              <div key={index} className="bg-white shadow-md rounded-lg p-4 hover:scale-110 ">
+                <Link href={`/piece/${piece.id}`}>
                 <h2 className="text-l font-semibold text-gray-800">{piece.title}</h2>
                 <p className="text-gray-600">by {piece.composer}</p>
+                <i><p className="text-gray-600">{piece.level}</p></i>
                 <div className="border-b border-gray-300 my-2"></div>
-                <div className="flex justify-between items-center">
-                  <p className="text-gray-600">{piece.level}</p>
-                </div>
                 <div className="flex justify-between items-center">
                 <div className="flex space-x-2">
                     <CiHeart className="text-xl text-gray-600 hover:text-red-500 cursor-pointer" />
@@ -160,7 +159,7 @@ const Music: NextPage = () => {
                     </Link>
                   </div>
                   </div>
-
+                  </Link>
               </div>
             ))}
           </div>
