@@ -6,7 +6,8 @@ import { BiSolidHomeCircle } from "react-icons/bi";
 
 const NavbarMain = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [isHovered, setIsHovered] = useState(false);
+  const [isMusicHovered, setisMusicHovered] = useState(false);
+  const [isAboutHovered, setisAboutHovered] = useState(false);
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
@@ -38,16 +39,16 @@ const NavbarMain = () => {
           </button>
         </Link>
         <Dropdown
-          onMouseEnter={() => setIsHovered(true)}
-          onMouseLeave={() => setIsHovered(false)}
-          isOpen={isHovered}
-          className="bg-white font-sans w-32"
+          onMouseEnter={() => setisMusicHovered(true)}
+          onMouseLeave={() => setisMusicHovered(false)}
+          isOpen={isMusicHovered}
+          className="bg-white font-sans w-40"
         >
           <DropdownTrigger>
             <Button
-              className="bg-black text-white font-bold py-2 px-4 rounded mx-2"
-              onMouseEnter={() => setIsHovered(true)}
-              onMouseLeave={() => setIsHovered(false)}
+              className="bg-black text-white hover:bg-teal-600 font-bold py-2 px-4 rounded mx-2"
+              onMouseEnter={() => setisMusicHovered(true)}
+              onMouseLeave={() => setisMusicHovered(false)}
               
             >
               <Link href="/cello-music">
@@ -58,10 +59,10 @@ const NavbarMain = () => {
           <DropdownMenu
             aria-label="Music Options"
             className="custom-dropdown-menu"
-            onMouseEnter={() => setIsHovered(true)}
-            onMouseLeave={() => setIsHovered(false)}
+            onMouseEnter={() => setisMusicHovered(true)}
+            onMouseLeave={() => setisMusicHovered(false)}
           >
-            <DropdownItem className="custom-dropdown-item text-black bg-white-500 text-black p-2">
+            {/* <DropdownItem className="custom-dropdown-item text-black bg-white-500 text-black p-2">
               <Link href="#">
                 Violin
               </Link>
@@ -70,24 +71,70 @@ const NavbarMain = () => {
               <Link href="#">
                 Viola 
               </Link>
-            </DropdownItem>
+            </DropdownItem> */}
             <DropdownItem className="custom-dropdown-item text-black p-2">
               <Link href="/cello-music">
                 Cello
               </Link>
             </DropdownItem>
             <DropdownItem className="custom-dropdown-item text-black p-2">
+              <Link href="/cello-music">
+                Recently Added
+              </Link>
+            </DropdownItem>
+            {/* <DropdownItem className="custom-dropdown-item text-black p-2">
               <Link href="#">
                 Bass
+              </Link>
+            </DropdownItem> */}
+          </DropdownMenu>
+        </Dropdown>
+        <Dropdown
+          onMouseEnter={() => setisAboutHovered(true)}
+          onMouseLeave={() => setisAboutHovered(false)}
+          isOpen={isAboutHovered}
+          className="bg-white font-sans w-40"
+        >
+          <DropdownTrigger>
+            <Button
+              className="bg-black text-white hover:bg-teal-600 font-bold py-2 px-4 rounded mx-2"
+              onMouseEnter={() => setisAboutHovered(true)}
+              onMouseLeave={() => setisAboutHovered(false)}
+              
+            >
+              <Link href="/cello-music">
+                About
+              </Link>
+            </Button>
+          </DropdownTrigger>
+          <DropdownMenu
+            aria-label="Music Options"
+            className="custom-dropdown-menu"
+            onMouseEnter={() => setisAboutHovered(true)}
+            onMouseLeave={() => setisAboutHovered(false)}
+          >
+            <DropdownItem className="custom-dropdown-item text-black bg-white-500 text-black p-2">
+              <Link href="coming-soon">
+                Our Mission
+              </Link>
+            </DropdownItem>
+            <DropdownItem className="custom-dropdown-item text-black p-2">
+              <Link href="coming-soon">
+                Contact Us 
+              </Link>
+            </DropdownItem>
+            <DropdownItem className="custom-dropdown-item text-black p-2">
+              <Link href="/coming-soon">
+                Contribute
+              </Link>
+            </DropdownItem>
+            <DropdownItem className="custom-dropdown-item text-black p-2">
+              <Link href="/coming-soon">
+                Other Resources
               </Link>
             </DropdownItem>
           </DropdownMenu>
         </Dropdown>
-        <Link href="/About">
-          <button className="bg-black hover:bg-teal-600 text-white font-bold py-2 px-4 rounded mx-2">
-            About
-          </button>
-        </Link>
       </nav>
 
       {/* Mobile Menu */}

@@ -30,6 +30,10 @@ const Music: NextPage = () => {
     Level: ['Early Beginner', 'Beginner', 'Late Beginner', 'Early Intermediate', 'Intermediate', 'Late Intermediate', 'Early Advanced', 'Advanced', 'Professional'],
     Instrumentation: ['Solo', 'Duet', 'Trio', 'Quartet'],
     Composer: [] as string[],
+    Country: ['United States of America', 'Canada', 'France', 'Mexico', 'China'],
+    Year: ['1600s', '1700s', '1800s', '1900s'],
+    "Other Filters": ['Public Domain?', 'Living Composer', 'Recently Added'],
+
   });
   const [selectedComposers, setSelectedComposers] = useState<string[]>([]);
   const [selectedLevels, setSelectedLevels] = useState<string[]>([]); // Add this line
@@ -67,10 +71,11 @@ const Music: NextPage = () => {
       (piece.title.toLowerCase().includes(filter.toLowerCase()) ||
         piece.composer.toLowerCase().includes(filter.toLowerCase())) &&
       (selectedComposers.length === 0 || selectedComposers.includes(piece.composer)) &&
-      (selectedLevels.length === 0 || selectedLevels.includes(piece.level)) // Add this condition
+      (selectedLevels.length === 0 || selectedLevels.includes(piece.level)) 
+      //logic for other filters.
     );
     setFilteredPieces(filtered);
-  }, [filter, pieces, selectedComposers, selectedLevels]); // Add selectedLevels
+  }, [filter, pieces, selectedComposers, selectedLevels]); 
 
   const toggleComposerSelection = (composer: string) => {
     setSelectedComposers(prev =>
@@ -78,7 +83,7 @@ const Music: NextPage = () => {
     );
   };
 
-  const toggleLevelSelection = (level: string) => { // Add this function
+  const toggleLevelSelection = (level: string) => { 
     setSelectedLevels(prev =>
       prev.includes(level) ? prev.filter(l => l !== level) : [...prev, level]
     );
@@ -125,8 +130,8 @@ const Music: NextPage = () => {
               accordionContent={accordionContent}
               selectedComposers={selectedComposers}
               toggleComposerSelection={toggleComposerSelection}
-              selectedLevels={selectedLevels} // Add this line
-              toggleLevelSelection={toggleLevelSelection} // Add this line
+              selectedLevels={selectedLevels} 
+              toggleLevelSelection={toggleLevelSelection} 
             />
           </div>
         )}

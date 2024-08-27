@@ -48,7 +48,7 @@ const FilterAside: React.FC<FilterAsideProps> = ({
             {/* Clear Filters Button */}
             <button
                 onClick={clearFilters}
-                className="w-full mt-4 mb-4 p-3 bg-black text-white rounded-lg font-bold rounded"
+                className="w-full mt-4 mb-4 p-3 bg-black hover:bg-red-500 text-white rounded-lg font-bold rounded"
             >
                 Clear Filters
             </button>
@@ -59,7 +59,7 @@ const FilterAside: React.FC<FilterAsideProps> = ({
                         <h2 id={`accordion-heading-${index}`}>
                             <button
                                 type="button"
-                                className={`flex items-center justify-between w-full p-5 font-medium text-gray-500 border border-b-0 border-gray-200 rounded-t-xl focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-800 dark:border-gray-700 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 gap-3 ${openAccordion === index ? 'bg-gray-100' : ''}`}
+                                className={`flex items-center justify-between w-full p-5 font-medium text-gray-500 border border-b-0 border-gray-200 rounded-t-lg dark:border-gray-700 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-800 gap-3 ${openAccordion === index ? 'bg-gray-800' : ''}`}
                                 onClick={() => toggleAccordion(index)}
                                 aria-expanded={openAccordion === index}
                                 aria-controls={`accordion-body-${index}`}
@@ -99,7 +99,7 @@ const FilterAside: React.FC<FilterAsideProps> = ({
                                         />
                                     </div>
                                 )} */}
-                                <p className="mb-2 text-gray-500 dark:text-gray-400">Select {key}:</p>
+                                <p className="mb-2 text-white-500 dark:text-white-400">Select {key}:</p>
                                 <ul className="list-none pl-1">
                                     {content
                                         .filter((item) =>
@@ -109,7 +109,7 @@ const FilterAside: React.FC<FilterAsideProps> = ({
                                                 : item.toLowerCase().includes(levelSearch.toLowerCase()))
                                         ) // Filter composers and levels
                                         .map((item, i) => (
-                                            <li key={i} className="text-gray-600 dark:text-gray-400">
+                                            <li key={i} className="text-white-600 dark:text-white-400">
                                                 <label>
                                                     <input
                                                         type="checkbox"
