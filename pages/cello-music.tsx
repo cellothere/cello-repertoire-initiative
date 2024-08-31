@@ -1,3 +1,5 @@
+// pages/music.tsx
+
 import { NextPage } from 'next';
 import Head from 'next/head';
 import { useEffect, useState } from 'react';
@@ -8,13 +10,12 @@ import MobileFilterAccordion from '@/components/mobile-filter-search';
 import { CiHeart } from "react-icons/ci";
 import { FaInfoCircle } from "react-icons/fa";
 
-
-
 interface MusicPiece {
   id: string;
   title: string;
   composer: string;
   level: string;
+  instrumentation: string;
 }
 
 interface Composer {
@@ -28,15 +29,15 @@ const Music: NextPage = () => {
   const [isFilterVisible, setIsFilterVisible] = useState<boolean>(false);
   const [accordionContent, setAccordionContent] = useState({
     Level: ['Early Beginner', 'Beginner', 'Late Beginner', 'Early Intermediate', 'Intermediate', 'Late Intermediate', 'Early Advanced', 'Advanced', 'Professional'],
-    Instrumentation: ['Solo', 'Duet', 'Trio', 'Quartet'],
+    Instrumentation: ['Cello and Piano', 'Cello Solo', 'Cello Duet', 'Other Instrumentations'],
     Composer: [] as string[],
     Country: ['United States of America', 'Canada', 'France', 'Mexico', 'China'],
     Year: ['1600s', '1700s', '1800s', '1900s'],
     "Other Filters": ['Public Domain?', 'Living Composer', 'Recently Added'],
-
   });
   const [selectedComposers, setSelectedComposers] = useState<string[]>([]);
-  const [selectedLevels, setSelectedLevels] = useState<string[]>([]); // Add this line
+  const [selectedLevels, setSelectedLevels] = useState<string[]>([]);
+  const [selectedInstruments, setSelectedInstruments] = useState<string[]>([]); // Already present
 
   useEffect(() => {
     const fetchPieces = async () => {
@@ -67,15 +68,37 @@ const Music: NextPage = () => {
   }, []);
 
   useEffect(() => {
-    const filtered = pieces.filter(piece =>
-      (piece.title.toLowerCase().includes(filter.toLowerCase()) ||
-        piece.composer.toLowerCase().includes(filter.toLowerCase())) &&
-      (selectedComposers.length === 0 || selectedComposers.includes(piece.composer)) &&
-      (selectedLevels.length === 0 || selectedLevels.includes(piece.level)) 
-      //logic for other filters.
-    );
+    const filtered = pieces.filter(piece => {
+      const titleMatch = piece.title.toLowerCase().includes(filter.toLowerCase());
+      const composerMatch = piece.composer.toLowerCase().includes(filter.toLowerCase());
+      const composerFilterMatch = selectedComposers.length === 0 || selectedComposers.includes(piece.composer);
+      const levelFilterMatch = selectedLevels.length === 0 || selectedLevels.includes(piece.level);
+  
+      const instrumentationMatch = selectedInstruments.length === 0 || selectedInstruments.some(selectedInstrument => {
+        if (Array.isArray(piece.instrumentation)) {
+          const normalizedInstrumentation = piece.instrumentation.map(instr => instr.toLowerCase());
+          const selectedParts = selectedInstrument.toLowerCase().split(' and ');
+  
+          if (selectedParts.length === 1) {
+            // Exact match for single instruments (e.g., "Cello Solo" should match ["Cello"])
+            return normalizedInstrumentation.length === 1 && normalizedInstrumentation.includes(selectedParts[0]);
+          } else {
+            // Match all selected instruments in the array (e.g., "Cello and Piano" should match ["Cello", "Piano"])
+            return selectedParts.every(part => normalizedInstrumentation.includes(part));
+          }
+        } else {
+          return false;
+        }
+      });
+  
+      return (titleMatch || composerMatch) && composerFilterMatch && levelFilterMatch && instrumentationMatch;
+    });
+  
     setFilteredPieces(filtered);
-  }, [filter, pieces, selectedComposers, selectedLevels]); 
+  }, [filter, pieces, selectedComposers, selectedLevels, selectedInstruments]);
+  
+  
+  
 
   const toggleComposerSelection = (composer: string) => {
     setSelectedComposers(prev =>
@@ -86,6 +109,12 @@ const Music: NextPage = () => {
   const toggleLevelSelection = (level: string) => { 
     setSelectedLevels(prev =>
       prev.includes(level) ? prev.filter(l => l !== level) : [...prev, level]
+    );
+  };
+
+  const toggleInstrumentSelection = (instrument: string) => { 
+    setSelectedInstruments(prev =>
+      prev.includes(instrument) ? prev.filter(i => i !== instrument) : [...prev, instrument]
     );
   };
 
@@ -103,8 +132,10 @@ const Music: NextPage = () => {
           accordionContent={accordionContent}
           selectedComposers={selectedComposers}
           toggleComposerSelection={toggleComposerSelection}
-          selectedLevels={selectedLevels} // Add this line
-          toggleLevelSelection={toggleLevelSelection} // Add this line
+          selectedLevels={selectedLevels}
+          toggleLevelSelection={toggleLevelSelection}
+          selectedInstruments={selectedInstruments} // New prop
+          toggleInstrumentSelection={toggleInstrumentSelection} // New prop
         />
 
         {isFilterVisible && (
@@ -130,8 +161,10 @@ const Music: NextPage = () => {
               accordionContent={accordionContent}
               selectedComposers={selectedComposers}
               toggleComposerSelection={toggleComposerSelection}
-              selectedLevels={selectedLevels} 
-              toggleLevelSelection={toggleLevelSelection} 
+              selectedLevels={selectedLevels}
+              toggleLevelSelection={toggleLevelSelection}
+              selectedInstruments={selectedInstruments} 
+              toggleInstrumentSelection={toggleInstrumentSelection} 
             />
           </div>
         )}
@@ -152,19 +185,17 @@ const Music: NextPage = () => {
             {filteredPieces.map((piece, index) => (
               <div key={index} className="bg-white shadow-md rounded-lg p-4 hover:scale-110 ">
                 <Link href={`/piece/${piece.id}`}>
-                <h2 className="text-l font-semibold text-gray-800">{piece.title}</h2>
-                <p className="text-gray-600">by {piece.composer}</p>
-                <i><p className="text-gray-600">{piece.level}</p></i>
-                <div className="border-b border-gray-300 my-2"></div>
-                <div className="flex justify-between items-center">
-                <div className="flex space-x-2">
-                    <CiHeart className="text-xl text-gray-600 hover:text-red-500 cursor-pointer" />
-                    <Link href={`/piece/${piece.id}`}>
+                  <h2 className="text-l font-semibold text-gray-800">{piece.title}</h2>
+                  <p className="text-gray-600">by {piece.composer}</p>
+                  <i><p className="text-gray-600">{piece.level}</p></i>
+                  <div className="border-b border-gray-300 my-2"></div>
+                  <div className="flex justify-between items-center">
+                    <div className="flex space-x-2">
+                      <CiHeart className="text-xl text-gray-600 hover:text-red-500 cursor-pointer" />
                       <FaInfoCircle className="text-xl text-blue-500 hover:text-blue-700 cursor-pointer" />
-                    </Link>
+                    </div>
                   </div>
-                  </div>
-                  </Link>
+                </Link>
               </div>
             ))}
           </div>

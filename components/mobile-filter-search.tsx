@@ -1,3 +1,5 @@
+// components/mobile-filter-search.tsx
+
 import { useState } from 'react';
 
 interface MobileFilterAccordionProps {
@@ -8,6 +10,8 @@ interface MobileFilterAccordionProps {
     toggleComposerSelection: (composer: string) => void;
     selectedLevels: string[];
     toggleLevelSelection: (level: string) => void;
+    selectedInstruments: string[]; // New prop
+    toggleInstrumentSelection: (instrument: string) => void; // New prop
 }
 
 const MobileFilterAccordion: React.FC<MobileFilterAccordionProps> = ({
@@ -18,6 +22,8 @@ const MobileFilterAccordion: React.FC<MobileFilterAccordionProps> = ({
     toggleComposerSelection,
     selectedLevels,
     toggleLevelSelection,
+    selectedInstruments, // New prop
+    toggleInstrumentSelection, // New prop
 }) => {
     const [openAccordion, setOpenAccordion] = useState<number | null>(null);
     const [composerSearch, setComposerSearch] = useState<string>(''); // State for composer search
@@ -33,6 +39,7 @@ const MobileFilterAccordion: React.FC<MobileFilterAccordionProps> = ({
         selectedComposers.forEach(composer => toggleComposerSelection(composer)); // Unselect all composers
         setLevelSearch('');
         selectedLevels.forEach(level => toggleLevelSelection(level)); // Unselect all levels
+        selectedInstruments.forEach(instrument => toggleInstrumentSelection(instrument)); // Unselect all instruments
     };
 
     return (
@@ -91,32 +98,43 @@ const MobileFilterAccordion: React.FC<MobileFilterAccordionProps> = ({
                                         />
                                     </div>
                                 )}
-                                
+                                {/* Add more search inputs if needed for other filters */}
+
                                 <p className="mb-2 text-gray-500">Select {key}:</p>
-                                <ul className="list-none pl-0 max-h-64 overflow-y-auto"> {/* Updated for scrolling and removed bullet points */}
+                                <ul className="list-none pl-0 max-h-64 overflow-y-auto">
                                     {content
                                         .filter((item) =>
                                             typeof item === 'string' &&
                                             (key === 'Composer'
                                                 ? item.toLowerCase().includes(composerSearch.toLowerCase())
-                                                : item.toLowerCase().includes(levelSearch.toLowerCase()))
-                                        ) // Filter composers and levels based on search
+                                                : key === 'Level'
+                                                    ? item.toLowerCase().includes(levelSearch.toLowerCase())
+                                                    : true) // No search for Instrumentation
+                                        )
                                         .map((item, i) => (
                                             <li key={i} className="text-gray-600">
-                                                {key === 'Composer' || key === 'Level' ? (
+                                                {key === 'Composer' || key === 'Level' || key === 'Instrumentation' ? (
                                                     <label>
                                                         <input
                                                             type="checkbox"
                                                             checked={
                                                                 key === 'Composer'
                                                                     ? selectedComposers.includes(item)
-                                                                    : selectedLevels.includes(item)
+                                                                    : key === 'Level'
+                                                                        ? selectedLevels.includes(item)
+                                                                        : key === 'Instrumentation'
+                                                                            ? selectedInstruments.includes(item)
+                                                                            : false
                                                             }
-                                                            onChange={() =>
-                                                                key === 'Composer'
-                                                                    ? toggleComposerSelection(item)
-                                                                    : toggleLevelSelection(item)
-                                                            }
+                                                            onChange={() => {
+                                                                if (key === 'Composer') {
+                                                                    toggleComposerSelection(item);
+                                                                } else if (key === 'Level') {
+                                                                    toggleLevelSelection(item);
+                                                                } else if (key === 'Instrumentation') {
+                                                                    toggleInstrumentSelection(item);
+                                                                }
+                                                            }}
                                                             className="mr-2"
                                                         />
                                                         {item}

@@ -1,3 +1,5 @@
+// components/filter-search.tsx
+
 import { useState } from 'react';
 
 interface FilterAsideProps {
@@ -8,6 +10,8 @@ interface FilterAsideProps {
     toggleComposerSelection: (composer: string) => void;
     selectedLevels: string[];
     toggleLevelSelection: (level: string) => void;
+    selectedInstruments: string[]; // New prop
+    toggleInstrumentSelection: (instrument: string) => void; // New prop
 }
 
 const FilterAside: React.FC<FilterAsideProps> = ({
@@ -18,6 +22,8 @@ const FilterAside: React.FC<FilterAsideProps> = ({
     toggleComposerSelection,
     selectedLevels,
     toggleLevelSelection,
+    selectedInstruments, // New prop
+    toggleInstrumentSelection, // New prop
 }) => {
     const [openAccordion, setOpenAccordion] = useState<number | null>(null);
     const [composerSearch, setComposerSearch] = useState<string>(''); // State for composer search
@@ -33,6 +39,7 @@ const FilterAside: React.FC<FilterAsideProps> = ({
         selectedComposers.forEach(composer => toggleComposerSelection(composer)); // Unselect all composers
         setLevelSearch('');
         selectedLevels.forEach(level => toggleLevelSelection(level)); // Unselect all levels
+        selectedInstruments.forEach(instrument => toggleInstrumentSelection(instrument)); // Unselect all instruments
     };
 
     return (
@@ -48,7 +55,7 @@ const FilterAside: React.FC<FilterAsideProps> = ({
             {/* Clear Filters Button */}
             <button
                 onClick={clearFilters}
-                className="w-full mt-4 mb-4 p-3 bg-black hover:bg-red-500 text-white rounded-lg font-bold rounded"
+                className="w-full mt-4 mb-4 p-3 bg-black hover:bg-red-500 text-white rounded-lg font-bold"
             >
                 Clear Filters
             </button>
@@ -87,8 +94,7 @@ const FilterAside: React.FC<FilterAsideProps> = ({
                                     </div>
                                 )}
 
-                            {/* We can implement this if searching by level is necessary */}
-                                {/* {key === 'Level' && (
+                                {key === 'Level' && (
                                     <div className="mb-4">
                                         <input
                                             type="text"
@@ -98,31 +104,43 @@ const FilterAside: React.FC<FilterAsideProps> = ({
                                             className="w-full p-2 border border-gray-300 rounded text-black font-mono"
                                         />
                                     </div>
-                                )} */}
-                                <p className="mb-2 text-white-500 dark:text-white-400">Select {key}:</p>
+                                )}
+                                {/* Add more search inputs if needed for other filters */}
+
+                                <p className="mb-2 text-gray-500 dark:text-white-400">Select {key}:</p>
                                 <ul className="list-none pl-1">
                                     {content
                                         .filter((item) =>
                                             typeof item === 'string' &&
                                             (key === 'Composer'
                                                 ? item.toLowerCase().includes(composerSearch.toLowerCase())
-                                                : item.toLowerCase().includes(levelSearch.toLowerCase()))
-                                        ) // Filter composers and levels
+                                                : key === 'Level'
+                                                    ? item.toLowerCase().includes(levelSearch.toLowerCase())
+                                                    : true) // No search for Instrumentation
+                                        )
                                         .map((item, i) => (
-                                            <li key={i} className="text-white-600 dark:text-white-400">
+                                            <li key={i} className="text-gray-600 dark:text-white-400">
                                                 <label>
                                                     <input
                                                         type="checkbox"
                                                         checked={
                                                             key === 'Composer'
                                                                 ? selectedComposers.includes(item)
-                                                                : selectedLevels.includes(item)
+                                                                : key === 'Level'
+                                                                    ? selectedLevels.includes(item)
+                                                                    : key === 'Instrumentation'
+                                                                        ? selectedInstruments.includes(item)
+                                                                        : false
                                                         }
-                                                        onChange={() =>
-                                                            key === 'Composer'
-                                                                ? toggleComposerSelection(item)
-                                                                : toggleLevelSelection(item)
-                                                        }
+                                                        onChange={() => {
+                                                            if (key === 'Composer') {
+                                                                toggleComposerSelection(item);
+                                                            } else if (key === 'Level') {
+                                                                toggleLevelSelection(item);
+                                                            } else if (key === 'Instrumentation') {
+                                                                toggleInstrumentSelection(item);
+                                                            }
+                                                        }}
                                                         className="mr-2"
                                                     />
                                                     {item}
@@ -130,14 +148,11 @@ const FilterAside: React.FC<FilterAsideProps> = ({
                                             </li>
                                         ))}
                                 </ul>
-
                             </div>
                         </div>
                     </div>
                 ))}
             </div>
-
-
         </aside>
     );
 };
