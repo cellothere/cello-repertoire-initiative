@@ -119,7 +119,7 @@ const FilterAside: React.FC<FilterAsideProps> = ({
                                                     : true) // No search for Instrumentation
                                         )
                                         .map((item, i) => (
-                                            <li key={i} className="text-gray-600 dark:text-white-400">
+                                            <li key={i} className="text-white-600 dark:text-white-400">
                                                 <label>
                                                     <input
                                                         type="checkbox"

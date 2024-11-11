@@ -143,50 +143,77 @@ const Piece: NextPage<PieceProps> = ({ piece, composerInfo }) => {
             <AccordionDetails>
               {piece.where_to_buy_or_download.length > 0 && (
                 <div className="text-md mb-4">
-                  {piece.where_to_buy_or_download.map((link, index) => (
-                    link && (
-                      <div key={index}>
-                        <BsFileEarmarkMusicFill style={{ display: 'inline-block', verticalAlign: 'middle' }} />
-                        <a href={link} target="_blank" rel="noopener noreferrer" style={{ display: 'inline-block', verticalAlign: 'middle', marginLeft: '5px' }}>
-                          {link}
-                        </a>
-                        <br />
-                      </div>
-                    )
-                  ))}
+                  {piece.where_to_buy_or_download.map((link, index) => {
+                    const domain = new URL(link).hostname.replace(/^www\./, ''); // Extract domain and remove 'www.'
+                    return (
+                      link && (
+                        <div key={index}>
+                          <BsFileEarmarkMusicFill style={{ display: 'inline-block', verticalAlign: 'middle' }} />
+                          <a
+                            href={link}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            style={{
+                              display: 'inline-block',
+                              verticalAlign: 'middle',
+                              marginLeft: '5px',
+                              textDecoration: 'underline', // Underline style
+                            }}
+                          >
+                            {domain}
+                          </a>
+                          <br />
+                        </div>
+                      )
+                    );
+                  })}
                 </div>
               )}
             </AccordionDetails>
           </Accordion>
 
           <Accordion className="w-full md:w-[600px]">
-            <AccordionSummary
-              expandIcon={<ExpandMoreIcon />}
-              aria-controls="panel4-content"
-              id="panel4-header"
-              className="ml-1 text-lg font-bold bg-clip-text text-transparent bg-gradient-to-br"
-            >
-              Audio
-            </AccordionSummary>
-            <div className="border-b border-gray-300 my-1"></div>
-            <AccordionDetails>
-              {piece.audio_link.length > 0 && (
-                <div className="text-md mb-4">
-                  {piece.audio_link.map((link, index) => (
-                    link && (
-                      <div key={index}>
-                        <HiMusicNote style={{ display: 'inline-block', verticalAlign: 'middle' }} />
-                        <a href={link} target="_blank" rel="noopener noreferrer" style={{ display: 'inline-block', verticalAlign: 'middle', marginLeft: '5px' }}>
-                          {link}
-                        </a>
-                        <br />
-                      </div>
-                    )
-                  ))}
-                </div>
-              )}
-            </AccordionDetails>
-          </Accordion>
+  <AccordionSummary
+    expandIcon={<ExpandMoreIcon />}
+    aria-controls="panel4-content"
+    id="panel4-header"
+    className="ml-1 text-lg font-bold bg-clip-text text-transparent bg-gradient-to-br"
+  >
+    Audio
+  </AccordionSummary>
+  <div className="border-b border-gray-300 my-1"></div>
+  <AccordionDetails>
+    {piece.audio_link.length > 0 && (
+      <div className="text-md mb-4">
+        {piece.audio_link.map((link, index) => {
+          const domain = new URL(link).hostname.replace(/^www\./, ''); // Extract domain and remove 'www.'
+          return (
+            link && (
+              <div key={index}>
+                <HiMusicNote style={{ display: 'inline-block', verticalAlign: 'middle' }} />
+                <a
+                  href={link}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{
+                    display: 'inline-block',
+                    verticalAlign: 'middle',
+                    marginLeft: '5px',
+                    textDecoration: 'underline', // Underline style
+                  }}
+                >
+                  {domain}
+                </a>
+                <br />
+              </div>
+            )
+          );
+        })}
+      </div>
+    )}
+  </AccordionDetails>
+</Accordion>
+
         </div>
 
         <div className="container mx-auto flex flex-col items-center">
@@ -223,7 +250,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
     },
     { $unwind: '$composerDetails' },
   ]).next();
-  
+
   return {
     props: {
       piece: piece ? {
