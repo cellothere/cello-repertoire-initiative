@@ -1,36 +1,58 @@
-import { useState } from 'react';
+import { useState } from "react";
 import { Dropdown, Link, DropdownTrigger, DropdownMenu, DropdownItem, Button } from "@nextui-org/react";
 import { RxHamburgerMenu } from "react-icons/rx";
 import { FaSearch } from "react-icons/fa";
 import { BiSolidHomeCircle } from "react-icons/bi";
+import { useRouter } from "next/router";
 
 const NavbarMain = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isMusicHovered, setisMusicHovered] = useState(false);
   const [isAboutHovered, setisAboutHovered] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const router = useRouter();
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
+  };
+
+  const handleSearch = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      router.push(`/search-results?query=${encodeURIComponent(searchQuery.trim())}`);
+    }
   };
 
   return (
     <header className="bg-gray-100 text-black p-4 flex items-center justify-between">
       <div className="flex items-center">
         <div className="flex-shrink-0">
-          <Link href='/'>
+          <Link href="/">
             <img src="/assets/altLogo.png" alt="Logo" className="h-16 w-auto" />
           </Link>
         </div>
-        <Link href='/' id='navName' className="hidden md:inline">
-          <span className="ml-8 text-xl font-bold bg-clip-text text-transparent bg-gradient-to-br">Cello Repertoire Initiative</span>
+        <Link href="/" id="navName" className="hidden md:inline">
+          <span className="ml-8 text-xl font-bold bg-clip-text text-transparent bg-gradient-to-br">
+            Cello Repertoire Initiative
+          </span>
         </Link>
       </div>
       <div className="flex-grow max-w-lg mx-4" id="searchMenu">
-        <input
-          type="text"
-          placeholder="Find music, composers, and resources..."
-          className="w-full p-2 rounded bg-gray-300 border border-gray-600 text-white"
-        />
+        <form onSubmit={handleSearch} className="flex">
+          <input
+            type="text"
+            placeholder="Find music, composers, and resources..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full p-2 rounded bg-gray-300 border border-gray-600 text-white"
+          />
+          <button
+            type="submit"
+            className="bg-black text-white px-4 rounded ml-2 hover:bg-teal-600 transition"
+          >
+            <FaSearch />
+          </button>
+        </form>
       </div>
       <nav className="hidden md:flex">
         <Link href="/">
@@ -49,11 +71,8 @@ const NavbarMain = () => {
               className="bg-black text-white hover:bg-teal-600 font-bold py-2 px-4 rounded mx-2"
               onMouseEnter={() => setisMusicHovered(true)}
               onMouseLeave={() => setisMusicHovered(false)}
-              
             >
-              <Link href="/cello-music">
-                Music
-              </Link>
+              <Link href="/cello-music">Music</Link>
             </Button>
           </DropdownTrigger>
           <DropdownMenu
@@ -62,31 +81,12 @@ const NavbarMain = () => {
             onMouseEnter={() => setisMusicHovered(true)}
             onMouseLeave={() => setisMusicHovered(false)}
           >
-            {/* <DropdownItem className="custom-dropdown-item text-black bg-white-500 text-black p-2">
-              <Link href="#">
-                Violin
-              </Link>
+            <DropdownItem className="custom-dropdown-item text-black p-2">
+              <Link href="/cello-music">Cello</Link>
             </DropdownItem>
             <DropdownItem className="custom-dropdown-item text-black p-2">
-              <Link href="#">
-                Viola 
-              </Link>
-            </DropdownItem> */}
-            <DropdownItem className="custom-dropdown-item text-black p-2">
-              <Link href="/cello-music">
-                Cello
-              </Link>
+              <Link href="/cello-music">Recently Added</Link>
             </DropdownItem>
-            <DropdownItem className="custom-dropdown-item text-black p-2">
-              <Link href="/cello-music">
-                Recently Added
-              </Link>
-            </DropdownItem>
-            {/* <DropdownItem className="custom-dropdown-item text-black p-2">
-              <Link href="#">
-                Bass
-              </Link>
-            </DropdownItem> */}
           </DropdownMenu>
         </Dropdown>
         <Dropdown
@@ -100,38 +100,27 @@ const NavbarMain = () => {
               className="bg-black text-white hover:bg-teal-600 font-bold py-2 px-4 rounded mx-2"
               onMouseEnter={() => setisAboutHovered(true)}
               onMouseLeave={() => setisAboutHovered(false)}
-              
             >
-              <Link href="/cello-music">
-                About
-              </Link>
+              About
             </Button>
           </DropdownTrigger>
           <DropdownMenu
-            aria-label="Music Options"
+            aria-label="About Options"
             className="custom-dropdown-menu"
             onMouseEnter={() => setisAboutHovered(true)}
             onMouseLeave={() => setisAboutHovered(false)}
           >
-            <DropdownItem className="custom-dropdown-item text-black bg-white-500 text-black p-2">
-              <Link href="coming-soon">
-                Our Mission
-              </Link>
+            <DropdownItem className="custom-dropdown-item text-black p-2">
+              <Link href="/coming-soon">Our Mission</Link>
             </DropdownItem>
             <DropdownItem className="custom-dropdown-item text-black p-2">
-              <Link href="coming-soon">
-                Contact Us 
-              </Link>
+              <Link href="/coming-soon">Contact Us</Link>
             </DropdownItem>
             <DropdownItem className="custom-dropdown-item text-black p-2">
-              <Link href="/coming-soon">
-                Contribute
-              </Link>
+              <Link href="/coming-soon">Contribute</Link>
             </DropdownItem>
             <DropdownItem className="custom-dropdown-item text-black p-2">
-              <Link href="/coming-soon">
-                Other Resources
-              </Link>
+              <Link href="/coming-soon">Other Resources</Link>
             </DropdownItem>
           </DropdownMenu>
         </Dropdown>
@@ -139,11 +128,11 @@ const NavbarMain = () => {
 
       {/* Mobile Menu */}
       <div className="md:hidden flex items-center">
-      <Link href="/">
-        <FaSearch size={25} className="mr-4"/>
+        <Link href="/">
+          <FaSearch size={25} className="mr-4" />
         </Link>
         <Link href="/">
-        <BiSolidHomeCircle size={30} className="mr-3"/>
+          <BiSolidHomeCircle size={30} className="mr-3" />
         </Link>
         <Button
           variant="flat"
@@ -151,24 +140,18 @@ const NavbarMain = () => {
           aria-label="Toggle Menu"
           className="bg-black text-white font-bold py-2 px-2 rounded mx-2"
         >
-        <RxHamburgerMenu />
+          <RxHamburgerMenu />
         </Button>
         {isMenuOpen && (
           <div className="z-50 mt-1 absolute top-16 right-0 bg-white w-48 border border-gray-400 rounded shadow-lg">
             <Link href="/">
-              <button className="w-full py-2 px-4 text-left hover:bg-gray-200">
-                Home
-              </button>
+              <button className="w-full py-2 px-4 text-left hover:bg-gray-200">Home</button>
             </Link>
             <Link href="/cello-music">
-              <button className="w-full py-2 px-4 text-left hover:bg-gray-200">
-                Music
-              </button>
+              <button className="w-full py-2 px-4 text-left hover:bg-gray-200">Music</button>
             </Link>
             <Link href="/contact">
-              <button className="w-full py-2 px-4 text-left hover:bg-gray-200">
-                Contact
-              </button>
+              <button className="w-full py-2 px-4 text-left hover:bg-gray-200">Contact</button>
             </Link>
           </div>
         )}
