@@ -43,11 +43,11 @@ const FilterAside: React.FC<FilterAsideProps> = ({
     };
 
     return (
-        <aside className="hidden md:block fixed top-24 left-0 w-64 h-full p-5 border-r-4 border-gray-100">
+        <aside className="hidden md:block fixed top-24 left-0 w-64 h-full p-5 ">
             <h2 className="text-xl color-black font-bold mb-4">Filter</h2>
             <input
                 type="text"
-                placeholder="Search by title or composer"
+                placeholder="Title or composer"
                 value={filter}
                 onChange={(e) => setFilter(e.target.value)}
                 className="w-full p-2 border border-gray-300 rounded text-black font-mono"
@@ -94,7 +94,7 @@ const FilterAside: React.FC<FilterAsideProps> = ({
                                     </div>
                                 )}
 
-                                {key === 'Level' && (
+                                {/* {key === 'Level' && (
                                     <div className="mb-4">
                                         <input
                                             type="text"
@@ -104,7 +104,7 @@ const FilterAside: React.FC<FilterAsideProps> = ({
                                             className="w-full p-2 border border-gray-300 rounded text-black font-mono"
                                         />
                                     </div>
-                                )}
+                                )} */}
                                 {/* Add more search inputs if needed for other filters */}
 
                                 <p className="mb-2 text-gray-500 dark:text-white-400">Select {key}:</p>

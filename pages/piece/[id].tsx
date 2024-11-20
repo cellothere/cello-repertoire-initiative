@@ -173,49 +173,47 @@ const Piece: NextPage<PieceProps> = ({ piece, composerInfo }) => {
           </Accordion>
 
           <Accordion className="w-full md:w-[600px]">
-  <AccordionSummary
-    expandIcon={<ExpandMoreIcon />}
-    aria-controls="panel4-content"
-    id="panel4-header"
-    className="ml-1 text-lg font-bold bg-clip-text text-transparent bg-gradient-to-br"
-  >
-    Audio
-  </AccordionSummary>
-  <div className="border-b border-gray-300 my-1"></div>
-  <AccordionDetails>
-    {piece.audio_link.length > 0 && (
-      <div className="text-md mb-4">
-        {piece.audio_link.map((link, index) => {
-          const domain = new URL(link).hostname.replace(/^www\./, ''); // Extract domain and remove 'www.'
-          return (
-            link && (
-              <div key={index}>
-                <HiMusicNote style={{ display: 'inline-block', verticalAlign: 'middle' }} />
-                <a
-                  href={link}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  style={{
-                    display: 'inline-block',
-                    verticalAlign: 'middle',
-                    marginLeft: '5px',
-                    textDecoration: 'underline', // Underline style
-                  }}
-                >
-                  {domain}
-                </a>
-                <br />
-              </div>
-            )
-          );
-        })}
-      </div>
-    )}
-  </AccordionDetails>
-</Accordion>
-
+            <AccordionSummary
+              expandIcon={<ExpandMoreIcon />}
+              aria-controls="panel4-content"
+              id="panel4-header"
+              className="ml-1 text-lg font-bold bg-clip-text text-transparent bg-gradient-to-br"
+            >
+              Audio
+            </AccordionSummary>
+            <div className="border-b border-gray-300 my-1"></div>
+            <AccordionDetails>
+              {piece.audio_link.length > 0 && (
+                <div className="text-md mb-4">
+                  {piece.audio_link.map((link, index) => {
+                    const domain = new URL(link).hostname.replace(/^www\./, ''); // Extract domain and remove 'www.'
+                    return (
+                      link && (
+                        <div key={index}>
+                          <HiMusicNote style={{ display: 'inline-block', verticalAlign: 'middle' }} />
+                          <a
+                            href={link}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            style={{
+                              display: 'inline-block',
+                              verticalAlign: 'middle',
+                              marginLeft: '5px',
+                              textDecoration: 'underline', // Underline style
+                            }}
+                          >
+                            {domain}
+                          </a>
+                          <br />
+                        </div>
+                      )
+                    );
+                  })}
+                </div>
+              )}
+            </AccordionDetails>
+          </Accordion>
         </div>
-
         <div className="container mx-auto flex flex-col items-center">
           <div className="w-full flex justify-end">
             <button className="bg-black text-white px-4 py-2 mb-3 rounded-lg transition-transform hover:scale-105">
@@ -224,7 +222,7 @@ const Piece: NextPage<PieceProps> = ({ piece, composerInfo }) => {
               </Link>
             </button>
           </div>
-          {videoId1 && <div className="w-full">
+          {videoId1 && <div className="w-full mt-16">
             <VideoIframe videoId={videoId1} title="" />
           </div>}
         </div>

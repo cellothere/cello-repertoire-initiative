@@ -5,9 +5,10 @@ import clientPromise from '../../lib/mongodb';
 
 // Define the Composer type
 type Composer = {
-  composer_full_ame: string;
+  composer_full_name: string;
   composer_bio: string;
   wikipedia_article: string;
+  composer_last_name: string;
 };
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -30,6 +31,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             composers: {
               $push: {
                 composer_full_name: '$composer_full_name',
+                composer_last_name: '$composer_last_name',
                 composer_bio: '$composer_bio',
                 wikipedia_article: '$wikipedia_article',
               },
