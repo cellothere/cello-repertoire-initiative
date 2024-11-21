@@ -23,6 +23,7 @@ interface MusicPiece {
 interface Composer {
   composer_full_name: string;
   composer_last_name: string;
+  bio_links: string[];
 }
 
 const Music: NextPage = () => {
@@ -150,7 +151,6 @@ const Music: NextPage = () => {
           selectedInstruments={selectedInstruments} // New prop
           toggleInstrumentSelection={toggleInstrumentSelection} // New prop
         />
-
         {isFilterVisible && (
           <div className="md:hidden fixed inset-0 bg-white z-50 overflow-y-auto p-5">
             <button

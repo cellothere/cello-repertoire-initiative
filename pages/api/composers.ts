@@ -1,5 +1,3 @@
-// pages/api/composers.ts
-
 import type { NextApiRequest, NextApiResponse } from 'next';
 import clientPromise from '../../lib/mongodb';
 
@@ -9,6 +7,7 @@ type Composer = {
   composer_bio: string;
   wikipedia_article: string;
   composer_last_name: string;
+  bio_links: string[];
 };
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -17,38 +16,52 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const collection = client.db('cello_repertoire').collection('composers');
 
     const composers = await collection
-      .aggregate<Composer>([
-        {
-          $sort: {
-            composer_full_name: 1,
-          },
+    .aggregate([
+      // Match only documents where composer_full_name exists and is non-empty
+      {
+        $match: {
+          composer_full_name: { $exists: true, $ne: null },
         },
-        {
-          $group: {
-            _id: {
-              $toLower: { $substrCP: ['$composer_full_name', 0, 1] },
+      },
+      // Sort composers by full name
+      {
+        $sort: {
+          composer_full_name: 1,
+        },
+      },
+      // Group by the first letter of composer_full_name (case-insensitive)
+      {
+        $group: {
+          _id: {
+            $toLower: { $substrCP: ['$composer_full_name', 0, 1] },
+          },
+          composers: {
+            $push: {
+              composer_full_name: '$composer_full_name',
+              composer_last_name: '$composer_last_name',
+              composer_bio: '$composer_bio',
+              bio_links: '$bio_link',
+              born: '$born',
+              died: '$died',
+              nationality: '$nationality',
             },
-            composers: {
-              $push: {
-                composer_full_name: '$composer_full_name',
-                composer_last_name: '$composer_last_name',
-                composer_bio: '$composer_bio',
-                wikipedia_article: '$wikipedia_article',
-              },
-            },
-            count: { $sum: 1 },
           },
+          count: { $sum: 1 },
         },
-        {
-          $sort: {
-            _id: 1,
-          },
+      },
+      // Sort groups alphabetically by _id
+      {
+        $sort: {
+          _id: 1,
         },
-      ])
-      .toArray();
+      },
+    ])
+    .toArray();
+  
 
     res.status(200).json(composers);
   } catch (error) {
+    console.error('Error fetching composers:', error); // Log error for debugging
     res.status(500).json({ error: 'Failed to fetch composers' });
   }
 }

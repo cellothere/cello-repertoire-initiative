@@ -36,7 +36,8 @@ interface PieceProps {
 
   composerInfo: {
     composer_full_name: string;
-    articles: string[];
+    composer_last_name: string;
+    bio_links: string[];
   } | null;
 }
 
@@ -78,7 +79,18 @@ const Piece: NextPage<PieceProps> = ({ piece, composerInfo }) => {
             <h1 className="text-3xl font-bold">{piece.title}</h1>
             <div className="flex flex-col items-start mb-2">
               <p className="text-xl mb-2">by{' '}
-                <Link href={composerInfo?.articles[0] || ''} className="underline">{composerInfo?.composer_full_name || 'Unknown Composer'}</Link>
+                {composerInfo?.bio_links?.[0] ? (
+                  <Link
+                    href={composerInfo.bio_links[0]}
+                    className="underline"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    {composerInfo.composer_full_name || 'Unknown Composer'}
+                  </Link>
+                ) : (
+                  <span>{composerInfo?.composer_full_name || 'Unknown Composer'}</span>
+                )}
               </p>
               <div className="flex items-center">
                 <p className="text-md text-lg italic mr-1">{' - '}{piece.level}</p>
@@ -237,7 +249,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
   const collection = client.db('cello_repertoire').collection('music_pieces');
 
   const piece = await collection.aggregate([
-    { $match: { id } },
+    { $match: { id: id.toString() } },
     {
       $lookup: {
         from: 'composers',
@@ -251,29 +263,34 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
 
   return {
     props: {
-      piece: piece ? {
-        id: piece.id,
-        title: piece.title || '',
-        composer_id: piece.composer_id || '',
-        composition_year: piece.composition_year || '',
-        level: piece.level || 'Unknown',
-        isArrangement: piece.isArrangement || false,
-        audio_link: piece.audio_link || [],
-        instrumentation: piece.instrumentation || [],
-        publisher_info: piece.publisher_info || '',
-        description: piece.description || '',
-        technical_overview: piece.technical_overview || '',
-        is_public_domain: piece.is_public_domain || false,
-        where_to_buy_or_download: piece.where_to_buy_or_download || [],
-        duration: piece.duration || '',
-        coverImage: piece.coverImage || '',
-      } : null,
-      composerInfo: piece ? {
-        composer_full_name: piece.composerDetails.composer_full_name || 'Unknown Composer',
-        articles: piece.composerDetails.articles || []
-      } : null,
+      piece: piece
+        ? {
+          id: piece.id,
+          title: piece.title || '',
+          composer_id: piece.composer_id || '',
+          composition_year: piece.composition_year || '',
+          level: piece.level || 'Unknown',
+          isArrangement: piece.isArrangement || false,
+          audio_link: piece.audio_link || [],
+          instrumentation: piece.instrumentation || [],
+          publisher_info: piece.publisher_info || '',
+          description: piece.description || '',
+          technical_overview: piece.technical_overview || '',
+          is_public_domain: piece.is_public_domain || false,
+          where_to_buy_or_download: piece.where_to_buy_or_download || [],
+          duration: piece.duration || '',
+          coverImage: piece.coverImage || '',
+        }
+        : null,
+      composerInfo: piece?.composerDetails
+        ? {
+          composer_full_name: piece.composerDetails.composer_full_name || 'Unknown Composer',
+          bio_links: piece.composerDetails.bio_link || [], // Ensure this matches the schema
+        }
+        : null,
     },
   };
 };
+
 
 export default Piece;
