@@ -244,12 +244,17 @@ const Piece: NextPage<PieceProps> = ({ piece, composerInfo }) => {
 };
 
 export const getServerSideProps: GetServerSideProps = async (context) => {
-  const { id } = context.params!;
+  const { id } = context.params || {}; // Safely destructure `id`
+  
+  if (!id || typeof id !== 'string') {
+    return { notFound: true }; // Return a 404 page if `id` is missing or invalid
+  }
+
   const client = await clientPromise;
   const collection = client.db('cello_repertoire').collection('music_pieces');
 
   const piece = await collection.aggregate([
-    { $match: { id: id.toString() } },
+    { $match: { id } }, // Use `id` directly since we've validated it
     {
       $lookup: {
         from: 'composers',
@@ -265,32 +270,33 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
     props: {
       piece: piece
         ? {
-          id: piece.id,
-          title: piece.title || '',
-          composer_id: piece.composer_id || '',
-          composition_year: piece.composition_year || '',
-          level: piece.level || 'Unknown',
-          isArrangement: piece.isArrangement || false,
-          audio_link: piece.audio_link || [],
-          instrumentation: piece.instrumentation || [],
-          publisher_info: piece.publisher_info || '',
-          description: piece.description || '',
-          technical_overview: piece.technical_overview || '',
-          is_public_domain: piece.is_public_domain || false,
-          where_to_buy_or_download: piece.where_to_buy_or_download || [],
-          duration: piece.duration || '',
-          coverImage: piece.coverImage || '',
-        }
+            id: piece.id,
+            title: piece.title || '',
+            composer_id: piece.composer_id || '',
+            composition_year: piece.composition_year || '',
+            level: piece.level || 'Unknown',
+            isArrangement: piece.isArrangement || false,
+            audio_link: piece.audio_link || [],
+            instrumentation: piece.instrumentation || [],
+            publisher_info: piece.publisher_info || '',
+            description: piece.description || '',
+            technical_overview: piece.technical_overview || '',
+            is_public_domain: piece.is_public_domain || false,
+            where_to_buy_or_download: piece.where_to_buy_or_download || [],
+            duration: piece.duration || '',
+            coverImage: piece.coverImage || '',
+          }
         : null,
       composerInfo: piece?.composerDetails
         ? {
-          composer_full_name: piece.composerDetails.composer_full_name || 'Unknown Composer',
-          bio_links: piece.composerDetails.bio_link || [], // Ensure this matches the schema
-        }
+            composer_full_name: piece.composerDetails.composer_full_name || 'Unknown Composer',
+            bio_links: piece.composerDetails.bio_link || [], // Ensure this matches the schema
+          }
         : null,
     },
   };
 };
+
 
 
 export default Piece;
