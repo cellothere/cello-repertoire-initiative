@@ -8,6 +8,7 @@ import MobileFilterAccordion from '@/components/mobile-filter-search';
 import { CiHeart } from "react-icons/ci";
 import { FaInfoCircle } from "react-icons/fa";
 import { IoFilter } from "react-icons/io5";
+import MusicCard from '@/components/music-card';
 
 interface MusicPiece {
   id: string;
@@ -215,11 +216,12 @@ const Music: NextPage = () => {
             aria-label="Mobile Filter Drawer"
           >
             <button
-              className="absolute top-5 right-5 bg-red-500 hover:bg-red-600 text-white p-2 rounded"
+              className="absolute top-5 right-5 bg-black hover:bg-red-600 text-white p-2 rounded"
               onClick={() => setIsFilterVisible(false)}
             >
               Close
             </button>
+            
             <h2 className="text-xl font-bold text-black mb-4">Filter</h2>
             <input
               type="text"
@@ -283,35 +285,13 @@ const Music: NextPage = () => {
           {/* Grid of Filtered Pieces */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-4">
             {filteredPieces.map((piece) => (
-              <div
+              <MusicCard
                 key={piece.id}
-                className="bg-white shadow-md rounded-lg p-4 hover:scale-105 transition-transform duration-300"
-              >
-                <Link href={`/piece/${piece.id}`} className="block h-full">
-                  <div className="flex flex-col h-full">
-                    {/* Title and Composer */}
-                    <div>
-                      <h2 className="text-lg font-semibold text-gray-800">{piece.title}</h2>
-                      <p className="text-gray-600">
-                        by <span className="font-medium">{piece.composer}</span>
-                      </p>
-                      <p className="text-gray-600 italic mt-1">{piece.level}</p>
-                    </div>
-
-                    {/* Divider */}
-                    <div className="flex-grow border-b border-gray-300 my-3" />
-
-                    {/* Icon Row */}
-                    <div className="flex justify-between items-center mt-auto">
-                      <div className="flex space-x-2">
-                        <CiHeart className="text-xl text-gray-500 hover:text-red-500 transition-colors cursor-pointer" />
-                        <FaInfoCircle className="text-xl text-blue-500 hover:text-blue-700 transition-colors cursor-pointer" />
-                      </div>
-                      {/* <span className="text-xs text-gray-400">ID: {piece.id}</span> */}
-                    </div>
-                  </div>
-                </Link>
-              </div>
+                id={piece.id}
+                title={piece.title}
+                composer={piece.composer}
+                level={piece.level}
+              />
             ))}
           </div>
         </main>

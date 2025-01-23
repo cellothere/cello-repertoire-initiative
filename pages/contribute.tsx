@@ -75,7 +75,7 @@ const Contribute: NextPage<ContributeProps> = () => {
                                     />
                                 </div>
                                 <div>
-                                    <label htmlFor="whereToBuyOrDownload" className="block mb-1">Where can we find, buy, or download this piece?</label>
+                                    <label htmlFor="whereToBuyOrDownload" className="block mb-1">Where can we find, buy, or download this piece? Please include any relevant links.</label>
                                     <input
                                         type="text"
                                         id="whereToBuyOrDownload"

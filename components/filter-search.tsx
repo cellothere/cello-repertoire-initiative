@@ -150,25 +150,6 @@ const FilterAside: React.FC<FilterAsideProps> = ({
                                             />
                                         </div>
                                     )}
-
-                                    {key === 'Level' && (
-                                        <div className="mb-2">
-                                            <label htmlFor="level-search" className="block mb-1 text-sm font-medium text-gray-700">
-                                                Search Levels
-                                            </label>
-                                            <input
-                                                id="level-search"
-                                                type="text"
-                                                placeholder="Type to search levels..."
-                                                value={levelSearch}
-                                                onChange={(e) => setLevelSearch(e.target.value)}
-                                                className="w-full p-2 border border-gray-300 rounded focus:outline-none text-black"
-                                                aria-label="Search levels"
-                                            />
-                                        </div>
-                                    )}
-
-                                    <p className="text-sm font-medium text-gray-600 mb-2">Select {key}:</p>
                                     {filteredItems.length === 0 ? (
                                         <p className="text-sm text-gray-500">No results found.</p>
                                     ) : (
