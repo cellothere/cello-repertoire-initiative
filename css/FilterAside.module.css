@@ -1,0 +1,217 @@
+/* components/FilterAside.module.css */
+
+/* Container Styles */
+.filterAside {
+    display: none;
+    position: fixed;
+    top: 6rem; /* Equivalent to top-24 */
+    left: 0;
+    width: 16rem; /* Equivalent to w-64 */
+    height: 100%;
+    padding: 1.25rem; /* Equivalent to p-5 */
+}
+
+/* Responsive Display */
+@media (min-width: 768px) { /* Tailwind's md breakpoint */
+    .filterAside {
+        display: block;
+    }
+}
+
+/* Title Styles */
+.filterTitle {
+    font-size: 1.25rem; /* Equivalent to text-xl */
+    color: black;
+    font-weight: bold;
+    margin-bottom: 1rem; /* Equivalent to mb-4 */
+}
+
+/* Input Styles */
+.filterInput {
+    width: 100%; /* Equivalent to w-full */
+    padding: 0.5rem; /* Equivalent to p-2 */
+    border: 1px solid #d1d5db; /* Equivalent to border-gray-300 */
+    border-radius: 0.375rem; /* Equivalent to rounded */
+    color: black;
+    font-family: monospace; /* Equivalent to font-mono */
+}
+
+/* Clear Filters Button */
+.clearFiltersBtn {
+    width: 100%; /* Equivalent to w-full */
+    margin-top: 1rem; /* Equivalent to mt-4 */
+    margin-bottom: 1rem; /* Equivalent to mb-4 */
+    padding: 0.75rem; /* Equivalent to p-3 */
+    background-color: black;
+    color: white;
+    border: none;
+    border-radius: 0.5rem; /* Equivalent to rounded-lg */
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.clearFiltersBtn:hover {
+    background-color: #ef4444; /* Equivalent to hover:bg-red-500 */
+}
+
+/* Accordion Button Styles */
+.accordionButton {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%; /* Equivalent to w-full */
+    padding: 1.25rem; /* Equivalent to p-5 */
+    font-weight: 500; /* Equivalent to font-medium */
+    color: #6b7280; /* Equivalent to text-gray-500 */
+    border: 1px solid #e5e7eb; /* Equivalent to border-gray-200 */
+    border-bottom: none; /* Equivalent to border-b-0 */
+    border-top-left-radius: 0.5rem; /* Equivalent to rounded-t-lg */
+    border-top-right-radius: 0.5rem; /* Equivalent to rounded-t-lg */
+    background-color: white;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    gap: 0.75rem; /* Equivalent to gap-3 */
+}
+
+.accordionButton:hover {
+    background-color: #f3f4f6; /* Equivalent to hover:bg-gray-100 */
+}
+
+/* Accordion Button Active State */
+.accordionButtonActive {
+    background-color: #1f2937; /* Equivalent to bg-gray-800 */
+    color: white;
+}
+
+/* Accordion SVG Icon */
+.accordionIcon {
+    width: 0.75rem; /* Equivalent to w-3 */
+    height: 0.75rem; /* Equivalent to h-3 */
+    transition: transform 0.3s ease; /* Equivalent to transition-transform */
+}
+
+.accordionIconRotate {
+    transform: rotate(180deg); /* Equivalent to rotate-180 */
+}
+
+/* Accordion Body Styles */
+.accordionBody {
+    overflow: hidden;
+    background-color: white;
+    border: 1px solid #e5e7eb; /* Equivalent to border-gray-200 */
+    transition: max-height 0.3s ease;
+    max-height: 0;
+}
+
+.accordionBodyOpen {
+    max-height: 24rem; /* Equivalent to max-h-96 */
+}
+
+/* Dark Mode Styles */
+@media (prefers-color-scheme: dark) {
+    .filterAside {
+        background-color: #1f2937; /* Equivalent to dark:bg-gray-900 */
+    }
+
+    .filterTitle {
+        color: white;
+    }
+
+    .filterInput {
+        border: 1px solid #374151; /* Equivalent to dark:border-gray-700 */
+        background-color: #1f2937; /* Equivalent to dark:bg-gray-900 */
+        color: white;
+    }
+
+    .clearFiltersBtn {
+        background-color: #111827; /* Equivalent to dark:bg-gray-800 */
+    }
+
+    .accordionButton {
+        border: 1px solid #374151; /* Equivalent to dark:border-gray-700 */
+        color: white;
+        background-color: #1f2937; /* Equivalent to dark:bg-gray-800 */
+    }
+
+    .accordionButton:hover {
+        background-color: #374151; /* Equivalent to dark:hover:bg-gray-800 */
+    }
+
+    .accordionButtonActive {
+        background-color: #111827; /* Equivalent to dark:bg-gray-800 */
+        color: white;
+    }
+
+    .accordionBody {
+        background-color: #1f2937; /* Equivalent to dark:bg-gray-900 */
+        border: 1px solid #374151; /* Equivalent to dark:border-gray-700 */
+    }
+
+    .filterLabelText {
+        color: rgba(255, 255, 255, 0.7); /* Equivalent to dark:text-white-400 */
+    }
+
+    .filterListItem {
+        color: rgba(255, 255, 255, 0.7); /* Equivalent to dark:text-white-400 */
+    }
+}
+
+/* Accordion Body Open State for Smooth Transition */
+.accordionBodyOpen {
+    max-height: 24rem; /* Adjust as needed for content */
+}
+
+/* Additional Styles */
+.accordionContent {
+    padding: 1.25rem; /* Equivalent to p-5 */
+    max-height: 20rem; /* Equivalent to max-h-80 */
+    overflow-y: auto;
+}
+
+.searchInput {
+    width: 100%; /* Equivalent to w-full */
+    padding: 0.5rem; /* Equivalent to p-2 */
+    border: 1px solid #d1d5db; /* Equivalent to border-gray-300 */
+    border-radius: 0.375rem; /* Equivalent to rounded */
+    color: black;
+    font-family: monospace; /* Equivalent to font-mono */
+    margin-bottom: 1rem; /* Equivalent to mb-4 */
+}
+
+.filterLabelText {
+    margin-bottom: 0.5rem; /* Equivalent to mb-2 */
+    color: #ffffff; /* Equivalent to text-white */
+}
+
+.filterList {
+    list-style: none; /* Equivalent to list-none */
+    padding-left: 0.25rem; /* Equivalent to pl-1 */
+}
+
+.filterListItem {
+    color: #4b5563; /* Equivalent to text-gray-600 */
+    margin-bottom: 0.25rem; /* Optional spacing */
+}
+
+.checkboxInput {
+    margin-right: 0.5rem; /* Equivalent to mr-2 */
+}
+
+/* Transition for Accordion Max-Height */
+.transitionMaxHeight {
+    transition: max-height 0.3s ease;
+}
+
+/* Utility Classes */
+.overflowHidden {
+    overflow: hidden;
+}
+
+.overflowYAuto {
+    overflow-y: auto;
+}
+
+.roundedLg {
+    border-radius: 0.5rem;
+}

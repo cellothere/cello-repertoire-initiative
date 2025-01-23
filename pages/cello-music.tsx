@@ -1,5 +1,3 @@
-// pages/music.tsx
-
 import { NextPage } from 'next';
 import Head from 'next/head';
 import { useEffect, useState } from 'react';
@@ -31,17 +29,33 @@ const Music: NextPage = () => {
   const [filteredPieces, setFilteredPieces] = useState<MusicPiece[]>([]);
   const [filter, setFilter] = useState<string>('');
   const [isFilterVisible, setIsFilterVisible] = useState<boolean>(false);
+
+  // Accordion content categories
   const [accordionContent, setAccordionContent] = useState({
-    Level: ['Early Beginner', 'Beginner', 'Late Beginner', 'Early Intermediate', 'Intermediate', 'Late Intermediate', 'Early Advanced', 'Advanced', 'Professional'],
+    Level: [
+      'Early Beginner',
+      'Beginner',
+      'Late Beginner',
+      'Early Intermediate',
+      'Intermediate',
+      'Late Intermediate',
+      'Early Advanced',
+      'Advanced',
+      'Professional',
+    ],
     Instrumentation: ['Cello and Piano', 'Cello Solo', 'Cello Duet', 'Other Instrumentations'],
     Composer: [] as string[],
     Country: ['United States of America', 'Canada', 'France', 'Mexico', 'China'],
     Year: ['1600s', '1700s', '1800s', '1900s'],
     "Other Filters": ['Public Domain?', 'Living Composer', 'Recently Added'],
   });
+
+  // Selected filters
   const [selectedComposers, setSelectedComposers] = useState<string[]>([]);
   const [selectedLevels, setSelectedLevels] = useState<string[]>([]);
-  const [selectedInstruments, setSelectedInstruments] = useState<string[]>([]); // Already present
+  const [selectedInstruments, setSelectedInstruments] = useState<string[]>([]);
+
+  // Used to sort by level
   const levelOrder = [
     'Early Beginner',
     'Beginner',
@@ -53,7 +67,8 @@ const Music: NextPage = () => {
     'Advanced',
     'Professional',
   ];
-  
+
+  // Fetching the music data
   useEffect(() => {
     const fetchPieces = async () => {
       const res = await fetch('/api/celloMusic');
@@ -62,10 +77,10 @@ const Music: NextPage = () => {
       setPieces(flattenedPieces);
       setFilteredPieces(flattenedPieces);
     };
-
     fetchPieces();
   }, []);
 
+  // Fetching the composers data
   useEffect(() => {
     const fetchComposers = async () => {
       const res = await fetch('/api/composers');
@@ -73,73 +88,114 @@ const Music: NextPage = () => {
       const composerNames = data.flatMap((group: { composers: Composer[] }) =>
         group.composers.map((composer) => composer.composer_full_name)
       );
+
       setAccordionContent((prevContent) => ({
         ...prevContent,
         Composer: composerNames,
       }));
     };
-
     fetchComposers();
   }, []);
 
+  // Filter logic
   useEffect(() => {
-    const filtered = pieces.filter(piece => {
+    const filtered = pieces.filter((piece) => {
       const titleMatch = piece.title.toLowerCase().includes(filter.toLowerCase());
       const composerMatch = piece.composer.toLowerCase().includes(filter.toLowerCase());
-      const composerFilterMatch = selectedComposers.length === 0 || selectedComposers.includes(piece.composer);
-      const levelFilterMatch = selectedLevels.length === 0 || selectedLevels.includes(piece.level);
 
-      const instrumentationMatch = selectedInstruments.length === 0 || selectedInstruments.some(selectedInstrument => {
-        if (Array.isArray(piece.instrumentation)) {
-          const normalizedInstrumentation = piece.instrumentation.map(instr => instr.toLowerCase());
-          const selectedParts = selectedInstrument.toLowerCase().split(' and ');
+      const composerFilterMatch =
+        selectedComposers.length === 0 || selectedComposers.includes(piece.composer);
 
-          if (selectedParts.length === 1) {
-            // Exact match for single instruments (e.g., "Cello Solo" should match ["Cello"])
-            return normalizedInstrumentation.length === 1 && normalizedInstrumentation.includes(selectedParts[0]);
-          } else {
-            // Match all selected instruments in the array (e.g., "Cello and Piano" should match ["Cello", "Piano"])
-            return selectedParts.every(part => normalizedInstrumentation.includes(part));
+      const levelFilterMatch =
+        selectedLevels.length === 0 || selectedLevels.includes(piece.level);
+
+      // Instrumentation logic
+      const instrumentationMatch =
+        selectedInstruments.length === 0 ||
+        selectedInstruments.some((selectedInstrument) => {
+          if (Array.isArray(piece.instrumentation)) {
+            const normalized = piece.instrumentation.map((instr) => instr.toLowerCase());
+            const selectedParts = selectedInstrument.toLowerCase().split(' and ');
+
+            if (selectedParts.length === 1) {
+              // Match single instrument exactly
+              return normalized.length === 1 && normalized.includes(selectedParts[0]);
+            } else {
+              // Match all selected instruments in the array
+              return selectedParts.every((part) => normalized.includes(part));
+            }
           }
-        } else {
           return false;
-        }
-      });
+        });
 
+      // Combine all filter checks
       return (titleMatch || composerMatch) && composerFilterMatch && levelFilterMatch && instrumentationMatch;
     });
 
     setFilteredPieces(filtered);
   }, [filter, pieces, selectedComposers, selectedLevels, selectedInstruments]);
 
+  // Toggles
   const toggleComposerSelection = (composer: string) => {
-    setSelectedComposers(prev =>
-      prev.includes(composer) ? prev.filter(c => c !== composer) : [...prev, composer]
+    setSelectedComposers((prev) =>
+      prev.includes(composer) ? prev.filter((c) => c !== composer) : [...prev, composer]
     );
   };
 
   const toggleLevelSelection = (level: string) => {
-    setSelectedLevels(prev =>
-      prev.includes(level) ? prev.filter(l => l !== level) : [...prev, level]
+    setSelectedLevels((prev) =>
+      prev.includes(level) ? prev.filter((l) => l !== level) : [...prev, level]
     );
   };
 
   const toggleInstrumentSelection = (instrument: string) => {
-    setSelectedInstruments(prev =>
-      prev.includes(instrument) ? prev.filter(i => i !== instrument) : [...prev, instrument]
+    setSelectedInstruments((prev) =>
+      prev.includes(instrument) ? prev.filter((i) => i !== instrument) : [...prev, instrument]
     );
+  };
+
+  // Sorting handler
+  const handleSort = (sortOption: string) => {
+    const sortedPieces = [...filteredPieces].sort((a, b) => {
+      switch (sortOption) {
+        case 'title-asc':
+          return a.title.localeCompare(b.title);
+        case 'title-desc':
+          return b.title.localeCompare(a.title);
+        case 'level-asc':
+          return levelOrder.indexOf(a.level) - levelOrder.indexOf(b.level);
+        case 'level-desc':
+          return levelOrder.indexOf(b.level) - levelOrder.indexOf(a.level);
+        case 'composer-desc':
+          // Sort by composer last name (A-Z)
+          if (a.composer_last_name && b.composer_last_name) {
+            return a.composer_last_name.localeCompare(b.composer_last_name);
+          }
+          return 0;
+        default:
+          return 0;
+      }
+    });
+    setFilteredPieces(sortedPieces);
   };
 
   return (
     <div>
       <Head>
         <title>Cello Music</title>
-
       </Head>
 
+      {/* Your Navbar */}
       <NavbarMain />
 
-      <div className="flex mt-1">
+      {/* Primary container with gradient background (assuming global CSS or parent layout sets this).
+          If you need a local gradient, uncomment or adjust accordingly:
+          
+          <div className="min-h-screen bg-gradient-to-b from-gray-800 via-gray-900 to-black text-white">
+      */}
+
+      <div className="flex mt-4">
+        {/* Desktop Filter Aside */}
         <FilterAside
           filter={filter}
           setFilter={setFilter}
@@ -148,25 +204,32 @@ const Music: NextPage = () => {
           toggleComposerSelection={toggleComposerSelection}
           selectedLevels={selectedLevels}
           toggleLevelSelection={toggleLevelSelection}
-          selectedInstruments={selectedInstruments} // New prop
-          toggleInstrumentSelection={toggleInstrumentSelection} // New prop
+          selectedInstruments={selectedInstruments}
+          toggleInstrumentSelection={toggleInstrumentSelection}
         />
+
+        {/* Mobile Filter Drawer */}
         {isFilterVisible && (
-          <div className="md:hidden fixed inset-0 bg-white z-50 overflow-y-auto p-5">
+          <div
+            className="md:hidden fixed inset-0 bg-white z-50 overflow-y-auto p-5 transition-transform transform animate-slideIn"
+            aria-label="Mobile Filter Drawer"
+          >
             <button
-              className="absolute top-5 right-5 bg-red-500 text-white p-2 rounded"
+              className="absolute top-5 right-5 bg-red-500 hover:bg-red-600 text-white p-2 rounded"
               onClick={() => setIsFilterVisible(false)}
             >
               Close
             </button>
-            <h2 className="text-xl color-black font-bold mb-4">Filter</h2>
+            <h2 className="text-xl font-bold text-black mb-4">Filter</h2>
             <input
               type="text"
               placeholder="Search by title or composer"
               value={filter}
               onChange={(e) => setFilter(e.target.value)}
-              className="w-full p-2 border border-gray-300 rounded text-black font-mono mb-4"
+              className="w-full p-2 border border-gray-300 rounded text-black mb-4"
+              aria-label="Filter by title or composer"
             />
+
             <MobileFilterAccordion
               filter={filter}
               setFilter={setFilter}
@@ -180,76 +243,71 @@ const Music: NextPage = () => {
             />
           </div>
         )}
-        <main className="md:ml-64 container mx-auto p-4">
-        <div className="flex items-center justify-between">
-  <h1 className="text-3xl font-bold text-left my-6">Cello Music:</h1>
-  <div className="flex items-center space-x-2">
-  <label className="text-white font-medium text-m">Sort By:</label>
-  <div className="relative">
-  <select
-  className="border border-gray-300 rounded-md p-1 text-black font-medium text-sm bg-white focus:outline-none"
-  onChange={(e) => {
-    const sortOption = e.target.value;
 
-    const sortedPieces = [...filteredPieces].sort((a, b) => {
-      switch (sortOption) {
-        case "title-asc":
-          return a.title.localeCompare(b.title);
-        case "title-desc":
-          return b.title.localeCompare(a.title);
-        case "level-asc":
-          return levelOrder.indexOf(a.level) - levelOrder.indexOf(b.level);
-        case "level-desc":
-          return levelOrder.indexOf(b.level) - levelOrder.indexOf(a.level);
-          case "composer-desc":
-            if (a.composer_last_name && b.composer_last_name) {
-              return a.composer_last_name.localeCompare(b.composer_last_name);
-            }
-            return 0; // Or handle undefined/empty values differently if needed
-          default:
-          
-          return 0;
-      }
-    });
+        {/* Main Content */}
+        <main className="md:ml-64 w-full container mx-auto p-4">
+          {/* Top Section: Header + Mobile Filter Toggle + Sort */}
+          <div className="flex items-center justify-between mb-6">
+            <h1 className="text-3xl font-bold text-white">Cello Music</h1>
 
-    setFilteredPieces(sortedPieces);
-  }}
->
-  <option value="title-asc">Alphabetically (A-Z)</option>
-  <option value="title-desc">Alphabetically (Z-A)</option>
-  <option value="level-asc">Level (Low to High)</option>
-  <option value="level-desc">Level (High to Low)</option>
-  <option value="composer-desc">Composer (A-Z)</option>
-</select>
+            {/* Mobile Filter Toggle Button */}
+            <button
+              className="md:hidden flex items-center text-white bg-black hover:bg-red-500 px-3 py-2 rounded-md"
+              onClick={() => setIsFilterVisible(true)}
+            >
+              <IoFilter className="mr-1" />
+              Filter
+            </button>
 
-</div>
+            {/* Sorting Controls (Hidden on Mobile if you prefer) */}
+            <div className="hidden md:flex items-center space-x-2">
+              <label className="text-white font-medium text-sm" htmlFor="sort-by">
+                Sort By:
+              </label>
+              <div className="relative">
+                <select
+                  id="sort-by"
+                  className="border border-gray-300 rounded-md p-1 text-black font-medium text-sm bg-white focus:outline-none"
+                  onChange={(e) => handleSort(e.target.value)}
+                >
+                  <option value="title-asc">Alphabetically (A-Z)</option>
+                  <option value="title-desc">Alphabetically (Z-A)</option>
+                  <option value="level-asc">Level (Low to High)</option>
+                  <option value="level-desc">Level (High to Low)</option>
+                  <option value="composer-desc">Composer (A-Z)</option>
+                </select>
+              </div>
+            </div>
+          </div>
 
-</div>
-
-
-</div>
-
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-5">
-            {filteredPieces.map((piece, index) => (
+          {/* Grid of Filtered Pieces */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+            {filteredPieces.map((piece) => (
               <div
-                key={index}
-                className="bg-white shadow-md rounded-lg p-4 hover:scale-105 transition-transform duration-500">
-                <Link href={`/piece/${piece.id}`}>
+                key={piece.id}
+                className="bg-white shadow-md rounded-lg p-4 hover:scale-105 transition-transform duration-300"
+              >
+                <Link href={`/piece/${piece.id}`} className="block h-full">
                   <div className="flex flex-col h-full">
                     {/* Title and Composer */}
                     <div>
-                      <h2 className="text-l font-semibold text-gray-800">{piece.title}</h2>
-                      <p className="text-gray-600">by {piece.composer}</p>
-                      <i>
-                        <p className="text-gray-600">{piece.level}</p>
-                      </i>
+                      <h2 className="text-lg font-semibold text-gray-800">{piece.title}</h2>
+                      <p className="text-gray-600">
+                        by <span className="font-medium">{piece.composer}</span>
+                      </p>
+                      <p className="text-gray-600 italic mt-1">{piece.level}</p>
                     </div>
-                    <div className="flex-grow border-b border-gray-300 my-2"></div>
-                    <div className="flex justify-between items-center mt-2">
+
+                    {/* Divider */}
+                    <div className="flex-grow border-b border-gray-300 my-3" />
+
+                    {/* Icon Row */}
+                    <div className="flex justify-between items-center mt-auto">
                       <div className="flex space-x-2">
-                        <CiHeart className="text-xl text-gray-600 hover:text-red-500 cursor-pointer" />
-                        <FaInfoCircle className="text-xl text-blue-500 hover:text-blue-700 cursor-pointer" />
+                        <CiHeart className="text-xl text-gray-500 hover:text-red-500 transition-colors cursor-pointer" />
+                        <FaInfoCircle className="text-xl text-blue-500 hover:text-blue-700 transition-colors cursor-pointer" />
                       </div>
+                      {/* <span className="text-xs text-gray-400">ID: {piece.id}</span> */}
                     </div>
                   </div>
                 </Link>
@@ -258,6 +316,8 @@ const Music: NextPage = () => {
           </div>
         </main>
       </div>
+
+      {/* </div>  Un-comment if you wrapped in a gradient container */}
     </div>
   );
 };
