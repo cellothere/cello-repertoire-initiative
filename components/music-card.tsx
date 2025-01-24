@@ -27,11 +27,11 @@ const MusicCard: React.FC<MusicCardProps> = ({ id, title, composer, level }) => 
         <div className="flex-grow border-b border-gray-300 my-3" />
   
         {/* Centered Button Row */}
-        <div className="flex justify-center mt-auto">
-          <button className="bg-black text-white px-10 py-1 rounded-full text-center hover:bg-gray-800 transition-colors">
-            See more
-          </button>
-        </div>
+        <div className="flex justify-center">
+  <button className="bg-black text-white w-[75%] max-w-xs py-1 rounded-full text-center hover:bg-gray-800 transition-colors">
+    See more
+  </button>
+</div>
       </div>
     </Link>
   </div>

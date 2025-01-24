@@ -221,7 +221,7 @@ const Music: NextPage = () => {
             >
               Close
             </button>
-            
+
             <h2 className="text-xl font-bold text-black mb-4">Filter</h2>
             <input
               type="text"
@@ -284,16 +284,16 @@ const Music: NextPage = () => {
 
           {/* Grid of Filtered Pieces */}
           <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-  {filteredPieces.map((piece) => (
-    <MusicCard
-      key={piece.id}
-      id={piece.id}
-      title={piece.title}
-      composer={piece.composer}
-      level={piece.level}
-    />
-  ))}
-</div>
+            {filteredPieces.map((piece) => (
+              <MusicCard
+                key={piece.id}
+                id={piece.id}
+                title={piece.title}
+                composer={piece.composer}
+                level={piece.level}
+              />
+            ))}
+          </div>
 
         </main>
       </div>
