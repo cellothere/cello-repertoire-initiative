@@ -79,44 +79,41 @@ const NavbarMain = () => {
         </Link>
       </div>
 
-{/* Desktop Search Section */}
-<div className="flex-grow max-w-lg mx-4 hidden md:block" id="searchMenu">
-  <form onSubmit={handleSearch} className="flex">
-    {/* Relative container for input and clear button */}
-    <div className="relative flex-grow">
-      <input
-        type="text"
-        placeholder="Find music, composers, and resources..."
-        value={searchQuery}
-        onChange={(e) => setSearchQuery(e.target.value)}
-        className="w-full p-2 pr-10 rounded bg-gray-300 border border-gray-600 text-black"
-      />
-      {searchQuery && (
-        <button
-          type="button"
-          onClick={() => {
-            setSearchQuery("");
-            setIsSearchOpen(false);
-          }}
-          className="absolute right-3 top-1/2 transform -translate-y-1/2 text-black hover:text-gray-500 transition"
-          aria-label="Clear search"
-        >
-          ✕
-        </button>
-      )}
-    </div>
-    {/* Submit button */}
-    <button
-      type="submit"
-      className="bg-black text-white px-4 rounded ml-2 hover:bg-teal-600 transition flex items-center justify-center"
-    >
-      <FaSearch />
-    </button>
-  </form>
-</div>
-
-
-
+      {/* Desktop Search Section */}
+      <div className="flex-grow max-w-lg mx-4 hidden md:block" id="searchMenu">
+        <form onSubmit={handleSearch} className="flex">
+          {/* Relative container for input and clear button */}
+          <div className="relative flex-grow">
+            <input
+              type="text"
+              placeholder="Find music, composers, and resources..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full p-2 pr-10 rounded bg-gray-300 border border-gray-600 text-black"
+            />
+            {searchQuery && (
+              <button
+                type="button"
+                onClick={() => {
+                  setSearchQuery("");
+                  setIsSearchOpen(false);
+                }}
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-black hover:text-gray-500 transition"
+                aria-label="Clear search"
+              >
+                ✕
+              </button>
+            )}
+          </div>
+          {/* Submit button */}
+          <button
+            type="submit"
+            className="bg-black text-white px-4 rounded ml-2 hover:bg-teal-600 transition flex items-center justify-center"
+          >
+            <FaSearch />
+          </button>
+        </form>
+      </div>
       {/* Mobile Menu Section */}
       <div className="md:hidden flex items-center relative">
         {isSearchOpen && (
@@ -149,7 +146,7 @@ const NavbarMain = () => {
           className="bg-transparent text-black p-2 mx-2"
           aria-label="Toggle Search"
         >
-{ router.pathname !== "/search-results" && <FaSearch size={25} /> }
+          {router.pathname !== "/search-results" && <FaSearch size={25} />}
 
         </button>
         {!isSearchOpen && (
