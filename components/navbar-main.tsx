@@ -164,9 +164,6 @@ const NavbarMain = () => {
           </div>
         )}
       </div>
-
-
-
       {/* Desktop Navigation */}
       <nav className="hidden md:flex">
         <Link href="/">
