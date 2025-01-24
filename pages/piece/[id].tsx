@@ -99,12 +99,11 @@ const Piece: NextPage<PieceProps> = ({ piece, composerInfo }) => {
       <NavbarMain />
 
       <main
-  className={`grid ${
-    hasVideo ? 'grid-cols-2 md:grid-cols-2' : 'grid-cols-1 md:grid-cols-1'
-  } gap-4 p-4 mt-5`}
+className={`grid grid-cols-1 ${hasVideo ? 'md:grid-cols-2' : 'md:grid-cols-1'} gap-4 p-4 mt-5`}
 >
-        {/* Left Column */}
-        <div className={`container ${hasVideo ? 'mx-auto' : 'mx-auto place-items-center'}`}>
+    {/* Left Column */}
+    <div className={`container mx-auto ${hasVideo ? '' : 'place-items-center'}`}>
+
           {/* Title + Composer */}
           <div className="flex flex-col justify-between items-start mb-2">
             <h1 className="text-3xl font-bold mb-2">{piece.title}</h1>
@@ -128,7 +127,7 @@ const Piece: NextPage<PieceProps> = ({ piece, composerInfo }) => {
               {/* Level + Tooltip */}
               <div className="flex items-center">
                 <p className="text-lg italic mr-1">{piece.level}</p>
-                <Tooltip title="Explain the level here. e.g., Intermediate, Advanced, etc.">
+                <Tooltip title="Levels are approximate.">
                   <span className="cursor-pointer">
                     <AiFillQuestionCircle className="mb-1" />
                   </span>
@@ -276,7 +275,7 @@ const Piece: NextPage<PieceProps> = ({ piece, composerInfo }) => {
               id="panel4-header"
               className="ml-1 text-lg font-bold bg-clip-text"
             >
-              Audio
+              Audio and Recordings
             </AccordionSummary>
             <div className="border-b border-gray-300 my-1"></div>
             <AccordionDetails>
