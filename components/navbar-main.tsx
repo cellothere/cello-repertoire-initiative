@@ -65,7 +65,7 @@ const NavbarMain = () => {
 
       {/* Desktop Search Section */}
       <div className="flex-grow max-w-lg mx-4 hidden md:block" id="searchMenu">
-        <form onSubmit={handleSearch} className="flex">
+        <form onSubmit={handleSearch} className="flex relative">
           <input
             type="text"
             placeholder="Find music, composers, and resources..."
@@ -73,6 +73,19 @@ const NavbarMain = () => {
             onChange={(e) => setSearchQuery(e.target.value)}
             className="w-full p-2 rounded bg-gray-300 border border-gray-600 text-black"
           />
+          {searchQuery && (
+            <button
+              type="button"
+              onClick={() => {
+                setSearchQuery("");
+                setIsSearchOpen(false);
+              }}
+              className="absolute right-10 top-2 text-black hover:text-gray-500 transition"
+              aria-label="Clear search"
+            >
+              ✕
+            </button>
+          )}
           <button
             type="submit"
             className="bg-black text-white px-4 rounded ml-2 hover:bg-teal-600 transition"
@@ -85,14 +98,29 @@ const NavbarMain = () => {
       {/* Mobile Menu Section */}
       <div className="md:hidden flex items-center relative">
         {isSearchOpen && (
-          <input
-            type="text"
-            placeholder="Search..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            onKeyDown={handleKeyDown} // Trigger search on "Enter"
-            className="w-full p-2 rounded bg-gray-300 border border-gray-600 text-black"
-          />
+          <div className="flex relative w-full">
+            <input
+              type="text"
+              placeholder="Search..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              onKeyDown={handleKeyDown} // Trigger search on "Enter"
+              className="w-full p-2 rounded bg-gray-300 border border-gray-600 text-black"
+            />
+            {searchQuery && (
+              <button
+                type="button"
+                onClick={() => {
+                  setSearchQuery("");
+                  setIsSearchOpen(false);
+                }}
+                className="absolute right-1 top-2 text-black hover:text-gray-500 transition"
+                aria-label="Clear search"
+              >
+                ✕
+              </button>
+            )}
+          </div>
         )}
         <button
           onClick={toggleSearch}
