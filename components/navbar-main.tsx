@@ -114,7 +114,7 @@ const NavbarMain = () => {
                   setSearchQuery("");
                   setIsSearchOpen(false);
                 }}
-                className="absolute right-1 top-2 text-black hover:text-gray-500 transition"
+                className="absolute right-1 top-2 mr-2 text-black hover:text-gray-500 transition"
                 aria-label="Clear search"
               >
                 ✕
@@ -129,17 +129,21 @@ const NavbarMain = () => {
         >
           <FaSearch size={25} />
         </button>
-        <Link href="/">
-          <BiSolidHomeCircle size={30} className="mr-3" />
-        </Link>
-        <Button
-          variant="flat"
-          onClick={toggleMenu}
-          aria-label="Toggle Menu"
-          className="bg-black text-white font-bold py-2 px-2 rounded mx-2"
-        >
-          <RxHamburgerMenu />
-        </Button>
+        {!isSearchOpen && (
+          <>
+            <Link href="/">
+              <BiSolidHomeCircle size={30} className="mr-3" />
+            </Link>
+            <Button
+              variant="flat"
+              onClick={toggleMenu}
+              aria-label="Toggle Menu"
+              className="bg-black text-white font-bold py-2 px-2 rounded mx-2"
+            >
+              <RxHamburgerMenu />
+            </Button>
+          </>
+        )}
         {isMenuOpen && (
           <div className="z-50 mt-1 absolute top-16 items-center right-0 bg-white w-40 border border-gray-400 rounded shadow-lg flex flex-col">
             <Link href="/">
@@ -160,6 +164,8 @@ const NavbarMain = () => {
           </div>
         )}
       </div>
+
+
 
       {/* Desktop Navigation */}
       <nav className="hidden md:flex">
