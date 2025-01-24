@@ -53,78 +53,126 @@ const Home: NextPage = () => {
           Connecting Teachers to Diverse Musical Voices.
         </p>
         <button
-          className={`bg-black text-white px-6 py-3 rounded-lg mt-4 transition-transform hover:scale-110 ${
-            isMobileView ? 'mobile-view' : ''
+          className={`bg-black text-white px-6 py-3 rounded-lg transition-transform hover:scale-110 ${
+            isMobileView ? 'mobile-view mt-4' : 'mt-2 mb-6'
           }`}
         >
           Find music <FaArrowRight className="inline-block ml-2" />
         </button>
 
-        <div className={`mt-6 ${contentVisible ? '' : 'hidden'}`} id="afterMoveUp">
-          <div
-            className={`flex ${isMobileView ? 'flex-col space-y-6' : 'space-x-6'}`}
-            id="images-container"
-          >
-            <Link href="/cello-music">
-              <div className={`relative ${!isMobileView ? 'hover:scale-105' : ''} duration-300`}>
-                <img
-                  src="/assets/whatsNew.png"
-                  className={`w-80 h-120 rounded-lg transition-opacity duration-300 ${
-                    !isMobileView ? 'hover:opacity-75' : ''
-                  }`}
-                />
-                {/* Overlay: show always on mobile, hover on desktop */}
-                <div
-                  className={`absolute inset-0 flex flex-col items-center justify-center bg-black bg-opacity-50 transition-opacity duration-300 ${
-                    isMobileView ? 'opacity-100' : 'opacity-0 hover:opacity-100'
-                  }`}
-                >
-                  <p className="text-white text-lg font-bold">See What&apos;s New</p>
-                  <p className="text-sm font-bold text-white">Coming Soon</p>
-                </div>
-              </div>
-            </Link>
-
-            <Link href="/cello-music">
-              <div className={`relative ${!isMobileView ? 'hover:scale-105' : ''} duration-300`}>
-                <img
-                  src="/assets/cellist3.png"
-                  className={`w-80 h-120 rounded-lg transition-opacity duration-300 ${
-                    !isMobileView ? 'hover:opacity-75' : ''
-                  }`}
-                />
-                <div
-                  className={`absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 transition-opacity duration-300 ${
-                    isMobileView ? 'opacity-100' : 'opacity-0 hover:opacity-100'
-                  }`}
-                >
-                  <p className="text-white text-lg font-bold">Cello Music</p>
-                </div>
-              </div>
-            </Link>
-
-            <Link href="/contribute">
-              <div className={`relative ${!isMobileView ? 'hover:scale-105' : ''} duration-300`}>
-                <img
-                  src="/assets/contribute.png"
-                  className={`w-80 h-120 rounded-lg transition-opacity duration-300 ${
-                    !isMobileView ? 'hover:opacity-75' : ''
-                  }`}
-                />
-                <div
-                  className={`absolute inset-0 flex flex-col items-center justify-center bg-black bg-opacity-50 transition-opacity duration-300 ${
-                    isMobileView ? 'opacity-100' : 'opacity-0 hover:opacity-100'
-                  }`}
-                >
-                  <p className="text-white text-lg font-bold">Contribute</p>
-                  <p className="text-sm font-bold text-white">
-                    Suggest an addition to our catalog
-                  </p>
-                </div>
-              </div>
-            </Link>
+        <div className={`${contentVisible ? '' : 'hidden'}`} id="afterMoveUp">
+  <div
+    className={`flex ${isMobileView ? 'flex-col space-y-6' : 'space-x-6'}`}
+    id="images-container"
+  >
+    {isMobileView ? (
+      <>
+        {/* Cello Music */}
+        <Link href="/cello-music">
+          <div className={`relative ${!isMobileView ? 'hover:scale-105' : ''} duration-300`}>
+            <img
+              src="/assets/cellist3.png"
+              className={`w-80 h-120 rounded-lg transition-opacity duration-300 ${
+                !isMobileView ? 'hover:opacity-75' : ''
+              }`}
+            />
+            <div
+              className={`absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 transition-opacity duration-300 ${
+                isMobileView ? 'opacity-100' : 'opacity-0 hover:opacity-100'
+              }`}
+            >
+              <p className="text-white text-lg font-bold">Cello Music</p>
+            </div>
           </div>
+        </Link>
+
+        {/* See What's New */}
+        <Link href="/cello-music">
+          <div className={`relative ${!isMobileView ? 'hover:scale-105' : ''} duration-300`}>
+            <img
+              src="/assets/whatsNew.png"
+              className={`w-80 h-120 rounded-lg transition-opacity duration-300 ${
+                !isMobileView ? 'hover:opacity-75' : ''
+              }`}
+            />
+            <div
+              className={`absolute inset-0 flex flex-col items-center justify-center bg-black bg-opacity-50 transition-opacity duration-300 ${
+                isMobileView ? 'opacity-100' : 'opacity-0 hover:opacity-100'
+              }`}
+            >
+              <p className="text-white text-lg font-bold">See What&apos;s New</p>
+              <p className="text-sm font-bold text-white">Coming Soon</p>
+            </div>
+          </div>
+        </Link>
+      </>
+    ) : (
+      <>
+        {/* See What's New */}
+        <Link href="/cello-music">
+          <div className={`relative ${!isMobileView ? 'hover:scale-105' : ''} duration-300`}>
+            <img
+              src="/assets/whatsNew.png"
+              className={`w-80 h-120 rounded-lg transition-opacity duration-300 ${
+                !isMobileView ? 'hover:opacity-75' : ''
+              }`}
+            />
+            <div
+              className={`absolute inset-0 flex flex-col items-center justify-center bg-black bg-opacity-50 transition-opacity duration-300 ${
+                isMobileView ? 'opacity-100' : 'opacity-0 hover:opacity-100'
+              }`}
+            >
+              <p className="text-white text-lg font-bold">See What&apos;s New</p>
+              <p className="text-sm font-bold text-white">Coming Soon</p>
+            </div>
+          </div>
+        </Link>
+
+        {/* Cello Music */}
+        <Link href="/cello-music">
+          <div className={`relative ${!isMobileView ? 'hover:scale-105' : ''} duration-300`}>
+            <img
+              src="/assets/cellist3.png"
+              className={`w-80 h-120 rounded-lg transition-opacity duration-300 ${
+                !isMobileView ? 'hover:opacity-75' : ''
+              }`}
+            />
+            <div
+              className={`absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 transition-opacity duration-300 ${
+                isMobileView ? 'opacity-100' : 'opacity-0 hover:opacity-100'
+              }`}
+            >
+              <p className="text-white text-lg font-bold">Cello Music</p>
+            </div>
+          </div>
+        </Link>
+      </>
+    )}
+
+    {/* Contribute */}
+    <Link href="/contribute">
+      <div className={`relative ${!isMobileView ? 'hover:scale-105' : ''} duration-300`}>
+        <img
+          src="/assets/contribute.png"
+          className={`w-80 h-120 rounded-lg transition-opacity duration-300 ${
+            !isMobileView ? 'hover:opacity-75' : ''
+          }`}
+        />
+        <div
+          className={`absolute inset-0 flex flex-col items-center justify-center bg-black bg-opacity-50 transition-opacity duration-300 ${
+            isMobileView ? 'opacity-100' : 'opacity-0 hover:opacity-100'
+          }`}
+        >
+          <p className="text-white text-lg font-bold">Contribute</p>
+          <p className="text-sm font-bold text-white">
+            Suggest an addition to our catalog
+          </p>
         </div>
+      </div>
+    </Link>
+  </div>
+</div>
+
 
         <Analytics />
       </main>
