@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Dropdown,
   Link,
@@ -19,6 +19,22 @@ const NavbarMain = () => {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const router = useRouter();
+
+  // Detect mobile view
+  const [isMobileView, setIsMobileView] = useState(false);
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobileView(window.innerWidth <= 768); // You can adjust the breakpoint as needed
+    };
+
+    handleResize(); // Check on initial render
+    window.addEventListener("resize", handleResize); // Update on window resize
+
+    return () => {
+      window.removeEventListener("resize", handleResize); // Clean up on component unmount
+    };
+  }, []);
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
@@ -63,37 +79,43 @@ const NavbarMain = () => {
         </Link>
       </div>
 
-      {/* Desktop Search Section */}
-      <div className="flex-grow max-w-lg mx-4 hidden md:block" id="searchMenu">
-        <form onSubmit={handleSearch} className="flex relative">
-          <input
-            type="text"
-            placeholder="Find music, composers, and resources..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full p-2 rounded bg-gray-300 border border-gray-600 text-black"
-          />
-          {searchQuery && (
-            <button
-              type="button"
-              onClick={() => {
-                setSearchQuery("");
-                setIsSearchOpen(false);
-              }}
-              className="absolute right-10 top-2 text-black hover:text-gray-500 transition"
-              aria-label="Clear search"
-            >
-              ✕
-            </button>
-          )}
-          <button
-            type="submit"
-            className="bg-black text-white px-4 rounded ml-2 hover:bg-teal-600 transition"
-          >
-            <FaSearch />
-          </button>
-        </form>
-      </div>
+{/* Desktop Search Section */}
+<div className="flex-grow max-w-lg mx-4 hidden md:block" id="searchMenu">
+  <form onSubmit={handleSearch} className="flex">
+    {/* Relative container for input and clear button */}
+    <div className="relative flex-grow">
+      <input
+        type="text"
+        placeholder="Find music, composers, and resources..."
+        value={searchQuery}
+        onChange={(e) => setSearchQuery(e.target.value)}
+        className="w-full p-2 pr-10 rounded bg-gray-300 border border-gray-600 text-black"
+      />
+      {searchQuery && (
+        <button
+          type="button"
+          onClick={() => {
+            setSearchQuery("");
+            setIsSearchOpen(false);
+          }}
+          className="absolute right-3 top-1/2 transform -translate-y-1/2 text-black hover:text-gray-500 transition"
+          aria-label="Clear search"
+        >
+          ✕
+        </button>
+      )}
+    </div>
+    {/* Submit button */}
+    <button
+      type="submit"
+      className="bg-black text-white px-4 rounded ml-2 hover:bg-teal-600 transition flex items-center justify-center"
+    >
+      <FaSearch />
+    </button>
+  </form>
+</div>
+
+
 
       {/* Mobile Menu Section */}
       <div className="md:hidden flex items-center relative">
@@ -127,12 +149,13 @@ const NavbarMain = () => {
           className="bg-transparent text-black p-2 mx-2"
           aria-label="Toggle Search"
         >
-          <FaSearch size={25} />
+{ router.pathname !== "/search-results" && <FaSearch size={25} /> }
+
         </button>
         {!isSearchOpen && (
           <>
             <Link href="/">
-              <BiSolidHomeCircle size={30} className="mr-3" />
+              <BiSolidHomeCircle size={35} className="mr-3" />
             </Link>
             <Button
               variant="flat"
@@ -164,6 +187,9 @@ const NavbarMain = () => {
           </div>
         )}
       </div>
+
+
+
       {/* Desktop Navigation */}
       <nav className="hidden md:flex">
         <Link href="/">
