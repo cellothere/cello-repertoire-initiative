@@ -12,6 +12,7 @@ import Accordion from '@mui/material/Accordion';
 import AccordionSummary from '@mui/material/AccordionSummary';
 import AccordionDetails from '@mui/material/AccordionDetails';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import Tooltip from '@mui/material/Tooltip'; // NEW: for tooltip explanation
 import { AiFillQuestionCircle } from "react-icons/ai";
 import VideoIframe from '@/components/youtube-iframe';
 
@@ -41,24 +42,23 @@ interface PieceProps {
   } | null;
 }
 
-
-
 const Piece: NextPage<PieceProps> = ({ piece, composerInfo }) => {
   const [videoId1, setVideoId1] = useState<string | null>(null);
 
-  // UseEffect should not depend on piece if it does not directly cause re-render issues
   useEffect(() => {
     if (piece && piece.audio_link.length > 0) {
       const audioLink1 = piece.audio_link[0];
+      // Safely extract the last 11 characters for typical YouTube video IDs
       const id = audioLink1.slice(-11);
       setVideoId1(id);
     }
-  }, [piece]); // Depend on `piece` only if necessary, as it's critical to set the video ID correctly
+  }, [piece]);
 
   if (!piece) {
     return <LoadingAnimation />;
   }
 
+  // Optional: You can configure YouTube player options here
   const opts = {
     height: '400',
     width: '550',
@@ -73,12 +73,16 @@ const Piece: NextPage<PieceProps> = ({ piece, composerInfo }) => {
         <title>{piece.title}</title>
       </Head>
       <NavbarMain />
+      
       <main className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 mt-5">
+        {/* Left Column */}
         <div className="container mx-auto">
+          {/* Title + Composer */}
           <div className="flex flex-col justify-between items-start mb-2">
-            <h1 className="text-3xl font-bold">{piece.title}</h1>
-            <div className="flex flex-col items-start mb-2">
-              <p className="text-xl mb-2">by{' '}
+            <h1 className="text-3xl font-bold mb-2">{piece.title}</h1>
+            <div className="flex flex-col items-start">
+              <p className="text-xl mb-2">
+                by{' '}
                 {composerInfo?.bio_links?.[0] ? (
                   <Link
                     href={composerInfo.bio_links[0]}
@@ -92,140 +96,180 @@ const Piece: NextPage<PieceProps> = ({ piece, composerInfo }) => {
                   <span>{composerInfo?.composer_full_name || 'Unknown Composer'}</span>
                 )}
               </p>
+
+              {/* Level + Tooltip */}
               <div className="flex items-center">
-                <p className="text-md text-lg italic mr-1">{' - '}{piece.level}</p>
-                <AiFillQuestionCircle className="mb-2" />
+                <p className="text-lg italic mr-1">{piece.level}</p>
+                <Tooltip title="Explain the level here. e.g., Intermediate, Advanced, etc.">
+                  <span className="cursor-pointer">
+                    <AiFillQuestionCircle className="mb-1" />
+                  </span>
+                </Tooltip>
               </div>
             </div>
           </div>
 
+          {/* Info Accordion */}
           <Accordion className="w-full md:w-[600px]" defaultExpanded>
             <AccordionSummary
               expandIcon={<ExpandMoreIcon />}
               aria-controls="panel1-content"
               id="panel1-header"
-              className="ml-1 text-lg font-bold bg-clip-text text-transparent bg-gradient-to-br"
+              className="ml-1 text-lg font-bold bg-clip-text"
             >
               Info
             </AccordionSummary>
             <div className="border-b border-gray-300 my-1"></div>
             <AccordionDetails>
               <p className="text-md mb-2 font-bold">Description:</p>
-              {piece.description || 'No description available.'}
-              <p className="mb-4"></p>
-              {piece.composition_year && <p className="text-md mb-4"><strong>Composition Year: </strong> {piece.composition_year}</p>}
-              {piece.instrumentation && (
+              <p className="mb-4">
+                {piece.description || 'No description available.'}
+              </p>
+
+              {piece.composition_year && (
                 <p className="text-md mb-4">
-                  <strong>Instrumentation: </strong> {piece.instrumentation.join(', ')}
+                  <strong>Composition Year: </strong>
+                  {piece.composition_year}
                 </p>
               )}
-              {piece.duration && <p className="text-md mb-4"> <strong>Duration: </strong>{piece.duration}</p>}
-              <p className="text-md mb-4"><strong>Arrangement of Original? </strong>{piece.isArrangement ? 'Yes' : 'No'}</p>
-              <p className="text-md mb-4"><strong>Public Domain? </strong> {piece.is_public_domain ? 'Yes' : 'No'}</p>
-              {piece.publisher_info && <p className="text-md mb-4"><strong>Publisher Info: </strong> {piece.publisher_info}</p>}
-              {/* {piece.coverImage && <img src={piece.coverImage} alt={piece.title} />} */}
+
+              {piece.instrumentation?.length > 0 && (
+                <p className="text-md mb-4">
+                  <strong>Instrumentation: </strong>
+                  {piece.instrumentation.join(', ')}
+                </p>
+              )}
+
+              {piece.duration && (
+                <p className="text-md mb-4">
+                  <strong>Duration: </strong>
+                  {piece.duration}
+                </p>
+              )}
+
+              <p className="text-md mb-4">
+                <strong>Arrangement of Original? </strong>
+                {piece.isArrangement ? 'Yes' : 'No'}
+              </p>
+
+              <p className="text-md mb-4">
+                <strong>Public Domain? </strong>
+                {piece.is_public_domain ? 'Yes' : 'No'}
+              </p>
+
+              {piece.publisher_info && (
+                <p className="text-md mb-4">
+                  <strong>Publisher Info: </strong>
+                  {piece.publisher_info}
+                </p>
+              )}
+
+              {/* Uncomment to display cover image if available 
+              {piece.coverImage && (
+                <img
+                  src={piece.coverImage}
+                  alt={`Cover image of ${piece.title}`}
+                  className="my-4"
+                />
+              )} 
+              */}
             </AccordionDetails>
           </Accordion>
 
+          {/* Technical Overview Accordion */}
           <Accordion className="w-full md:w-[600px]">
             <AccordionSummary
               expandIcon={<ExpandMoreIcon />}
               aria-controls="panel2-content"
               id="panel2-header"
-              className="ml-1 text-lg font-bold bg-clip-text text-transparent bg-gradient-to-br"
+              className="ml-1 text-lg font-bold bg-clip-text"
             >
               Technical Overview
             </AccordionSummary>
             <div className="border-b border-gray-300 my-1"></div>
             <AccordionDetails>
-              {piece.technical_overview || 'No description available.'}
+              {piece.technical_overview || 'No technical overview available.'}
             </AccordionDetails>
           </Accordion>
 
+          {/* Where to Buy/Download Accordion */}
           <Accordion className="w-full md:w-[600px]">
             <AccordionSummary
               expandIcon={<ExpandMoreIcon />}
               aria-controls="panel3-content"
               id="panel3-header"
-              className="ml-1 text-lg font-bold bg-clip-text text-transparent bg-gradient-to-br"
+              className="ml-1 text-lg font-bold bg-clip-text"
             >
               Where to buy/download
             </AccordionSummary>
             <div className="border-b border-gray-300 my-1"></div>
             <AccordionDetails>
-              {piece.where_to_buy_or_download.length > 0 && (
+              {piece.where_to_buy_or_download.length > 0 ? (
                 <div className="text-md mb-4">
                   {piece.where_to_buy_or_download.map((link, index) => {
-                    const domain = new URL(link).hostname.replace(/^www\./, ''); // Extract domain and remove 'www.'
+                    if (!link) return null;
+                    const domain = new URL(link).hostname.replace(/^www\./, '');
                     return (
-                      link && (
-                        <div key={index}>
-                          <BsFileEarmarkMusicFill style={{ display: 'inline-block', verticalAlign: 'middle' }} />
-                          <a
-                            href={link}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            style={{
-                              display: 'inline-block',
-                              verticalAlign: 'middle',
-                              marginLeft: '5px',
-                              textDecoration: 'underline', // Underline style
-                            }}
-                          >
-                            {domain}
-                          </a>
-                          <br />
-                        </div>
-                      )
+                      <div key={index}>
+                        <BsFileEarmarkMusicFill className="inline-block align-middle" />
+                        <Link
+                          href={link}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-block ml-2 underline align-middle"
+                        >
+                          {domain}
+                        </Link>
+                      </div>
                     );
                   })}
                 </div>
+              ) : (
+                <p>No links available.</p>
               )}
             </AccordionDetails>
           </Accordion>
 
+          {/* Audio Accordion */}
           <Accordion className="w-full md:w-[600px]">
             <AccordionSummary
               expandIcon={<ExpandMoreIcon />}
               aria-controls="panel4-content"
               id="panel4-header"
-              className="ml-1 text-lg font-bold bg-clip-text text-transparent bg-gradient-to-br"
+              className="ml-1 text-lg font-bold bg-clip-text"
             >
               Audio
             </AccordionSummary>
             <div className="border-b border-gray-300 my-1"></div>
             <AccordionDetails>
-              {piece.audio_link.length > 0 && (
+              {piece.audio_link.length > 0 ? (
                 <div className="text-md mb-4">
                   {piece.audio_link.map((link, index) => {
-                    const domain = new URL(link).hostname.replace(/^www\./, ''); // Extract domain and remove 'www.'
+                    if (!link) return null;
+                    const domain = new URL(link).hostname.replace(/^www\./, '');
                     return (
-                      link && (
-                        <div key={index}>
-                          <HiMusicNote style={{ display: 'inline-block', verticalAlign: 'middle' }} />
-                          <a
-                            href={link}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            style={{
-                              display: 'inline-block',
-                              verticalAlign: 'middle',
-                              marginLeft: '5px',
-                              textDecoration: 'underline', // Underline style
-                            }}
-                          >
-                            {domain}
-                          </a>
-                          <br />
-                        </div>
-                      )
+                      <div key={index}>
+                        <HiMusicNote className="inline-block align-middle" />
+                        <Link
+                          href={link}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-block ml-2 underline align-middle"
+                        >
+                          {domain}
+                        </Link>
+                      </div>
                     );
                   })}
                 </div>
+              ) : (
+                <p>No audio links available.</p>
               )}
             </AccordionDetails>
           </Accordion>
         </div>
+
+        {/* Right Column */}
         <div className="container mx-auto flex flex-col items-center">
           <div className="w-full flex justify-end">
             <button className="bg-black text-white px-4 py-2 mb-3 rounded-lg transition-transform hover:scale-105">
@@ -234,9 +278,12 @@ const Piece: NextPage<PieceProps> = ({ piece, composerInfo }) => {
               </Link>
             </button>
           </div>
-          {videoId1 && <div className="w-full mt-16">
-            <VideoIframe videoId={videoId1} title="" />
-          </div>}
+          
+          {videoId1 && (
+            <div className="w-full mt-16 flex justify-center">
+              <VideoIframe videoId={videoId1} title={piece.title} />
+            </div>
+          )}
         </div>
       </main>
     </div>
@@ -244,27 +291,28 @@ const Piece: NextPage<PieceProps> = ({ piece, composerInfo }) => {
 };
 
 export const getServerSideProps: GetServerSideProps = async (context) => {
-  const { id } = context.params || {}; // Safely destructure `id`
-  
+  const { id } = context.params || {};
   if (!id || typeof id !== 'string') {
-    return { notFound: true }; // Return a 404 page if `id` is missing or invalid
+    return { notFound: true };
   }
 
   const client = await clientPromise;
   const collection = client.db('cello_repertoire').collection('music_pieces');
 
-  const piece = await collection.aggregate([
-    { $match: { id } }, // Use `id` directly since we've validated it
-    {
-      $lookup: {
-        from: 'composers',
-        localField: 'composer_id',
-        foreignField: 'id',
-        as: 'composerDetails',
+  const piece = await collection
+    .aggregate([
+      { $match: { id } },
+      {
+        $lookup: {
+          from: 'composers',
+          localField: 'composer_id',
+          foreignField: 'id',
+          as: 'composerDetails',
+        },
       },
-    },
-    { $unwind: '$composerDetails' },
-  ]).next();
+      { $unwind: '$composerDetails' },
+    ])
+    .next();
 
   return {
     props: {
@@ -290,13 +338,11 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
       composerInfo: piece?.composerDetails
         ? {
             composer_full_name: piece.composerDetails.composer_full_name || 'Unknown Composer',
-            bio_links: piece.composerDetails.bio_link || [], // Ensure this matches the schema
+            bio_links: piece.composerDetails.bio_link || [],
           }
         : null,
     },
   };
 };
-
-
 
 export default Piece;

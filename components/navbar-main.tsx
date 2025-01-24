@@ -44,7 +44,7 @@ const NavbarMain = () => {
             placeholder="Find music, composers, and resources..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full p-2 rounded bg-gray-300 border border-gray-600 text-white"
+            className="w-full p-2 rounded bg-gray-300 border border-gray-600 text-black"
           />
           <button
             type="submit"

@@ -9,9 +9,29 @@ type ContributeProps = {};
 const Contribute: NextPage<ContributeProps> = () => {
     const [pieceName, setPieceName] = useState('');
     const [composer, setComposer] = useState('');
-    const [whereToBuyOrDownload, setWhereToBuyOrDownload] = useState('');
+    const [whereToBuyOrDownload, setWhereToBuyOrDownload] = useState<string[]>(['']);
     const [description, setDescription] = useState('');
     const [formSubmitted, setFormSubmitted] = useState(false);
+
+    // Handler to update a specific link
+    const handleLinkChange = (index: number, value: string) => {
+        const updatedLinks = [...whereToBuyOrDownload];
+        updatedLinks[index] = value;
+        setWhereToBuyOrDownload(updatedLinks);
+    };
+
+    // Handler to add a new link field
+    const addLinkField = () => {
+        if (whereToBuyOrDownload.length < 5) {
+            setWhereToBuyOrDownload([...whereToBuyOrDownload, '']);
+        }
+    };
+
+    // Handler to remove a link field
+    const removeLinkField = (index: number) => {
+        const updatedLinks = whereToBuyOrDownload.filter((_, i) => i !== index);
+        setWhereToBuyOrDownload(updatedLinks);
+    };
 
     const submitForm = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
@@ -19,7 +39,7 @@ const Contribute: NextPage<ContributeProps> = () => {
         const templateParams = {
             pieceName,
             composer,
-            whereToBuyOrDownload,
+            whereToBuyOrDownload: whereToBuyOrDownload.join(', '), // Concatenate links
             description,
         };
 
@@ -29,7 +49,7 @@ const Contribute: NextPage<ContributeProps> = () => {
             setFormSubmitted(true);
             setPieceName('');
             setComposer('');
-            setWhereToBuyOrDownload('');
+            setWhereToBuyOrDownload(['']);
             setDescription('');
         } catch (error) {
             console.error("Email not sent...", error);
@@ -69,21 +89,47 @@ const Contribute: NextPage<ContributeProps> = () => {
                                         type="text"
                                         id="composer"
                                         value={composer}
+                                        placeholder="Full composer name, including any special characters."
                                         onChange={(e) => setComposer(e.target.value)}
                                         required
                                         className="form-input w-full p-2 rounded bg-white border border-gray-600 text-black"
                                     />
                                 </div>
                                 <div>
-                                    <label htmlFor="whereToBuyOrDownload" className="block mb-1">Where can we find, buy, or download this piece? Please include any relevant links.</label>
-                                    <input
-                                        type="text"
-                                        id="whereToBuyOrDownload"
-                                        value={whereToBuyOrDownload}
-                                        onChange={(e) => setWhereToBuyOrDownload(e.target.value)}
-                                        required
-                                        className="form-input w-full p-2 rounded bg-white border border-gray-600 text-black"
-                                    />
+                                    <label className="block mb-1">
+                                        Where can we find, buy, or download this piece? Please include any relevant links.
+                                    </label>
+                                    {whereToBuyOrDownload.map((link, index) => (
+                                        <div key={index} className="flex items-center mb-2">
+                                            <input
+                                                type="url"
+                                                placeholder={`Resource ${index + 1}`}
+                                                value={link}
+                                                onChange={(e) => handleLinkChange(index, e.target.value)}
+                                                required
+                                                className="form-input w-full p-2 rounded bg-white border border-gray-600 text-black"
+                                            />
+                                            {whereToBuyOrDownload.length > 1 && (
+                                                <button
+                                                    type="button"
+                                                    onClick={() => removeLinkField(index)}
+                                                    className="ml-2 text-red-500 hover:text-red-700"
+                                                    aria-label={`Remove link ${index + 1}`}
+                                                >
+                                                    &times;
+                                                </button>
+                                            )}
+                                        </div>
+                                    ))}
+                                    {whereToBuyOrDownload.length < 5 && (
+                                        <button
+                                            type="button"
+                                            onClick={addLinkField}
+                                            className="btn btn-primary bg-black text-white px-6 py-3 w-full rounded-lg mt-4 transition-transform hover:scale-105"
+                                        >
+                                            Add Another
+                                        </button>
+                                    )}
                                 </div>
                                 <div>
                                     <label htmlFor="description" className="block mb-1">Description:</label>
@@ -91,23 +137,26 @@ const Contribute: NextPage<ContributeProps> = () => {
                                         id="description"
                                         value={description}
                                         onChange={(e) => setDescription(e.target.value)}
+                                        placeholder="Please be as descriptive as possible."
                                         className="form-textarea w-full p-2 rounded bg-white border border-gray-600 text-black h-24"
                                     ></textarea>
                                 </div>
-                                <button type="submit" className="btn btn-primary bg-black text-white px-6 py-3 w-10px rounded-lg mt-4 transition-transform hover:scale-105">Submit</button>
+                                <button type="submit" className="btn btn-primary bg-black text-white px-6 py-3 w-full rounded-lg mt-4 transition-transform hover:scale-105">
+                                    Submit
+                                </button>
                             </form>
                         </>
                     ) : (
-                        <p className="text-center text-black-600">Thank you for your contribution! We will review it shortly.
+                        <div className="text-center">
+                            <p className="mb-4">Thank you for your contribution! We will review it shortly.</p>
                             <button
                                 type="button"
-                                className="btn btn-primary w-full bg-black text-white px-6 py-3 rounded-lg mt-4 transition-transform hover:scale-105"
+                                className="btn btn-primary bg-black text-white px-6 py-3 rounded-lg mt-4 transition-transform hover:scale-105"
                                 onClick={() => window.location.reload()}
                             >
                                 Submit Another Piece
                             </button>
-                        </p>
-
+                        </div>
                     )}
                 </div>
             </main>
