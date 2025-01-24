@@ -54,6 +54,7 @@ const isValidUrl = (url: string) => {
 
 const Piece: NextPage<PieceProps> = ({ piece, composerInfo }) => {
   const [videoId1, setVideoId1] = useState<string | null>(null);
+  const [hasVideo, setHasVideo] = useState<boolean>(false);
 
   useEffect(() => {
     if (piece && piece.audio_link.length > 0) {
@@ -64,9 +65,11 @@ const Piece: NextPage<PieceProps> = ({ piece, composerInfo }) => {
         const isYouTube = url.hostname.includes('youtube.com') || url.hostname.includes('youtu.be');
 
         if (isYouTube) {
-          // Extract video ID for YouTube URLs
           const videoId = url.searchParams.get('v') || url.pathname.slice(1);
-          if (videoId) setVideoId1(videoId);
+          if (videoId) {
+            setVideoId1(videoId);
+            setHasVideo(true); // NEW: Set to true if a video ID is found
+          }
         }
       } catch (error) {
         console.error('Invalid URL:', audioLink1, error);
@@ -95,9 +98,13 @@ const Piece: NextPage<PieceProps> = ({ piece, composerInfo }) => {
       </Head>
       <NavbarMain />
 
-      <main className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 mt-5">
+      <main
+  className={`grid ${
+    hasVideo ? 'grid-cols-2 md:grid-cols-2' : 'grid-cols-1 md:grid-cols-1'
+  } gap-4 p-4 mt-5`}
+>
         {/* Left Column */}
-        <div className="container mx-auto">
+        <div className={`container ${hasVideo ? 'mx-auto' : 'mx-auto place-items-center'}`}>
           {/* Title + Composer */}
           <div className="flex flex-col justify-between items-start mb-2">
             <h1 className="text-3xl font-bold mb-2">{piece.title}</h1>
@@ -214,7 +221,6 @@ const Piece: NextPage<PieceProps> = ({ piece, composerInfo }) => {
           </Accordion>
 
           {/* Where to Buy/Download Accordion */}
-          {/* Where to Buy/Download Accordion */}
           <Accordion className="w-full md:w-[600px]">
             <AccordionSummary
               expandIcon={<ExpandMoreIcon />}
@@ -263,7 +269,6 @@ const Piece: NextPage<PieceProps> = ({ piece, composerInfo }) => {
           </Accordion>
 
           {/* Audio Accordion */}
-          {/* Audio Accordion */}
           <Accordion className="w-full md:w-[600px]">
             <AccordionSummary
               expandIcon={<ExpandMoreIcon />}
@@ -304,7 +309,8 @@ const Piece: NextPage<PieceProps> = ({ piece, composerInfo }) => {
 
         </div>
 
-        {/* Right Column */}
+         {/* Right Column */}
+        { hasVideo && (
         <div className="container mx-auto flex flex-col items-center">
           <div className="w-full flex justify-end">
             <button className="bg-black text-white px-4 py-2 mb-3 rounded-lg transition-transform hover:scale-105">
@@ -313,13 +319,13 @@ const Piece: NextPage<PieceProps> = ({ piece, composerInfo }) => {
               </Link>
             </button>
           </div>
-
           {videoId1 && (
             <div className="w-full mt-16 flex justify-center">
               <VideoIframe videoId={videoId1} title={piece.title} />
             </div>
           )}
         </div>
+        )}
       </main>
     </div>
   );
