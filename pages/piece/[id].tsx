@@ -42,17 +42,38 @@ interface PieceProps {
   } | null;
 }
 
+const isValidUrl = (url: string) => {
+  try {
+    new URL(url);
+    return true;
+  } catch {
+    return false;
+  }
+};
+
+
 const Piece: NextPage<PieceProps> = ({ piece, composerInfo }) => {
   const [videoId1, setVideoId1] = useState<string | null>(null);
 
   useEffect(() => {
     if (piece && piece.audio_link.length > 0) {
       const audioLink1 = piece.audio_link[0];
-      // Safely extract the last 11 characters for typical YouTube video IDs
-      const id = audioLink1.slice(-11);
-      setVideoId1(id);
+
+      try {
+        const url = new URL(audioLink1);
+        const isYouTube = url.hostname.includes('youtube.com') || url.hostname.includes('youtu.be');
+
+        if (isYouTube) {
+          // Extract video ID for YouTube URLs
+          const videoId = url.searchParams.get('v') || url.pathname.slice(1);
+          if (videoId) setVideoId1(videoId);
+        }
+      } catch (error) {
+        console.error('Invalid URL:', audioLink1, error);
+      }
     }
   }, [piece]);
+
 
   if (!piece) {
     return <LoadingAnimation />;
@@ -73,7 +94,7 @@ const Piece: NextPage<PieceProps> = ({ piece, composerInfo }) => {
         <title>{piece.title}</title>
       </Head>
       <NavbarMain />
-      
+
       <main className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 mt-5">
         {/* Left Column */}
         <div className="container mx-auto">
@@ -193,6 +214,7 @@ const Piece: NextPage<PieceProps> = ({ piece, composerInfo }) => {
           </Accordion>
 
           {/* Where to Buy/Download Accordion */}
+          {/* Where to Buy/Download Accordion */}
           <Accordion className="w-full md:w-[600px]">
             <AccordionSummary
               expandIcon={<ExpandMoreIcon />}
@@ -200,36 +222,47 @@ const Piece: NextPage<PieceProps> = ({ piece, composerInfo }) => {
               id="panel3-header"
               className="ml-1 text-lg font-bold bg-clip-text"
             >
-              Where to buy/download
+              Where to Buy/Download
             </AccordionSummary>
             <div className="border-b border-gray-300 my-1"></div>
             <AccordionDetails>
-              {piece.where_to_buy_or_download.length > 0 ? (
+              {piece.where_to_buy_or_download && piece.where_to_buy_or_download.length > 0 ? (
                 <div className="text-md mb-4">
                   {piece.where_to_buy_or_download.map((link, index) => {
                     if (!link) return null;
-                    const domain = new URL(link).hostname.replace(/^www\./, '');
-                    return (
-                      <div key={index}>
-                        <BsFileEarmarkMusicFill className="inline-block align-middle" />
-                        <Link
-                          href={link}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="inline-block ml-2 underline align-middle"
-                        >
-                          {domain}
-                        </Link>
-                      </div>
-                    );
+
+                    try {
+                      const domain = new URL(link).hostname.replace(/^www\./, '');
+                      return (
+                        <div key={index}>
+                          <BsFileEarmarkMusicFill className="inline-block align-middle" />
+                          <Link
+                            href={link}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-block ml-2 underline align-middle"
+                          >
+                            {domain}
+                          </Link>
+                        </div>
+                      );
+                    } catch (error) {
+                      return (
+                        <div key={index} className="text-md">
+                          <BsFileEarmarkMusicFill className="inline-block align-middle" />
+                          <span className="inline-block ml-2 align-middle">{link}</span>
+                        </div>
+                      );
+                    }
                   })}
                 </div>
               ) : (
-                <p>No links available.</p>
+                <p>Nothing here.</p>
               )}
             </AccordionDetails>
           </Accordion>
 
+          {/* Audio Accordion */}
           {/* Audio Accordion */}
           <Accordion className="w-full md:w-[600px]">
             <AccordionSummary
@@ -242,10 +275,10 @@ const Piece: NextPage<PieceProps> = ({ piece, composerInfo }) => {
             </AccordionSummary>
             <div className="border-b border-gray-300 my-1"></div>
             <AccordionDetails>
-              {piece.audio_link.length > 0 ? (
+              {piece.audio_link && piece.audio_link.length > 0 ? (
                 <div className="text-md mb-4">
                   {piece.audio_link.map((link, index) => {
-                    if (!link) return null;
+                    if (!link || !isValidUrl(link)) return null;
                     const domain = new URL(link).hostname.replace(/^www\./, '');
                     return (
                       <div key={index}>
@@ -263,10 +296,12 @@ const Piece: NextPage<PieceProps> = ({ piece, composerInfo }) => {
                   })}
                 </div>
               ) : (
-                <p>No audio links available.</p>
+                <p>Nothing here.</p>
               )}
             </AccordionDetails>
           </Accordion>
+
+
         </div>
 
         {/* Right Column */}
@@ -278,7 +313,7 @@ const Piece: NextPage<PieceProps> = ({ piece, composerInfo }) => {
               </Link>
             </button>
           </div>
-          
+
           {videoId1 && (
             <div className="w-full mt-16 flex justify-center">
               <VideoIframe videoId={videoId1} title={piece.title} />
@@ -318,28 +353,28 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
     props: {
       piece: piece
         ? {
-            id: piece.id,
-            title: piece.title || '',
-            composer_id: piece.composer_id || '',
-            composition_year: piece.composition_year || '',
-            level: piece.level || 'Unknown',
-            isArrangement: piece.isArrangement || false,
-            audio_link: piece.audio_link || [],
-            instrumentation: piece.instrumentation || [],
-            publisher_info: piece.publisher_info || '',
-            description: piece.description || '',
-            technical_overview: piece.technical_overview || '',
-            is_public_domain: piece.is_public_domain || false,
-            where_to_buy_or_download: piece.where_to_buy_or_download || [],
-            duration: piece.duration || '',
-            coverImage: piece.coverImage || '',
-          }
+          id: piece.id,
+          title: piece.title || '',
+          composer_id: piece.composer_id || '',
+          composition_year: piece.composition_year || '',
+          level: piece.level || 'Unknown',
+          isArrangement: piece.isArrangement || false,
+          audio_link: piece.audio_link || [],
+          instrumentation: piece.instrumentation || [],
+          publisher_info: piece.publisher_info || '',
+          description: piece.description || '',
+          technical_overview: piece.technical_overview || '',
+          is_public_domain: piece.is_public_domain || false,
+          where_to_buy_or_download: piece.where_to_buy_or_download || [],
+          duration: piece.duration || '',
+          coverImage: piece.coverImage || '',
+        }
         : null,
       composerInfo: piece?.composerDetails
         ? {
-            composer_full_name: piece.composerDetails.composer_full_name || 'Unknown Composer',
-            bio_links: piece.composerDetails.bio_link || [],
-          }
+          composer_full_name: piece.composerDetails.composer_full_name || 'Unknown Composer',
+          bio_links: piece.composerDetails.bio_link || [],
+        }
         : null,
     },
   };
