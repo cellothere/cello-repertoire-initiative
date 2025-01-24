@@ -59,7 +59,6 @@ const SearchResults: NextPage = () => {
       <NavbarMain />
       <main className="p-4 min-h-screen">
         <h1 className="text-3xl font-bold text-center mb-6">Search Results</h1>
-        
         {/* Search Form */}
         <form onSubmit={handleSearch} className="max-w-md mx-auto mb-8 flex flex-col sm:flex-row items-stretch sm:items-center">
           <input
