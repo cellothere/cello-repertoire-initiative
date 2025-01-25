@@ -4,6 +4,7 @@ import Head from "next/head";
 import NavbarMain from "@/components/navbar-main";
 import { NextPage } from "next";
 import MusicCard from "../components/music-card"; // Import MusicCard
+import LoadingAnimation from "@/components/loading-animation";
 
 const SearchResults: NextPage = () => {
   const [searchQuery, setSearchQuery] = useState<string>("");
@@ -78,7 +79,7 @@ const SearchResults: NextPage = () => {
         </form>
 
         {/* Loading and Error States */}
-        {loading && <p className="text-center text-gray-700">Loading...</p>}
+        {loading && <p className="text-gray-700"><LoadingAnimation /></p>}
         {error && <p className="text-center text-red-500">{error}</p>}
 
         {/* Search Results */}

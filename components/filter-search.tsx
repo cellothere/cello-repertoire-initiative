@@ -128,9 +128,8 @@ const FilterAside: React.FC<FilterAsideProps> = ({
 
                             <div
                                 id={`accordion-body-${index}`}
-                                className={`transition-[max-height] overflow-hidden ${
-                                    openAccordion === index ? 'max-h-96' : 'max-h-0'
-                                }`}
+                                className={`transition-[max-height] overflow-hidden ${openAccordion === index ? 'max-h-96' : 'max-h-0'
+                                    }`}
                             >
                                 <div className="p-4 border-t border-gray-300" style={{ maxHeight: '300px', overflowY: 'auto' }}>
                                     {/* Optional: Add separate search inputs */}
@@ -164,10 +163,12 @@ const FilterAside: React.FC<FilterAsideProps> = ({
                                                                 key === 'Composer'
                                                                     ? selectedComposers.includes(item)
                                                                     : key === 'Level'
-                                                                    ? selectedLevels.includes(item)
-                                                                    : key === 'Instrumentation'
-                                                                    ? selectedInstruments.includes(item)
-                                                                    : false
+                                                                        ? selectedLevels.includes(item)
+                                                                        : key === 'Instrumentation'
+                                                                            ? selectedInstruments.includes(
+                                                                                item === 'Cello Solo' ? 'Cello' : item
+                                                                            )
+                                                                            : false
                                                             }
                                                             onChange={() => {
                                                                 if (key === 'Composer') {
@@ -181,6 +182,7 @@ const FilterAside: React.FC<FilterAsideProps> = ({
                                                         />
                                                         {item}
                                                     </label>
+
                                                 </li>
                                             ))}
                                         </ul>

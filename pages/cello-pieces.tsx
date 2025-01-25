@@ -8,9 +8,9 @@ import MobileFilterAccordion from '@/components/mobile-filter-search';
 import { CiHeart } from "react-icons/ci";
 import { FaInfoCircle } from "react-icons/fa";
 import { IoFilter } from "react-icons/io5";
-import MusicCard from '@/components/music-card';
+import CelloMusicCard from '../components/music-card';
 
-interface MusicPiece {
+interface CelloMusicPiece {
   id: string;
   title: string;
   composer: string;
@@ -25,9 +25,9 @@ interface Composer {
   bio_links: string[];
 }
 
-const Music: NextPage = () => {
-  const [pieces, setPieces] = useState<MusicPiece[]>([]);
-  const [filteredPieces, setFilteredPieces] = useState<MusicPiece[]>([]);
+const CelloMusic: NextPage = () => {
+  const [pieces, setPieces] = useState<CelloMusicPiece[]>([]);
+  const [filteredPieces, setFilteredPieces] = useState<CelloMusicPiece[]>([]);
   const [filter, setFilter] = useState<string>('');
   const [isFilterVisible, setIsFilterVisible] = useState<boolean>(false);
 
@@ -69,12 +69,12 @@ const Music: NextPage = () => {
     'Professional',
   ];
 
-  // Fetching the music data
+  // Fetching the CelloMusic data
   useEffect(() => {
     const fetchPieces = async () => {
-      const res = await fetch('/api/celloMusic');
+      const res = await fetch('/api/celloCelloMusic');
       const data = await res.json();
-      const flattenedPieces = data.flatMap((group: { musicPieces: MusicPiece[] }) => group.musicPieces);
+      const flattenedPieces = data.flatMap((group: { CelloMusicPieces: CelloMusicPiece[] }) => group.CelloMusicPieces);
       setPieces(flattenedPieces);
       setFilteredPieces(flattenedPieces);
     };
@@ -112,31 +112,22 @@ const Music: NextPage = () => {
 
       // Instrumentation logic
       const instrumentationMatch =
-      selectedInstruments.length === 0 ||
-      selectedInstruments.some((selectedInstrument) => {
-        const normalizedSelectedInstrument =
-          selectedInstrument === 'Cello Solo' ? 'Cello' : selectedInstrument;
-    
-        if (Array.isArray(piece.instrumentation)) {
-          const normalizedInstrumentation = piece.instrumentation.map((instr) =>
-            instr.toLowerCase() === 'cello solo' ? 'cello' : instr.toLowerCase()
-          );
-          const selectedParts = normalizedSelectedInstrument.toLowerCase().split(' and ');
-    
-          if (selectedParts.length === 1) {
-            // Match single instrument exactly
-            return (
-              normalizedInstrumentation.length === 1 &&
-              normalizedInstrumentation.includes(selectedParts[0])
-            );
-          } else {
-            // Match all selected instruments in the array
-            return selectedParts.every((part) => normalizedInstrumentation.includes(part));
+        selectedInstruments.length === 0 ||
+        selectedInstruments.some((selectedInstrument) => {
+          if (Array.isArray(piece.instrumentation)) {
+            const normalized = piece.instrumentation.map((instr) => instr.toLowerCase());
+            const selectedParts = selectedInstrument.toLowerCase().split(' and ');
+
+            if (selectedParts.length === 1) {
+              // Match single instrument exactly
+              return normalized.length === 1 && normalized.includes(selectedParts[0]);
+            } else {
+              // Match all selected instruments in the array
+              return selectedParts.every((part) => normalized.includes(part));
+            }
           }
-        }
-        return false;
-      });
-    
+          return false;
+        });
 
       // Combine all filter checks
       return (titleMatch || composerMatch) && composerFilterMatch && levelFilterMatch && instrumentationMatch;
@@ -159,15 +150,10 @@ const Music: NextPage = () => {
   };
 
   const toggleInstrumentSelection = (instrument: string) => {
-    const normalizedInstrument = instrument === 'Cello Solo' ? 'Cello' : instrument;
-  
     setSelectedInstruments((prev) =>
-      prev.includes(normalizedInstrument)
-        ? prev.filter((i) => i !== normalizedInstrument)
-        : [...prev, normalizedInstrument]
+      prev.includes(instrument) ? prev.filter((i) => i !== instrument) : [...prev, instrument]
     );
   };
-  
 
   // Sorting handler
   const handleSort = (sortOption: string) => {
@@ -197,7 +183,7 @@ const Music: NextPage = () => {
   return (
     <div>
       <Head>
-        <title>Cello Music</title>
+        <title>Cello CelloMusic</title>
       </Head>
 
       {/* Your Navbar */}
@@ -264,7 +250,7 @@ const Music: NextPage = () => {
         <main className="md:ml-64 w-full container mx-auto p-4">
           {/* Top Section: Header + Mobile Filter Toggle + Sort */}
           <div className="flex items-center justify-between mb-6">
-            <h1 className="text-3xl font-bold text-white">Cello Music</h1>
+            <h1 className="text-3xl font-bold text-white">Cello CelloMusic</h1>
 
             {/* Mobile Filter Toggle Button */}
             <button
@@ -299,7 +285,7 @@ const Music: NextPage = () => {
           {/* Grid of Filtered Pieces */}
           <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-4">
             {filteredPieces.map((piece) => (
-              <MusicCard
+              <CelloMusicCard
                 key={piece.id}
                 id={piece.id}
                 title={piece.title}
@@ -317,4 +303,4 @@ const Music: NextPage = () => {
   );
 };
 
-export default Music;
+export default CelloMusic;

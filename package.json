@@ -22,7 +22,7 @@
     "feather-icons-react": "^0.7.0",
     "mongodb": "^6.8.0",
     "mongoose": "^8.4.4",
-    "next": "14.2.4",
+    "next": "^14.2.23",
     "next-mdx-remote": "^5.0.0",
     "react": "^18",
     "react-dom": "^18",
