@@ -111,32 +111,31 @@ const Music: NextPage = () => {
         selectedLevels.length === 0 || selectedLevels.includes(piece.level);
 
       // Instrumentation logic
-      const instrumentationMatch =
-      selectedInstruments.length === 0 ||
-      selectedInstruments.some((selectedInstrument) => {
-        const normalizedSelectedInstrument =
-          selectedInstrument === 'Cello Solo' ? 'Cello' : selectedInstrument;
-    
-        if (Array.isArray(piece.instrumentation)) {
-          const normalizedInstrumentation = piece.instrumentation.map((instr) =>
-            instr.toLowerCase() === 'cello solo' ? 'cello' : instr.toLowerCase()
-          );
-          const selectedParts = normalizedSelectedInstrument.toLowerCase().split(' and ');
-    
-          if (selectedParts.length === 1) {
-            // Match single instrument exactly
-            return (
-              normalizedInstrumentation.length === 1 &&
-              normalizedInstrumentation.includes(selectedParts[0])
-            );
-          } else {
-            // Match all selected instruments in the array
-            return selectedParts.every((part) => normalizedInstrumentation.includes(part));
-          }
-        }
-        return false;
-      });
-    
+const instrumentationMatch =
+  selectedInstruments.length === 0 ||
+  selectedInstruments.some((selectedInstrument) => {
+    const normalizedSelectedInstrument =
+      selectedInstrument === 'Cello Solo' ? 'Cello' : selectedInstrument;
+
+    if (Array.isArray(piece.instrumentation)) {
+      const normalizedInstrumentation = piece.instrumentation.map((instr) =>
+        instr.toLowerCase() === 'cello solo' ? 'cello' : instr.toLowerCase()
+      );
+      const selectedParts = normalizedSelectedInstrument.toLowerCase().split(' and ');
+
+      if (selectedParts.length === 1) {
+        // Match single instrument exactly
+        return (
+          normalizedInstrumentation.length === 1 &&
+          normalizedInstrumentation.includes(selectedParts[0])
+        );
+      } else {
+        // Match all selected instruments in the array
+        return selectedParts.every((part) => normalizedInstrumentation.includes(part));
+      }
+    }
+    return false;
+  });
 
       // Combine all filter checks
       return (titleMatch || composerMatch) && composerFilterMatch && levelFilterMatch && instrumentationMatch;

@@ -4,10 +4,12 @@ import clientPromise from '../../lib/mongodb';
 // Define the Composer type
 type Composer = {
   composer_full_name: string;
-  composer_bio: string;
-  wikipedia_article: string;
   composer_last_name: string;
-  bio_links: string[];
+  composer_first_name: string;
+  id: string;
+  nationality: string;
+  tags: string[];
+  articles: string[];
 };
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -16,48 +18,47 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const collection = client.db('cello_repertoire').collection('composers');
 
     const composers = await collection
-    .aggregate([
-      // Match only documents where composer_full_name exists and is non-empty
-      {
-        $match: {
-          composer_full_name: { $exists: true, $ne: null },
-        },
-      },
-      // Sort composers by full name
-      {
-        $sort: {
-          composer_full_name: 1,
-        },
-      },
-      // Group by the first letter of composer_full_name (case-insensitive)
-      {
-        $group: {
-          _id: {
-            $toLower: { $substrCP: ['$composer_full_name', 0, 1] },
+      .aggregate([
+        // Match only documents where composer_full_name exists and is non-empty
+        {
+          $match: {
+            composer_full_name: { $exists: true, $ne: null },
           },
-          composers: {
-            $push: {
-              composer_full_name: '$composer_full_name',
-              composer_last_name: '$composer_last_name',
-              composer_bio: '$composer_bio',
-              bio_links: '$bio_link',
-              born: '$born',
-              died: '$died',
-              nationality: '$nationality',
+        },
+        // Sort composers by full name
+        {
+          $sort: {
+            composer_full_name: 1,
+          },
+        },
+        // Group by the first letter of composer_full_name (case-insensitive)
+        {
+          $group: {
+            _id: {
+              $toLower: { $substrCP: ['$composer_full_name', 0, 1] },
             },
+            composers: {
+              $push: {
+                composer_full_name: '$composer_full_name',
+                composer_last_name: '$lastName',
+                composer_first_name: '$firstName',
+                id: '$id',
+                nationality: '$nationality',
+                tags: '$tags',
+                articles: '$articles',
+              },
+            },
+            count: { $sum: 1 },
           },
-          count: { $sum: 1 },
         },
-      },
-      // Sort groups alphabetically by _id
-      {
-        $sort: {
-          _id: 1,
+        // Sort groups alphabetically by _id
+        {
+          $sort: {
+            _id: 1,
+          },
         },
-      },
-    ])
-    .toArray();
-  
+      ])
+      .toArray();
 
     res.status(200).json(composers);
   } catch (error) {
