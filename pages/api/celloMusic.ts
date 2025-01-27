@@ -8,6 +8,8 @@ type MusicPiece = {
   composer_last_name: string;
   level: string;
   instrumentation: string[];
+  nationality: string;
+  composition_year: string;
 };
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -31,17 +33,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         {
           $group: {
             _id: {
-              $toLower: { $substrCP: ['$composer', 0, 1] },
+              $toLower: { $substrCP: ['$composerDetails.composer_last_name', 0, 1] },
             },
             musicPieces: {
               $push: {
+                id: '$id',
                 title: '$title',
                 composer: '$composerDetails.composer_full_name',
                 composer_last_name: '$composerDetails.composer_last_name',
+                composition_year: '$composition_year',
                 level: '$level',
-                description: '$description',
                 instrumentation: '$instrumentation', // Preserve the instrumentation array
-                id: '$id'
+                nationality: '$composerDetails.nationality', // Include nationality
               },
             },
             count: { $sum: 1 },
@@ -57,6 +60,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     res.status(200).json(musicPieces);
   } catch (error) {
+    console.error('Error fetching music pieces:', error);
     res.status(500).json({ error: 'Failed to fetch music pieces' });
   }
 }

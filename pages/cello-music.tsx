@@ -17,6 +17,7 @@ interface MusicPiece {
   level: string;
   instrumentation: string;
   composer_last_name: string;
+  nationality: string;
 }
 
 interface Composer {
@@ -47,14 +48,16 @@ const Music: NextPage = () => {
     Instrumentation: ['Cello and Piano', 'Cello Solo', 'Cello Duet', 'Other'],
     Composer: [] as string[],
     Country: ['United States of America', 'Canada', 'France', 'Mexico', 'China'],
-    Year: ['1600s', '1700s', '1800s', '1900s'],
-    "Other Filters": ['Public Domain?', 'Living Composer', 'Recently Added'],
+    Period: ['1600-99', '1700-99', '1800-99', '1900-99'],
+    // "Other Filters": ['Public Domain?', 'Living Composer', 'Recently Added'],
   });
 
   // Selected filters
   const [selectedComposers, setSelectedComposers] = useState<string[]>([]);
   const [selectedLevels, setSelectedLevels] = useState<string[]>([]);
   const [selectedInstruments, setSelectedInstruments] = useState<string[]>([]);
+  const [selectedCountries, setSelectedCountries] = useState<string[]>([]);
+
 
   // Used to sort by level
   const levelOrder = [
@@ -81,6 +84,26 @@ const Music: NextPage = () => {
     fetchPieces();
   }, []);
 
+  // Fetching the countries data
+  useEffect(() => {
+    const fetchCountries = async () => {
+      try {
+        const res = await fetch('/api/nationalities');
+        const data = await res.json();
+        const nationalities = data.map((item: { nationality: string }) => item.nationality);
+
+        setAccordionContent((prevContent) => ({
+          ...prevContent,
+          Country: nationalities,
+        }));
+      } catch (error) {
+        console.error('Error fetching nationalities:', error);
+      }
+    };
+    fetchCountries();
+  }, []);
+
+
   // Fetching the composers data
   useEffect(() => {
     const fetchComposers = async () => {
@@ -101,48 +124,55 @@ const Music: NextPage = () => {
   // Filter logic
   useEffect(() => {
     const filtered = pieces.filter((piece) => {
-      const titleMatch = piece.title.toLowerCase().includes(filter.toLowerCase());
-      const composerMatch = piece.composer.toLowerCase().includes(filter.toLowerCase());
+        const titleMatch = piece.title.toLowerCase().includes(filter.toLowerCase());
+        const composerMatch = piece.composer.toLowerCase().includes(filter.toLowerCase());
 
-      const composerFilterMatch =
-        selectedComposers.length === 0 || selectedComposers.includes(piece.composer);
+        const composerFilterMatch =
+            selectedComposers.length === 0 || selectedComposers.includes(piece.composer);
 
-      const levelFilterMatch =
-        selectedLevels.length === 0 || selectedLevels.includes(piece.level);
+        const levelFilterMatch =
+            selectedLevels.length === 0 || selectedLevels.includes(piece.level);
 
-      // Instrumentation logic
-const instrumentationMatch =
-  selectedInstruments.length === 0 ||
-  selectedInstruments.some((selectedInstrument) => {
-    const normalizedSelectedInstrument =
-      selectedInstrument === 'Cello Solo' ? 'Cello' : selectedInstrument;
+        const countryFilterMatch =
+            selectedCountries.length === 0 || selectedCountries.includes(piece.nationality);
 
-    if (Array.isArray(piece.instrumentation)) {
-      const normalizedInstrumentation = piece.instrumentation.map((instr) =>
-        instr.toLowerCase() === 'cello solo' ? 'cello' : instr.toLowerCase()
-      );
-      const selectedParts = normalizedSelectedInstrument.toLowerCase().split(' and ');
+        const instrumentationMatch =
+            selectedInstruments.length === 0 ||
+            selectedInstruments.some((selectedInstrument) => {
+                const normalizedSelectedInstrument =
+                    selectedInstrument === 'Cello Solo' ? 'Cello' : selectedInstrument;
 
-      if (selectedParts.length === 1) {
-        // Match single instrument exactly
+                if (Array.isArray(piece.instrumentation)) {
+                    const normalizedInstrumentation = piece.instrumentation.map((instr) =>
+                        instr.toLowerCase() === 'cello solo' ? 'cello' : instr.toLowerCase()
+                    );
+                    const selectedParts = normalizedSelectedInstrument.toLowerCase().split(' and ');
+
+                    if (selectedParts.length === 1) {
+                        return (
+                            normalizedInstrumentation.length === 1 &&
+                            normalizedInstrumentation.includes(selectedParts[0])
+                        );
+                    } else {
+                        return selectedParts.every((part) => normalizedInstrumentation.includes(part));
+                    }
+                }
+                return false;
+            });
+
         return (
-          normalizedInstrumentation.length === 1 &&
-          normalizedInstrumentation.includes(selectedParts[0])
+            (titleMatch || composerMatch) &&
+            composerFilterMatch &&
+            levelFilterMatch &&
+            countryFilterMatch &&
+            instrumentationMatch
         );
-      } else {
-        // Match all selected instruments in the array
-        return selectedParts.every((part) => normalizedInstrumentation.includes(part));
-      }
-    }
-    return false;
-  });
-
-      // Combine all filter checks
-      return (titleMatch || composerMatch) && composerFilterMatch && levelFilterMatch && instrumentationMatch;
     });
 
     setFilteredPieces(filtered);
-  }, [filter, pieces, selectedComposers, selectedLevels, selectedInstruments]);
+}, [filter, pieces, selectedComposers, selectedLevels, selectedCountries, selectedInstruments]);
+
+
 
   // Toggles
   const toggleComposerSelection = (composer: string) => {
@@ -150,6 +180,13 @@ const instrumentationMatch =
       prev.includes(composer) ? prev.filter((c) => c !== composer) : [...prev, composer]
     );
   };
+
+  const toggleCountrySelection = (country: string) => {
+    setSelectedCountries((prev) =>
+      prev.includes(country) ? prev.filter((c) => c !== country) : [...prev, country]
+    );
+  };
+
 
   const toggleLevelSelection = (level: string) => {
     setSelectedLevels((prev) =>
@@ -159,14 +196,14 @@ const instrumentationMatch =
 
   const toggleInstrumentSelection = (instrument: string) => {
     const normalizedInstrument = instrument === 'Cello Solo' ? 'Cello' : instrument;
-  
+
     setSelectedInstruments((prev) =>
       prev.includes(normalizedInstrument)
         ? prev.filter((i) => i !== normalizedInstrument)
         : [...prev, normalizedInstrument]
     );
   };
-  
+
 
   // Sorting handler
   const handleSort = (sortOption: string) => {
@@ -220,7 +257,11 @@ const instrumentationMatch =
           toggleLevelSelection={toggleLevelSelection}
           selectedInstruments={selectedInstruments}
           toggleInstrumentSelection={toggleInstrumentSelection}
+          selectedCountries={selectedCountries}
+          toggleCountrySelection={toggleCountrySelection}
         />
+
+
 
         {/* Mobile Filter Drawer */}
         {isFilterVisible && (

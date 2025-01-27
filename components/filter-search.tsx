@@ -12,6 +12,8 @@ interface FilterAsideProps {
     toggleLevelSelection: (level: string) => void;
     selectedInstruments: string[];
     toggleInstrumentSelection: (instrument: string) => void;
+    selectedCountries: string[];
+    toggleCountrySelection: (country: string) => void;
 }
 
 const FilterAside: React.FC<FilterAsideProps> = ({
@@ -24,6 +26,8 @@ const FilterAside: React.FC<FilterAsideProps> = ({
     toggleLevelSelection,
     selectedInstruments,
     toggleInstrumentSelection,
+    selectedCountries,
+    toggleCountrySelection
 }) => {
     const [openAccordion, setOpenAccordion] = useState<number | null>(null);
     const [composerSearch, setComposerSearch] = useState<string>('');
@@ -40,6 +44,7 @@ const FilterAside: React.FC<FilterAsideProps> = ({
         setLevelSearch('');
         selectedLevels.forEach((level) => toggleLevelSelection(level));
         selectedInstruments.forEach((instrument) => toggleInstrumentSelection(instrument));
+        selectedCountries.forEach((country) => toggleCountrySelection(country));
     };
 
     // Utility to get selected count
@@ -47,6 +52,7 @@ const FilterAside: React.FC<FilterAsideProps> = ({
         if (key === 'Composer') return selectedComposers.length;
         if (key === 'Level') return selectedLevels.length;
         if (key === 'Instrumentation') return selectedInstruments.length;
+        if (key === 'Country') return selectedCountries.length;
         return 0;
     };
 
@@ -59,7 +65,10 @@ const FilterAside: React.FC<FilterAsideProps> = ({
 
             {/* Global Search */}
             <div className="mb-4">
-                <label htmlFor="global-filter" className="block mb-2 text-sm font-semibold text-white">
+                <label
+                    htmlFor="global-filter"
+                    className="block mb-2 text-sm font-semibold text-white"
+                >
                     Search by Title or Composer:
                 </label>
                 <input
@@ -90,7 +99,7 @@ const FilterAside: React.FC<FilterAsideProps> = ({
                         } else if (key === 'Level') {
                             return lowerItem.includes(levelSearch.toLowerCase());
                         }
-                        // No search for other categories
+                        // No search filtering for other categories
                         return true;
                     });
 
@@ -100,7 +109,7 @@ const FilterAside: React.FC<FilterAsideProps> = ({
                                 <button
                                     type="button"
                                     className={`flex items-center justify-between w-full px-4 py-3 font-medium text-left 
-                                        text-gray-700 focus:outline-none ${openAccordion === index ? 'bg-gray-200' : 'bg-gray-100'}`}
+                          text-gray-700 focus:outline-none ${openAccordion === index ? 'bg-gray-200' : 'bg-gray-100'}`}
                                     onClick={() => toggleAccordion(index)}
                                     aria-expanded={openAccordion === index}
                                     aria-controls={`accordion-body-${index}`}
@@ -110,7 +119,8 @@ const FilterAside: React.FC<FilterAsideProps> = ({
                                         {getSelectedCountForKey(key) > 0 && ` (${getSelectedCountForKey(key)})`}
                                     </span>
                                     <svg
-                                        className={`w-4 h-4 transition-transform ${openAccordion === index ? 'rotate-180' : ''}`}
+                                        className={`w-4 h-4 transition-transform ${openAccordion === index ? 'rotate-180' : ''
+                                            }`}
                                         aria-hidden="true"
                                         viewBox="0 0 10 6"
                                     >
@@ -131,11 +141,17 @@ const FilterAside: React.FC<FilterAsideProps> = ({
                                 className={`transition-[max-height] overflow-hidden ${openAccordion === index ? 'max-h-96' : 'max-h-0'
                                     }`}
                             >
-                                <div className="p-4 border-t border-gray-300" style={{ maxHeight: '300px', overflowY: 'auto' }}>
-                                    {/* Optional: Add separate search inputs */}
+                                <div
+                                    className="p-4 border-t border-gray-300"
+                                    style={{ maxHeight: '300px', overflowY: 'auto' }}
+                                >
+                                    {/* Separate search only for composers/levels here */}
                                     {key === 'Composer' && (
                                         <div className="mb-2">
-                                            <label htmlFor="composer-search" className="block mb-1 text-sm font-medium text-gray-700">
+                                            <label
+                                                htmlFor="composer-search"
+                                                className="block mb-1 text-sm font-medium text-gray-700"
+                                            >
                                                 Search Composers
                                             </label>
                                             <input
@@ -149,6 +165,27 @@ const FilterAside: React.FC<FilterAsideProps> = ({
                                             />
                                         </div>
                                     )}
+
+                                    {key === 'Level' && (
+                                        <div className="mb-2">
+                                            <label
+                                                htmlFor="level-search"
+                                                className="block mb-1 text-sm font-medium text-gray-700"
+                                            >
+                                                Search Levels
+                                            </label>
+                                            <input
+                                                id="level-search"
+                                                type="text"
+                                                placeholder="Type to search levels..."
+                                                value={levelSearch}
+                                                onChange={(e) => setLevelSearch(e.target.value)}
+                                                className="w-full p-2 border border-gray-300 rounded focus:outline-none text-black"
+                                                aria-label="Search levels"
+                                            />
+                                        </div>
+                                    )}
+
                                     {filteredItems.length === 0 ? (
                                         <p className="text-sm text-gray-500">No results found.</p>
                                     ) : (
@@ -168,7 +205,9 @@ const FilterAside: React.FC<FilterAsideProps> = ({
                                                                             ? selectedInstruments.includes(
                                                                                 item === 'Cello Solo' ? 'Cello' : item
                                                                             )
-                                                                            : false
+                                                                            : key === 'Country'
+                                                                                ? selectedCountries.includes(item)
+                                                                                : false
                                                             }
                                                             onChange={() => {
                                                                 if (key === 'Composer') {
@@ -177,12 +216,13 @@ const FilterAside: React.FC<FilterAsideProps> = ({
                                                                     toggleLevelSelection(item);
                                                                 } else if (key === 'Instrumentation') {
                                                                     toggleInstrumentSelection(item);
+                                                                } else if (key === 'Country') {
+                                                                    toggleCountrySelection(item);
                                                                 }
                                                             }}
                                                         />
                                                         {item}
                                                     </label>
-
                                                 </li>
                                             ))}
                                         </ul>
