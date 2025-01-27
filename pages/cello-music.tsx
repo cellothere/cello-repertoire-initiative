@@ -31,6 +31,8 @@ const Music: NextPage = () => {
   const [filteredPieces, setFilteredPieces] = useState<MusicPiece[]>([]);
   const [filter, setFilter] = useState<string>('');
   const [isFilterVisible, setIsFilterVisible] = useState<boolean>(false);
+  const [minYear, setMinYear] = useState<number>(1600);
+  const [maxYear, setMaxYear] = useState<number>(2025);
 
   // Accordion content categories
   const [accordionContent, setAccordionContent] = useState({
@@ -48,7 +50,7 @@ const Music: NextPage = () => {
     Instrumentation: ['Cello and Piano', 'Cello Solo', 'Cello Duet', 'Other'],
     Composer: [] as string[],
     Country: ['United States of America', 'Canada', 'France', 'Mexico', 'China'],
-    Period: ['1600-99', '1700-99', '1800-99', '1900-99'],
+    Year: []
     // "Other Filters": ['Public Domain?', 'Living Composer', 'Recently Added'],
   });
 
@@ -124,53 +126,63 @@ const Music: NextPage = () => {
   // Filter logic
   useEffect(() => {
     const filtered = pieces.filter((piece) => {
-        const titleMatch = piece.title.toLowerCase().includes(filter.toLowerCase());
-        const composerMatch = piece.composer.toLowerCase().includes(filter.toLowerCase());
+      const titleMatch = piece.title.toLowerCase().includes(filter.toLowerCase());
+      const composerMatch = piece.composer.toLowerCase().includes(filter.toLowerCase());
 
-        const composerFilterMatch =
-            selectedComposers.length === 0 || selectedComposers.includes(piece.composer);
+      const composerFilterMatch =
+        selectedComposers.length === 0 || selectedComposers.includes(piece.composer);
 
-        const levelFilterMatch =
-            selectedLevels.length === 0 || selectedLevels.includes(piece.level);
+      const levelFilterMatch =
+        selectedLevels.length === 0 || selectedLevels.includes(piece.level);
 
-        const countryFilterMatch =
-            selectedCountries.length === 0 || selectedCountries.includes(piece.nationality);
+      const countryFilterMatch =
+        selectedCountries.length === 0 || selectedCountries.includes(piece.nationality);
+      // ---- YEAR FILTER LOGIC ----
+      // Make sure your composition_year is a valid integer 
+      // (some data might have missing years, so handle that gracefully)
+      const pieceYear = parseInt((piece as any).composition_year || '0', 10);
+      const validYear = !isNaN(pieceYear) && pieceYear > 0;
 
-        const instrumentationMatch =
-            selectedInstruments.length === 0 ||
-            selectedInstruments.some((selectedInstrument) => {
-                const normalizedSelectedInstrument =
-                    selectedInstrument === 'Cello Solo' ? 'Cello' : selectedInstrument;
+      const yearFilterMatch = validYear
+        ? pieceYear >= minYear && pieceYear <= maxYear
+        : true;
+      // If you want to exclude undefined years, you could do: : false;
+      const instrumentationMatch =
+        selectedInstruments.length === 0 ||
+        selectedInstruments.some((selectedInstrument) => {
+          const normalizedSelectedInstrument =
+            selectedInstrument === 'Cello Solo' ? 'Cello' : selectedInstrument;
 
-                if (Array.isArray(piece.instrumentation)) {
-                    const normalizedInstrumentation = piece.instrumentation.map((instr) =>
-                        instr.toLowerCase() === 'cello solo' ? 'cello' : instr.toLowerCase()
-                    );
-                    const selectedParts = normalizedSelectedInstrument.toLowerCase().split(' and ');
+          if (Array.isArray(piece.instrumentation)) {
+            const normalizedInstrumentation = piece.instrumentation.map((instr) =>
+              instr.toLowerCase() === 'cello solo' ? 'cello' : instr.toLowerCase()
+            );
+            const selectedParts = normalizedSelectedInstrument.toLowerCase().split(' and ');
 
-                    if (selectedParts.length === 1) {
-                        return (
-                            normalizedInstrumentation.length === 1 &&
-                            normalizedInstrumentation.includes(selectedParts[0])
-                        );
-                    } else {
-                        return selectedParts.every((part) => normalizedInstrumentation.includes(part));
-                    }
-                }
-                return false;
-            });
+            if (selectedParts.length === 1) {
+              return (
+                normalizedInstrumentation.length === 1 &&
+                normalizedInstrumentation.includes(selectedParts[0])
+              );
+            } else {
+              return selectedParts.every((part) => normalizedInstrumentation.includes(part));
+            }
+          }
+          return false;
+        });
 
-        return (
-            (titleMatch || composerMatch) &&
-            composerFilterMatch &&
-            levelFilterMatch &&
-            countryFilterMatch &&
-            instrumentationMatch
-        );
+      return (
+        (titleMatch || composerMatch) &&
+        composerFilterMatch &&
+        levelFilterMatch &&
+        countryFilterMatch &&
+        instrumentationMatch &&
+        yearFilterMatch
+      );
     });
 
     setFilteredPieces(filtered);
-}, [filter, pieces, selectedComposers, selectedLevels, selectedCountries, selectedInstruments]);
+  }, [filter, pieces, selectedComposers, selectedLevels, selectedCountries, selectedInstruments, minYear, maxYear]);
 
 
 
@@ -250,6 +262,10 @@ const Music: NextPage = () => {
         <FilterAside
           filter={filter}
           setFilter={setFilter}
+          minYear={minYear}
+          maxYear={maxYear}
+          setMinYear={setMinYear}
+          setMaxYear={setMaxYear}
           accordionContent={accordionContent}
           selectedComposers={selectedComposers}
           toggleComposerSelection={toggleComposerSelection}

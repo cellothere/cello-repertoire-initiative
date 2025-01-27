@@ -1,6 +1,8 @@
 // components/filter-search.tsx
 
 import { useState } from 'react';
+import Slider from 'rc-slider';
+import 'rc-slider/assets/index.css';
 
 interface FilterAsideProps {
     filter: string;
@@ -14,6 +16,10 @@ interface FilterAsideProps {
     toggleInstrumentSelection: (instrument: string) => void;
     selectedCountries: string[];
     toggleCountrySelection: (country: string) => void;
+    minYear: number;
+    maxYear: number;
+    setMinYear: React.Dispatch<React.SetStateAction<number>>;
+    setMaxYear: React.Dispatch<React.SetStateAction<number>>;
 }
 
 const FilterAside: React.FC<FilterAsideProps> = ({
@@ -27,7 +33,11 @@ const FilterAside: React.FC<FilterAsideProps> = ({
     selectedInstruments,
     toggleInstrumentSelection,
     selectedCountries,
-    toggleCountrySelection
+    toggleCountrySelection,
+    minYear,
+    maxYear,
+    setMinYear,
+    setMaxYear,
 }) => {
     const [openAccordion, setOpenAccordion] = useState<number | null>(null);
     const [composerSearch, setComposerSearch] = useState<string>('');
@@ -45,6 +55,8 @@ const FilterAside: React.FC<FilterAsideProps> = ({
         selectedLevels.forEach((level) => toggleLevelSelection(level));
         selectedInstruments.forEach((instrument) => toggleInstrumentSelection(instrument));
         selectedCountries.forEach((country) => toggleCountrySelection(country));
+        setMinYear(1600);
+        setMaxYear(2025);
     };
 
     // Utility to get selected count
@@ -145,6 +157,33 @@ const FilterAside: React.FC<FilterAsideProps> = ({
                                     className="p-4 border-t border-gray-300"
                                     style={{ maxHeight: '300px', overflowY: 'auto' }}
                                 >
+                                    {/* YEAR ACCORDION SPECIAL CASE */}
+                                    {key === 'Year' && (
+                                        <div>
+                                            <label className="block mb-2 text-sm font-semibold text-gray-700">
+                                                Composition Year Range
+                                            </label>
+
+                                            {/* Range Slider from rc-slider */}
+                                            <Slider
+                                                range
+                                                min={1600}
+                                                max={2025}
+                                                value={[minYear, maxYear]}
+                                                onChange={(value) => {
+                                                    const [newMin, newMax] = value as number[]; // Assert the type
+                                                    setMinYear(newMin);
+                                                    setMaxYear(newMax);
+                                                  }}
+                                            />
+                                            <div className="flex justify-between mt-2 text-sm text-gray-700">
+                                                <span>{minYear}</span>
+                                                <span>{maxYear}</span>
+                                            </div>
+                                        </div>
+                                    )}
+
+
                                     {/* Separate search only for composers/levels here */}
                                     {key === 'Composer' && (
                                         <div className="mb-2">
@@ -186,9 +225,6 @@ const FilterAside: React.FC<FilterAsideProps> = ({
                                         </div>
                                     )}
 
-                                    {filteredItems.length === 0 ? (
-                                        <p className="text-sm text-gray-500">No results found.</p>
-                                    ) : (
                                         <ul className="space-y-1">
                                             {filteredItems.map((item) => (
                                                 <li key={item}>
