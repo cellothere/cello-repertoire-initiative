@@ -301,18 +301,24 @@ const Music: NextPage = () => {
               className="w-full p-2 border border-gray-300 rounded text-black mb-4"
               aria-label="Filter by title or composer"
             />
+<MobileFilterAccordion
+    filter={filter}
+    setFilter={setFilter}
+    accordionContent={accordionContent}
+    selectedComposers={selectedComposers}
+    toggleComposerSelection={toggleComposerSelection}
+    selectedLevels={selectedLevels}
+    toggleLevelSelection={toggleLevelSelection}
+    selectedInstruments={selectedInstruments}
+    toggleInstrumentSelection={toggleInstrumentSelection}
+    selectedCountries={selectedCountries} // Add this
+    toggleCountrySelection={toggleCountrySelection} // Add this
+    minYear={minYear}
+    maxYear={maxYear}
+    setMinYear={setMinYear}
+    setMaxYear={setMaxYear}
+/>
 
-            <MobileFilterAccordion
-              filter={filter}
-              setFilter={setFilter}
-              accordionContent={accordionContent}
-              selectedComposers={selectedComposers}
-              toggleComposerSelection={toggleComposerSelection}
-              selectedLevels={selectedLevels}
-              toggleLevelSelection={toggleLevelSelection}
-              selectedInstruments={selectedInstruments}
-              toggleInstrumentSelection={toggleInstrumentSelection}
-            />
           </div>
         )}
 

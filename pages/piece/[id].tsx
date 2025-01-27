@@ -179,11 +179,6 @@ className={`grid grid-cols-1 ${hasVideo ? 'md:grid-cols-2' : 'md:grid-cols-1'} g
                 {piece.isArrangement ? 'Yes' : 'No'}
               </p>
 
-              <p className="text-md mb-4">
-                <strong>Public Domain? </strong>
-                {piece.is_public_domain ? 'Yes' : 'No'}
-              </p>
-
               {piece.publisher_info && (
                 <p className="text-md mb-4">
                   <strong>Publisher Info: </strong>
