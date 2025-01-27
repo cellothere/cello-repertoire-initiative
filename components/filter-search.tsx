@@ -262,7 +262,7 @@ const FilterAside: React.FC<FilterAsideProps> = ({
                                                 </li>
                                             ))}
                                         </ul>
-                                    )}
+                                    )
                                 </div>
                             </div>
                         </div>
