@@ -66,12 +66,12 @@ const MobileFilterAccordion: React.FC<MobileFilterAccordionProps> = ({
     };
 
     return (
-        <div className="w-full p-5 bg-white text-white">
+        <div className="w-full p-5">
 
             {/* Clear Filters Button */}
             <button
                 onClick={clearFilters}
-                className="w-full mb-4 p-3 bg-black hover:bg-red-700 text-white rounded-lg font-bold"
+                className="w-full mb-4 p-3 bg-black hover:bg-black text-white rounded-lg font-bold"
             >
                 Clear All Filters
             </button>
@@ -90,12 +90,12 @@ const MobileFilterAccordion: React.FC<MobileFilterAccordionProps> = ({
                     });
 
                     return (
-                        <div key={key} className="border border-gray-300 rounded-lg bg-gray-900">
+                        <div key={key} className="border border-gray-300 rounded-lg bg-white">
                             <h2 id={`accordion-heading-${index}`}>
                                 <button
                                     type="button"
-                                    className={`flex items-center justify-between w-full px-4 py-3 font-medium text-left 
-                                        ${openAccordion === index ? 'bg-gray-700' : 'bg-gray-500'}`}
+                                    className={`flex items-center justify-between w-full px-4 py-3 font-medium text-left text-gray-700 focus:outline-none
+                                        ${openAccordion === index ? 'bg-gray-200' : 'bg-gray-100'}`}
                                     onClick={() => toggleAccordion(index)}
                                     aria-expanded={openAccordion === index}
                                     aria-controls={`accordion-body-${index}`}
@@ -123,15 +123,14 @@ const MobileFilterAccordion: React.FC<MobileFilterAccordionProps> = ({
 
                             <div
                                 id={`accordion-body-${index}`}
-                                className={`transition-[max-height] overflow-hidden ${
-                                    openAccordion === index ? 'max-h-96' : 'max-h-0'
-                                }`}
+                                className={`transition-[max-height] overflow-hidden ${openAccordion === index ? 'max-h-96' : 'max-h-0'
+                                    }`}
                             >
                                 <div className="p-4 border-t border-gray-300" style={{ maxHeight: '300px', overflowY: 'auto' }}>
                                     {/* Special Year Range Slider */}
                                     {key === 'Year' && (
                                         <div>
-                                            <label className="block mb-2 text-sm font-semibold">
+                                            <label className="block mb-4 text-sm text-black font-semibold">
                                                 Composition Year Range
                                             </label>
                                             <Slider
@@ -145,7 +144,7 @@ const MobileFilterAccordion: React.FC<MobileFilterAccordionProps> = ({
                                                     setMaxYear(newMax);
                                                 }}
                                             />
-                                            <div className="flex justify-between mt-2 text-sm">
+                                            <div className="flex justify-between mt-2 text-sm text-black">
                                                 <span>{minYear}</span>
                                                 <span>{maxYear}</span>
                                             </div>
@@ -155,9 +154,6 @@ const MobileFilterAccordion: React.FC<MobileFilterAccordionProps> = ({
                                     {/* Composer Search */}
                                     {key === 'Composer' && (
                                         <div className="mb-2">
-                                            <label htmlFor="composer-search" className="block mb-1 text-sm font-medium">
-                                                Search Composers
-                                            </label>
                                             <input
                                                 id="composer-search"
                                                 type="text"
@@ -171,35 +167,36 @@ const MobileFilterAccordion: React.FC<MobileFilterAccordionProps> = ({
 
                                     <ul className="space-y-1">
                                         {filteredItems.map((item) => (
-                                            <li key={item}>
-                                                <label className="inline-flex items-center">
+                                            <li key={item} className="border-b border-gray-300 last:border-none p-3">
+                                                <label className="flex items-center justify-between text-black">
+                                                    <span>{item}</span>
                                                     <input
                                                         type="checkbox"
-                                                        className="mr-2"
+                                                        className="h-5 w-5 rounded border-gray-300 text-blue-600 focus:ring-green-500"
                                                         checked={
                                                             key === 'Composer'
                                                                 ? selectedComposers.includes(item)
                                                                 : key === 'Level'
-                                                                ? selectedLevels.includes(item)
-                                                                : key === 'Instrumentation'
-                                                                ? selectedInstruments.includes(item)
-                                                                : key === 'Country'
-                                                                ? selectedCountries.includes(item)
-                                                                : false
+                                                                    ? selectedLevels.includes(item)
+                                                                    : key === 'Instrumentation'
+                                                                        ? selectedInstruments.includes(item)
+                                                                        : key === 'Country'
+                                                                            ? selectedCountries.includes(item)
+                                                                            : false
                                                         }
                                                         onChange={() => {
                                                             if (key === 'Composer') toggleComposerSelection(item);
                                                             else if (key === 'Level') toggleLevelSelection(item);
-                                                            else if (key === 'Instrumentation')
-                                                                toggleInstrumentSelection(item);
+                                                            else if (key === 'Instrumentation') toggleInstrumentSelection(item);
                                                             else if (key === 'Country') toggleCountrySelection(item);
                                                         }}
                                                     />
-                                                    {item}
                                                 </label>
                                             </li>
                                         ))}
                                     </ul>
+
+
                                 </div>
                             </div>
                         </div>
