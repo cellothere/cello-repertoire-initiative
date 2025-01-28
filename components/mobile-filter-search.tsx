@@ -40,6 +40,7 @@ const MobileFilterAccordion: React.FC<MobileFilterAccordionProps> = ({
     const [openAccordion, setOpenAccordion] = useState<number | null>(null);
     const [composerSearch, setComposerSearch] = useState<string>('');
     const [levelSearch, setLevelSearch] = useState<string>('');
+    const [isFilterVisible, setIsFilterVisible] = useState<boolean>(false);
 
     const toggleAccordion = (index: number) => {
         setOpenAccordion(openAccordion === index ? null : index);

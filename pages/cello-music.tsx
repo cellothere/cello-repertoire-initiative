@@ -1,4 +1,5 @@
 import { NextPage } from 'next';
+import { useRef } from 'react';
 import Head from 'next/head';
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
@@ -105,6 +106,26 @@ const Music: NextPage = () => {
     fetchCountries();
   }, []);
 
+  const mobileFilterRef = useRef<HTMLDivElement>(null);
+
+useEffect(() => {
+  const handleClickOutside = (event: MouseEvent) => {
+    if (
+      mobileFilterRef.current &&
+      !mobileFilterRef.current.contains(event.target as Node)
+    ) {
+      setIsFilterVisible(false); // Close the filter when clicked outside
+    }
+  };
+
+  // Add the event listener
+  document.addEventListener('mousedown', handleClickOutside);
+
+  // Cleanup the event listener on unmount
+  return () => {
+    document.removeEventListener('mousedown', handleClickOutside);
+  };
+}, []);
 
   // Fetching the composers data
   useEffect(() => {
@@ -281,46 +302,47 @@ const Music: NextPage = () => {
 
         {/* Mobile Filter Drawer */}
         {isFilterVisible && (
-          <div
-            className="md:hidden fixed inset-0 bg-white z-50 overflow-y-auto p-5 transition-transform transform animate-slideIn"
-            aria-label="Mobile Filter Drawer"
-          >
-            <button
-              className="absolute top-5 right-5 bg-black hover:bg-red-600 text-white p-2 rounded"
-              onClick={() => setIsFilterVisible(false)}
-            >
-              Close
-            </button>
+  <div
+    ref={mobileFilterRef} // Attach the ref here
+    className="md:hidden fixed inset-0 ml-20 bg-white z-50 overflow-y-auto p-5 transition-transform transform animate-slideIn"
+    aria-label="Mobile Filter Drawer"
+  >
+    <button
+      className="absolute top-5 text-lg right-5 text-black p-2 rounded"
+      onClick={() => setIsFilterVisible(false)}
+    >
+      X
+    </button>
 
-            <h2 className="text-xl font-bold text-black mb-4">Filter</h2>
-            <input
-              type="text"
-              placeholder="Search by title or composer"
-              value={filter}
-              onChange={(e) => setFilter(e.target.value)}
-              className="w-full p-2 border border-gray-300 rounded text-black mb-4"
-              aria-label="Filter by title or composer"
-            />
-<MobileFilterAccordion
-    filter={filter}
-    setFilter={setFilter}
-    accordionContent={accordionContent}
-    selectedComposers={selectedComposers}
-    toggleComposerSelection={toggleComposerSelection}
-    selectedLevels={selectedLevels}
-    toggleLevelSelection={toggleLevelSelection}
-    selectedInstruments={selectedInstruments}
-    toggleInstrumentSelection={toggleInstrumentSelection}
-    selectedCountries={selectedCountries} // Add this
-    toggleCountrySelection={toggleCountrySelection} // Add this
-    minYear={minYear}
-    maxYear={maxYear}
-    setMinYear={setMinYear}
-    setMaxYear={setMaxYear}
-/>
+    <h2 className="text-xl font-bold text-black mb-4">Filter</h2>
+    <input
+      type="text"
+      placeholder="Search by title or composer"
+      value={filter}
+      onChange={(e) => setFilter(e.target.value)}
+      className="w-full p-2 border border-gray-300 rounded text-black mb-4"
+      aria-label="Filter by title or composer"
+    />
+    <MobileFilterAccordion
+      filter={filter}
+      setFilter={setFilter}
+      accordionContent={accordionContent}
+      selectedComposers={selectedComposers}
+      toggleComposerSelection={toggleComposerSelection}
+      selectedLevels={selectedLevels}
+      toggleLevelSelection={toggleLevelSelection}
+      selectedInstruments={selectedInstruments}
+      toggleInstrumentSelection={toggleInstrumentSelection}
+      selectedCountries={selectedCountries}
+      toggleCountrySelection={toggleCountrySelection}
+      minYear={minYear}
+      maxYear={maxYear}
+      setMinYear={setMinYear}
+      setMaxYear={setMaxYear}
+    />
+  </div>
+)}
 
-          </div>
-        )}
 
         {/* Main Content */}
         <main className="md:ml-64 w-full container mx-auto p-4">
