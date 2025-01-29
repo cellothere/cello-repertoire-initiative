@@ -5,6 +5,7 @@ import { FaArrowRight } from 'react-icons/fa';
 import { useEffect, useState } from 'react';
 import { Link } from '@nextui-org/react';
 import { Analytics } from "@vercel/analytics/react";
+import { SpeedInsights } from "@vercel/speed-insights/next"
 
 const Home: NextPage = () => {
   const [isMobileView, setIsMobileView] = useState(false);
@@ -159,6 +160,7 @@ const Home: NextPage = () => {
           </div>
         </div>
         <Analytics />
+        <SpeedInsights />
       </main>
 
       <style jsx>{`
