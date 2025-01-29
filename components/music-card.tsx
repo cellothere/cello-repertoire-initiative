@@ -3,7 +3,7 @@ import { CiHeart } from "react-icons/ci";
 import { FaInfoCircle } from "react-icons/fa";
 
 interface MusicCardProps {
-    id: string;
+    id: number;
     title: string;
     composer: string;
     level: string;
@@ -12,7 +12,7 @@ interface MusicCardProps {
 const MusicCard: React.FC<MusicCardProps> = ({ id, title, composer, level }) => {
     return (
         <div className="bg-white shadow-md rounded-sm p-4 hover:scale-105 transition-transform duration-300">
-            <Link href={`/piece/${id}`} className="block h-full">
+            <Link href={`/piece/${id.toString()}`} className="block h-full">
                 <div className="flex flex-col h-full">
                     {/* Content */}
                     <div className="flex-grow flex flex-col">

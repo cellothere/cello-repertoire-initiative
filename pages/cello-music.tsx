@@ -12,7 +12,7 @@ import { IoFilter } from "react-icons/io5";
 import MusicCard from '@/components/music-card';
 
 interface MusicPiece {
-  id: string;
+  id: number;
   title: string;
   composer: string;
   level: string;

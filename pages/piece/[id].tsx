@@ -20,7 +20,7 @@ interface PieceProps {
   piece: {
     id: number;
     title: string;
-    composer_id: string;
+    composer_id: number;
     composition_year: string;
     level: string;
     isArrangement: boolean;
@@ -331,7 +331,10 @@ const Piece: NextPage<PieceProps> = ({ piece, composerInfo }) => {
 
 export const getServerSideProps: GetServerSideProps = async (context) => {
   const { id } = context.params || {};
-  if (!id || typeof id !== 'string') {
+
+  // Convert id to an integer if it's a valid number
+  const parsedId = id && !isNaN(Number(id)) ? Number(id) : null;
+  if (parsedId === null) {
     return { notFound: true };
   }
 
@@ -340,7 +343,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
 
   const piece = await collection
     .aggregate([
-      { $match: { id } },
+      { $match: { id: parsedId } }, // Ensure id is treated as an integer
       {
         $lookup: {
           from: 'composers',
@@ -357,32 +360,33 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
     props: {
       piece: piece
         ? {
-          id: piece.id,
-          title: piece.title || '',
-          composer_id: piece.composer_id || '',
-          composition_year: piece.composition_year || '',
-          level: piece.level || 'Unknown',
-          isArrangement: piece.isArrangement || false,
-          audio_link: piece.audio_link || [],
-          instrumentation: piece.instrumentation || [],
-          publisher_info: piece.publisher_info || '',
-          description: piece.description || '',
-          technical_overview: piece.technical_overview || '',
-          is_public_domain: piece.is_public_domain || false,
-          where_to_buy_or_download: piece.where_to_buy_or_download || [],
-          duration: piece.duration || '',
-          coverImage: piece.coverImage || '',
-        }
+            id: piece.id,
+            title: piece.title || '',
+            composer_id: piece.composer_id || '',
+            composition_year: piece.composition_year || '',
+            level: piece.level || 'Unknown',
+            isArrangement: piece.isArrangement || false,
+            audio_link: piece.audio_link || [],
+            instrumentation: piece.instrumentation || [],
+            publisher_info: piece.publisher_info || '',
+            description: piece.description || '',
+            technical_overview: piece.technical_overview || '',
+            is_public_domain: piece.is_public_domain || false,
+            where_to_buy_or_download: piece.where_to_buy_or_download || [],
+            duration: piece.duration || '',
+            coverImage: piece.coverImage || '',
+          }
         : null,
       composerInfo: piece?.composerDetails
         ? {
-          composer_full_name:
-            piece.composerDetails.composer_full_name || 'Unknown Composer',
-          bio_links: piece.composerDetails.bio_link || [],
-        }
+            composer_full_name:
+              piece.composerDetails.composer_full_name || 'Unknown Composer',
+            bio_links: piece.composerDetails.bio_link || [],
+          }
         : null,
     },
   };
 };
+
 
 export default Piece;

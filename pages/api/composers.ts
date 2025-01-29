@@ -6,7 +6,7 @@ type Composer = {
   composer_full_name: string;
   composer_last_name: string;
   composer_first_name: string;
-  id: string;
+  id: number;
   nationality: string;
   tags: string[];
   articles: string[];
