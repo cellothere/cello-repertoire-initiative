@@ -174,10 +174,10 @@ className={`grid grid-cols-1 ${hasVideo ? 'md:grid-cols-2' : 'md:grid-cols-1'} g
                 </p>
               )}
 
-              <p className="text-md mb-4">
+              {/* <p className="text-md mb-4">
                 <strong>Arrangement of Original? </strong>
                 {piece.isArrangement ? 'Yes' : 'No'}
-              </p>
+              </p> */}
 
               {piece.publisher_info && (
                 <p className="text-md mb-4">

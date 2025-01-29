@@ -57,6 +57,7 @@ const FilterAside: React.FC<FilterAsideProps> = ({
         selectedCountries.forEach((country) => toggleCountrySelection(country));
         setMinYear(1600);
         setMaxYear(2025);
+        setOpenAccordion(null);
     };
 
     // Utility to get selected count
@@ -208,7 +209,7 @@ const FilterAside: React.FC<FilterAsideProps> = ({
 
                                         <ul className="space-y-1">
                                             {filteredItems.map((item) => (
-                                                <li key={item}>
+                                                <li key={item} className="border-b border-gray-300 last:border-none py-1">
                                                     <label className="inline-flex items-center text-gray-700">
                                                         <input
                                                             type="checkbox"

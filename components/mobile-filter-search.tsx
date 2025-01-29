@@ -56,6 +56,7 @@ const MobileFilterAccordion: React.FC<MobileFilterAccordionProps> = ({
         selectedCountries.forEach((country) => toggleCountrySelection(country));
         setMinYear(1600);
         setMaxYear(2025);
+        setOpenAccordion(null);
     };
 
     const getSelectedCountForKey = (key: string) => {
@@ -68,6 +69,15 @@ const MobileFilterAccordion: React.FC<MobileFilterAccordionProps> = ({
 
     return (
         <div className="w-full p-5">
+
+    <input
+      type="text"
+      placeholder="Search by title or composer"
+      value={filter}
+      onChange={(e) => setFilter(e.target.value)}
+      className="w-full p-2 border border-gray-300 rounded text-black mb-4"
+      aria-label="Filter by title or composer"
+    />
 
             {/* Clear Filters Button */}
             <button
@@ -176,14 +186,16 @@ const MobileFilterAccordion: React.FC<MobileFilterAccordionProps> = ({
                                                         className="h-5 w-5 rounded border-gray-300 text-blue-600 focus:ring-green-500"
                                                         checked={
                                                             key === 'Composer'
-                                                                ? selectedComposers.includes(item)
-                                                                : key === 'Level'
-                                                                    ? selectedLevels.includes(item)
-                                                                    : key === 'Instrumentation'
-                                                                        ? selectedInstruments.includes(item)
-                                                                        : key === 'Country'
-                                                                            ? selectedCountries.includes(item)
-                                                                            : false
+                                                            ? selectedComposers.includes(item)
+                                                            : key === 'Level'
+                                                                ? selectedLevels.includes(item)
+                                                                : key === 'Instrumentation'
+                                                                    ? selectedInstruments.includes(
+                                                                        item === 'Cello Solo' ? 'Cello' : item
+                                                                    )
+                                                                    : key === 'Country'
+                                                                        ? selectedCountries.includes(item)
+                                                                        : false
                                                         }
                                                         onChange={() => {
                                                             if (key === 'Composer') toggleComposerSelection(item);

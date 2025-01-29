@@ -108,24 +108,24 @@ const Music: NextPage = () => {
 
   const mobileFilterRef = useRef<HTMLDivElement>(null);
 
-useEffect(() => {
-  const handleClickOutside = (event: MouseEvent) => {
-    if (
-      mobileFilterRef.current &&
-      !mobileFilterRef.current.contains(event.target as Node)
-    ) {
-      setIsFilterVisible(false); // Close the filter when clicked outside
-    }
-  };
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        mobileFilterRef.current &&
+        !mobileFilterRef.current.contains(event.target as Node)
+      ) {
+        setIsFilterVisible(false); // Close the filter when clicked outside
+      }
+    };
 
-  // Add the event listener
-  document.addEventListener('mousedown', handleClickOutside);
+    // Add the event listener
+    document.addEventListener('mousedown', handleClickOutside);
 
-  // Cleanup the event listener on unmount
-  return () => {
-    document.removeEventListener('mousedown', handleClickOutside);
-  };
-}, []);
+    // Cleanup the event listener on unmount
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
 
   // Fetching the composers data
   useEffect(() => {
@@ -302,46 +302,39 @@ useEffect(() => {
 
         {/* Mobile Filter Drawer */}
         {isFilterVisible && (
-  <div
-    ref={mobileFilterRef} // Attach the ref here
-    className="md:hidden fixed inset-0 ml-20 bg-white z-50 overflow-y-auto p-5 transition-transform transform animate-slideIn"
-    aria-label="Mobile Filter Drawer"
-  >
-    <button
-      className="absolute top-5 text-lg right-5 text-black p-2 rounded"
-      onClick={() => setIsFilterVisible(false)}
-    >
-      X
-    </button>
-
-    <h2 className="text-xl font-bold text-black mb-4">Filter</h2>
-    <input
-      type="text"
-      placeholder="Search by title or composer"
-      value={filter}
-      onChange={(e) => setFilter(e.target.value)}
-      className="w-full p-2 border border-gray-300 rounded text-black mb-4"
-      aria-label="Filter by title or composer"
-    />
-    <MobileFilterAccordion
-      filter={filter}
-      setFilter={setFilter}
-      accordionContent={accordionContent}
-      selectedComposers={selectedComposers}
-      toggleComposerSelection={toggleComposerSelection}
-      selectedLevels={selectedLevels}
-      toggleLevelSelection={toggleLevelSelection}
-      selectedInstruments={selectedInstruments}
-      toggleInstrumentSelection={toggleInstrumentSelection}
-      selectedCountries={selectedCountries}
-      toggleCountrySelection={toggleCountrySelection}
-      minYear={minYear}
-      maxYear={maxYear}
-      setMinYear={setMinYear}
-      setMaxYear={setMaxYear}
-    />
-  </div>
-)}
+          <div
+            ref={mobileFilterRef} // Attach the ref here
+            className="md:hidden fixed inset-0 ml-20 bg-white z-50 overflow-y-auto p-5 transition-transform transform animate-slideIn"
+            aria-label="Mobile Filter Drawer"
+          >
+            <div className="flex justify-between items-center mx-5">
+              <h2 className="text-xl font-bold text-black">Filter</h2>
+              <button
+                className="text-lg text-black p-2 rounded"
+                onClick={() => setIsFilterVisible(false)}
+              >
+                X
+              </button>
+            </div>
+            <MobileFilterAccordion
+              filter={filter}
+              setFilter={setFilter}
+              accordionContent={accordionContent}
+              selectedComposers={selectedComposers}
+              toggleComposerSelection={toggleComposerSelection}
+              selectedLevels={selectedLevels}
+              toggleLevelSelection={toggleLevelSelection}
+              selectedInstruments={selectedInstruments}
+              toggleInstrumentSelection={toggleInstrumentSelection}
+              selectedCountries={selectedCountries}
+              toggleCountrySelection={toggleCountrySelection}
+              minYear={minYear}
+              maxYear={maxYear}
+              setMinYear={setMinYear}
+              setMaxYear={setMaxYear}
+            />
+          </div>
+        )}
 
 
         {/* Main Content */}
@@ -352,7 +345,7 @@ useEffect(() => {
 
             {/* Mobile Filter Toggle Button */}
             <button
-              className="md:hidden flex items-center text-white bg-black hover:bg-red-500 px-3 py-2 rounded-md"
+              className="md:hidden flex items-center text-white bg-black px-3 py-2 rounded-md"
               onClick={() => setIsFilterVisible(true)}
             >
               <IoFilter className="mr-1" />
@@ -395,8 +388,6 @@ useEffect(() => {
 
         </main>
       </div>
-
-      {/* </div>  Un-comment if you wrapped in a gradient container */}
     </div>
   );
 };

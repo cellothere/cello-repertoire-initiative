@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   Dropdown,
   Link,
@@ -13,19 +13,23 @@ import { BiSolidHomeCircle } from "react-icons/bi";
 import { useRouter } from "next/router";
 
 const NavbarMain = () => {
+  const router = useRouter();
+
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isMusicHovered, setisMusicHovered] = useState(false);
   const [isAboutHovered, setisAboutHovered] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const router = useRouter();
 
   // Detect mobile view
   const [isMobileView, setIsMobileView] = useState(false);
 
+  // 1. Create a ref for the menu container
+  const menuRef = useRef<HTMLDivElement>(null);
+
   useEffect(() => {
     const handleResize = () => {
-      setIsMobileView(window.innerWidth <= 768); // You can adjust the breakpoint as needed
+      setIsMobileView(window.innerWidth <= 768); // Adjust the breakpoint as needed
     };
 
     handleResize(); // Check on initial render
@@ -36,8 +40,24 @@ const NavbarMain = () => {
     };
   }, []);
 
+  // 2. Close the menu if a click happens outside of the menuRef
+  useEffect(() => {
+    if (!isMenuOpen) return;
+
+    const handleClickOutside = (event: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setIsMenuOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [isMenuOpen]);
+
   const toggleMenu = () => {
-    setIsMenuOpen(!isMenuOpen);
+    setIsMenuOpen((prev) => !prev);
   };
 
   const toggleSearch = () => {
@@ -45,7 +65,7 @@ const NavbarMain = () => {
       // Perform search when the search input is already open and has content
       router.push(`/search-results?query=${encodeURIComponent(searchQuery.trim())}`);
     } else {
-      setIsSearchOpen(!isSearchOpen);
+      setIsSearchOpen((prev) => !prev);
     }
   };
 
@@ -114,6 +134,7 @@ const NavbarMain = () => {
           </button>
         </form>
       </div>
+
       {/* Mobile Menu Section */}
       <div className="md:hidden flex items-center relative">
         {isSearchOpen && (
@@ -147,7 +168,6 @@ const NavbarMain = () => {
           aria-label="Toggle Search"
         >
           {router.pathname !== "/search-results" && <FaSearch size={25} />}
-
         </button>
         {!isSearchOpen && (
           <>
@@ -164,8 +184,13 @@ const NavbarMain = () => {
             </Button>
           </>
         )}
+
+        {/* 3. Wrap the dropdown menu with the ref */}
         {isMenuOpen && (
-          <div className="z-50 mt-1 absolute top-16 items-center right-0 bg-white w-40 border border-gray-400 rounded shadow-lg flex flex-col">
+          <div
+            ref={menuRef}
+            className="z-50 mt-1 absolute top-16 items-center right-0 bg-white w-40 border border-gray-400 rounded shadow-lg flex flex-col"
+          >
             <Link href="/">
               <button className="w-full py-2 px-4 text-left hover:bg-gray-200">
                 Home
@@ -184,8 +209,6 @@ const NavbarMain = () => {
           </div>
         )}
       </div>
-
-
 
       {/* Desktop Navigation */}
       <nav className="hidden md:flex">
