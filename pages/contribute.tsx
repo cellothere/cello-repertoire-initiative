@@ -103,8 +103,8 @@ const Contribute: NextPage<ContributeProps> = () => {
                                         <div key={index} className="flex items-center mb-2">
                                             <input
                                                 type="url"
-                                                
                                                 value={link}
+                                                placeholder="e.g. www.sheetmusic.com/cellomusic"
                                                 onChange={(e) => handleLinkChange(index, e.target.value)}
                                                 required
                                                 className="form-input w-full p-2 rounded bg-white border border-gray-600 text-black"

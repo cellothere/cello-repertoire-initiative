@@ -12,7 +12,7 @@ import Accordion from '@mui/material/Accordion';
 import AccordionSummary from '@mui/material/AccordionSummary';
 import AccordionDetails from '@mui/material/AccordionDetails';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import Tooltip from '@mui/material/Tooltip'; // NEW: for tooltip explanation
+import Tooltip from '@mui/material/Tooltip';
 import { AiFillQuestionCircle } from "react-icons/ai";
 import VideoIframe from '@/components/youtube-iframe';
 
@@ -51,7 +51,6 @@ const isValidUrl = (url: string) => {
   }
 };
 
-
 const Piece: NextPage<PieceProps> = ({ piece, composerInfo }) => {
   const [videoId1, setVideoId1] = useState<string | null>(null);
   const [hasVideo, setHasVideo] = useState<boolean>(false);
@@ -62,13 +61,14 @@ const Piece: NextPage<PieceProps> = ({ piece, composerInfo }) => {
 
       try {
         const url = new URL(audioLink1);
-        const isYouTube = url.hostname.includes('youtube.com') || url.hostname.includes('youtu.be');
+        const isYouTube =
+          url.hostname.includes('youtube.com') || url.hostname.includes('youtu.be');
 
         if (isYouTube) {
           const videoId = url.searchParams.get('v') || url.pathname.slice(1);
           if (videoId) {
             setVideoId1(videoId);
-            setHasVideo(true); // NEW: Set to true if a video ID is found
+            setHasVideo(true);
           }
         }
       } catch (error) {
@@ -77,19 +77,9 @@ const Piece: NextPage<PieceProps> = ({ piece, composerInfo }) => {
     }
   }, [piece]);
 
-
   if (!piece) {
     return <LoadingAnimation />;
   }
-
-  // Optional: You can configure YouTube player options here
-  const opts = {
-    height: '400',
-    width: '550',
-    playerVars: {
-      autoplay: 1,
-    },
-  };
 
   return (
     <div>
@@ -97,47 +87,56 @@ const Piece: NextPage<PieceProps> = ({ piece, composerInfo }) => {
         <title>{piece.title}</title>
       </Head>
       <NavbarMain />
+      <div className='flex flex-col sm:flex-row justify-between mt-5 mx-auto w-[98%]'>
+  <h1 className="text-2xl sm:text-3xl font-bold">
+    {piece.title}
+  </h1>
+  <button className="hidden sm:block bg-black text-white px-3 py-2 rounded-lg hover:scale-105 transition-transform mt-3 sm:mt-0">
+    <Link href="../cello-music">
+      Back to Music <FaArrowRight className="inline-block ml-2" />
+    </Link>
+  </button>
+</div>
+
 
       <main
-className={`grid grid-cols-1 ${hasVideo ? 'md:grid-cols-2' : 'md:grid-cols-1'} gap-4 p-4 mt-5`}
->
-    {/* Left Column */}
-    <div className={`container mx-auto ${hasVideo ? '' : 'place-items-center'}`}>
-
+        className={`grid grid-cols-1 gap-6 p-4 ${hasVideo ? 'md:grid-cols-2' : 'md:grid-cols-1'
+          }`}
+      >
+        {/* LEFT COLUMN */}
+        <div className="container mx-auto flex flex-col items-start">
           {/* Title + Composer */}
-          <div className="flex flex-col justify-between items-start mb-2">
-            <h1 className="text-3xl font-bold mb-2">{piece.title}</h1>
-            <div className="flex flex-col items-start">
-              <p className="text-xl mb-2">
-                by{' '}
-                {composerInfo?.bio_links?.[0] ? (
-                  <Link
-                    href={composerInfo.bio_links[0]}
-                    className="underline"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    {composerInfo.composer_full_name || 'Unknown Composer'}
-                  </Link>
-                ) : (
-                  <span>{composerInfo?.composer_full_name || 'Unknown Composer'}</span>
-                )}
-              </p>
+          <div className="mb-4">
 
-              {/* Level + Tooltip */}
-              <div className="flex items-center">
-                <p className="text-lg italic mr-1">{piece.level}</p>
-                <Tooltip title="Levels are approximate.">
-                  <span className="cursor-pointer">
-                    <AiFillQuestionCircle className="mb-1" />
-                  </span>
-                </Tooltip>
-              </div>
+            <p className="text-md sm:text-lg mb-1">
+              by{' '}
+              {composerInfo?.bio_links?.[0] ? (
+                <Link
+                  href={composerInfo.bio_links[0]}
+                  className="underline"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  {composerInfo.composer_full_name || 'Unknown Composer'}
+                </Link>
+              ) : (
+                <span>{composerInfo?.composer_full_name || 'Unknown Composer'}</span>
+              )}
+            </p>
+
+            {/* Level + Tooltip */}
+            <div className="flex items-center">
+              <p className="text-sm sm:text-md italic mr-1">{piece.level}</p>
+              <Tooltip title="Levels are approximate.">
+                <span className="cursor-pointer text-gray-500">
+                  <AiFillQuestionCircle className="inline-block" />
+                </span>
+              </Tooltip>
             </div>
           </div>
 
           {/* Info Accordion */}
-          <Accordion className="w-full md:w-[600px]" defaultExpanded>
+          <Accordion className="w-full max-w-full md:max-w-2xl" defaultExpanded>
             <AccordionSummary
               expandIcon={<ExpandMoreIcon />}
               aria-controls="panel1-content"
@@ -148,58 +147,63 @@ className={`grid grid-cols-1 ${hasVideo ? 'md:grid-cols-2' : 'md:grid-cols-1'} g
             </AccordionSummary>
             <div className="border-b border-gray-300 my-1"></div>
             <AccordionDetails>
-              <p className="text-md mb-2 font-bold">Description:</p>
-              <p className="mb-4">
+              <p className="text-sm sm:text-md mb-2 font-bold">Description:</p>
+              <p className="text-sm sm:text-md mb-4">
                 {piece.description || 'No description available.'}
               </p>
 
               {piece.composition_year && (
-                <p className="text-md mb-4">
+                <p className="text-sm sm:text-md mb-4">
                   <strong>Composition Year: </strong>
                   {piece.composition_year}
                 </p>
               )}
 
               {piece.instrumentation?.length > 0 && (
-                <p className="text-md mb-4">
+                <p className="text-sm sm:text-md mb-4">
                   <strong>Instrumentation: </strong>
                   {piece.instrumentation.join(', ')}
                 </p>
               )}
 
               {piece.duration && (
-                <p className="text-md mb-4">
+                <p className="text-sm sm:text-md mb-4">
                   <strong>Duration: </strong>
                   {piece.duration}
                 </p>
               )}
 
-              {/* <p className="text-md mb-4">
+              <p className="text-sm sm:text-md mb-4">
                 <strong>Arrangement of Original? </strong>
                 {piece.isArrangement ? 'Yes' : 'No'}
-              </p> */}
+              </p>
+
+              <p className="text-sm sm:text-md mb-4">
+                <strong>Public Domain? </strong>
+                {piece.is_public_domain ? 'Yes' : 'No'}
+              </p>
 
               {piece.publisher_info && (
-                <p className="text-md mb-4">
+                <p className="text-sm sm:text-md mb-4">
                   <strong>Publisher Info: </strong>
                   {piece.publisher_info}
                 </p>
               )}
 
-              {/* Uncomment to display cover image if available 
-              {piece.coverImage && (
-                <img
-                  src={piece.coverImage}
-                  alt={`Cover image of ${piece.title}`}
-                  className="my-4"
-                />
-              )} 
+              {/* If you want to show the cover image:
+               {piece.coverImage && (
+                 <img
+                   src={piece.coverImage}
+                   alt={`Cover image of ${piece.title}`}
+                   className="my-4"
+                 />
+               )}
               */}
             </AccordionDetails>
           </Accordion>
 
           {/* Technical Overview Accordion */}
-          <Accordion className="w-full md:w-[600px]">
+          <Accordion className="w-full max-w-full md:max-w-2xl">
             <AccordionSummary
               expandIcon={<ExpandMoreIcon />}
               aria-controls="panel2-content"
@@ -210,12 +214,14 @@ className={`grid grid-cols-1 ${hasVideo ? 'md:grid-cols-2' : 'md:grid-cols-1'} g
             </AccordionSummary>
             <div className="border-b border-gray-300 my-1"></div>
             <AccordionDetails>
-              {piece.technical_overview || 'No technical overview available.'}
+              <p className="text-sm sm:text-md">
+                {piece.technical_overview || 'No technical overview available.'}
+              </p>
             </AccordionDetails>
           </Accordion>
 
           {/* Where to Buy/Download Accordion */}
-          <Accordion className="w-full md:w-[600px]">
+          <Accordion className="w-full max-w-full md:max-w-2xl">
             <AccordionSummary
               expandIcon={<ExpandMoreIcon />}
               aria-controls="panel3-content"
@@ -227,20 +233,19 @@ className={`grid grid-cols-1 ${hasVideo ? 'md:grid-cols-2' : 'md:grid-cols-1'} g
             <div className="border-b border-gray-300 my-1"></div>
             <AccordionDetails>
               {piece.where_to_buy_or_download && piece.where_to_buy_or_download.length > 0 ? (
-                <div className="text-md mb-4">
+                <div className="text-sm sm:text-md mb-4">
                   {piece.where_to_buy_or_download.map((link, index) => {
                     if (!link) return null;
-
                     try {
                       const domain = new URL(link).hostname.replace(/^www\./, '');
                       return (
-                        <div key={index}>
-                          <BsFileEarmarkMusicFill className="inline-block align-middle" />
+                        <div key={index} className="mb-2">
+                          <BsFileEarmarkMusicFill className="inline-block align-middle mr-2" />
                           <Link
                             href={link}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="inline-block ml-2 underline align-middle"
+                            className="underline align-middle"
                           >
                             {domain}
                           </Link>
@@ -248,22 +253,22 @@ className={`grid grid-cols-1 ${hasVideo ? 'md:grid-cols-2' : 'md:grid-cols-1'} g
                       );
                     } catch (error) {
                       return (
-                        <div key={index} className="text-md">
-                          <BsFileEarmarkMusicFill className="inline-block align-middle" />
-                          <span className="inline-block ml-2 align-middle">{link}</span>
+                        <div key={index} className="text-md mb-2">
+                          <BsFileEarmarkMusicFill className="inline-block align-middle mr-2" />
+                          <span className="align-middle">{link}</span>
                         </div>
                       );
                     }
                   })}
                 </div>
               ) : (
-                <p>Nothing here.</p>
+                <p className="text-sm sm:text-md">Nothing here.</p>
               )}
             </AccordionDetails>
           </Accordion>
 
           {/* Audio Accordion */}
-          <Accordion className="w-full md:w-[600px]">
+          <Accordion className="w-full max-w-full md:max-w-2xl">
             <AccordionSummary
               expandIcon={<ExpandMoreIcon />}
               aria-controls="panel4-content"
@@ -275,18 +280,18 @@ className={`grid grid-cols-1 ${hasVideo ? 'md:grid-cols-2' : 'md:grid-cols-1'} g
             <div className="border-b border-gray-300 my-1"></div>
             <AccordionDetails>
               {piece.audio_link && piece.audio_link.length > 0 ? (
-                <div className="text-md mb-4">
+                <div className="text-sm sm:text-md mb-4">
                   {piece.audio_link.map((link, index) => {
                     if (!link || !isValidUrl(link)) return null;
                     const domain = new URL(link).hostname.replace(/^www\./, '');
                     return (
-                      <div key={index}>
-                        <HiMusicNote className="inline-block align-middle" />
+                      <div key={index} className="mb-2">
+                        <HiMusicNote className="inline-block align-middle mr-2" />
                         <Link
                           href={link}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="inline-block ml-2 underline align-middle"
+                          className="underline align-middle"
                         >
                           {domain}
                         </Link>
@@ -295,30 +300,29 @@ className={`grid grid-cols-1 ${hasVideo ? 'md:grid-cols-2' : 'md:grid-cols-1'} g
                   })}
                 </div>
               ) : (
-                <p>Nothing here.</p>
+                <p className="text-sm sm:text-md">Nothing here.</p>
               )}
             </AccordionDetails>
           </Accordion>
-
-
         </div>
 
-         {/* Right Column */}
-        { hasVideo && (
-        <div className="container mx-auto flex flex-col items-center">
-          <div className="w-full flex justify-end">
-            <button className="bg-black text-white px-4 py-2 mb-3 rounded-lg transition-transform hover:scale-105">
-              <Link href="../cello-music">
-                Back to Music <FaArrowRight className="inline-block ml-2" />
-              </Link>
-            </button>
-          </div>
-          {videoId1 && (
-            <div className="w-full mt-16 flex justify-center">
-              <VideoIframe videoId={videoId1} title={piece.title} />
+        {/* RIGHT COLUMN (shows up on top/below in mobile, side-by-side on md+) */}
+        {hasVideo && (
+          <div className="container mx-auto flex flex-col">
+            {/* Button row */}
+            <div className="w-full flex justify-center md:justify-end">
+
             </div>
-          )}
-        </div>
+
+            {/* Video (wrap this in a responsive container if needed) */}
+            <div className="flex justify-center items-center mt-20">
+              {videoId1 && (
+                <>
+                  <VideoIframe videoId={videoId1} title={piece.title} />
+                </>
+              )}
+            </div>
+          </div>
         )}
       </main>
     </div>
@@ -372,7 +376,8 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
         : null,
       composerInfo: piece?.composerDetails
         ? {
-          composer_full_name: piece.composerDetails.composer_full_name || 'Unknown Composer',
+          composer_full_name:
+            piece.composerDetails.composer_full_name || 'Unknown Composer',
           bio_links: piece.composerDetails.bio_link || [],
         }
         : null,

@@ -11,7 +11,7 @@ interface MusicCardProps {
 
 const MusicCard: React.FC<MusicCardProps> = ({ id, title, composer, level }) => {
     return (
-        <div className="bg-white shadow-md rounded-lg p-4 hover:scale-105 transition-transform duration-300">
+        <div className="bg-white shadow-md rounded-sm p-4 hover:scale-105 transition-transform duration-300">
             <Link href={`/piece/${id}`} className="block h-full">
                 <div className="flex flex-col h-full">
                     {/* Content */}
