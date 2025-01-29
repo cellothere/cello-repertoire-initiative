@@ -1,14 +1,10 @@
 import { NextPage } from 'next';
-import { useRef } from 'react';
 import Head from 'next/head';
-import { useEffect, useState } from 'react';
-import Link from 'next/link';
+import { useRef, useEffect, useState } from 'react';
+import { IoFilter } from 'react-icons/io5';
 import NavbarMain from '@/components/navbar-main';
 import FilterAside from '@/components/filter-search';
 import MobileFilterAccordion from '@/components/mobile-filter-search';
-import { CiHeart } from "react-icons/ci";
-import { FaInfoCircle } from "react-icons/fa";
-import { IoFilter } from "react-icons/io5";
 import MusicCard from '@/components/music-card';
 
 interface MusicPiece {
@@ -51,8 +47,7 @@ const Music: NextPage = () => {
     Instrumentation: ['Cello and Piano', 'Cello Solo', 'Cello Duet', 'Other'],
     Composer: [] as string[],
     Country: ['United States of America', 'Canada', 'France', 'Mexico', 'China'],
-    Year: []
-    // "Other Filters": ['Public Domain?', 'Living Composer', 'Recently Added'],
+    Year: [],
   });
 
   // Selected filters
@@ -60,7 +55,6 @@ const Music: NextPage = () => {
   const [selectedLevels, setSelectedLevels] = useState<string[]>([]);
   const [selectedInstruments, setSelectedInstruments] = useState<string[]>([]);
   const [selectedCountries, setSelectedCountries] = useState<string[]>([]);
-
 
   // Used to sort by level
   const levelOrder = [
@@ -75,7 +69,7 @@ const Music: NextPage = () => {
     'Professional',
   ];
 
-  // Fetching the music data
+  // Fetch music data
   useEffect(() => {
     const fetchPieces = async () => {
       const res = await fetch('/api/celloMusic');
@@ -87,18 +81,14 @@ const Music: NextPage = () => {
     fetchPieces();
   }, []);
 
-  // Fetching the countries data
+  // Fetch countries
   useEffect(() => {
     const fetchCountries = async () => {
       try {
         const res = await fetch('/api/nationalities');
         const data = await res.json();
         const nationalities = data.map((item: { nationality: string }) => item.nationality);
-
-        setAccordionContent((prevContent) => ({
-          ...prevContent,
-          Country: nationalities,
-        }));
+        setAccordionContent((prev) => ({ ...prev, Country: nationalities }));
       } catch (error) {
         console.error('Error fetching nationalities:', error);
       }
@@ -106,28 +96,7 @@ const Music: NextPage = () => {
     fetchCountries();
   }, []);
 
-  const mobileFilterRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (
-        mobileFilterRef.current &&
-        !mobileFilterRef.current.contains(event.target as Node)
-      ) {
-        setIsFilterVisible(false); // Close the filter when clicked outside
-      }
-    };
-
-    // Add the event listener
-    document.addEventListener('mousedown', handleClickOutside);
-
-    // Cleanup the event listener on unmount
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, []);
-
-  // Fetching the composers data
+  // Fetch composers
   useEffect(() => {
     const fetchComposers = async () => {
       const res = await fetch('/api/composers');
@@ -135,13 +104,27 @@ const Music: NextPage = () => {
       const composerNames = data.flatMap((group: { composers: Composer[] }) =>
         group.composers.map((composer) => composer.composer_full_name)
       );
-
-      setAccordionContent((prevContent) => ({
-        ...prevContent,
-        Composer: composerNames,
-      }));
+      setAccordionContent((prev) => ({ ...prev, Composer: composerNames }));
     };
     fetchComposers();
+  }, []);
+
+  const mobileFilterRef = useRef<HTMLDivElement>(null);
+
+  // Close mobile filter when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        mobileFilterRef.current &&
+        !mobileFilterRef.current.contains(event.target as Node)
+      ) {
+        setIsFilterVisible(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
   }, []);
 
   // Filter logic
@@ -149,45 +132,32 @@ const Music: NextPage = () => {
     const filtered = pieces.filter((piece) => {
       const titleMatch = piece.title.toLowerCase().includes(filter.toLowerCase());
       const composerMatch = piece.composer.toLowerCase().includes(filter.toLowerCase());
+      const composerFilterMatch = selectedComposers.length === 0 || selectedComposers.includes(piece.composer);
+      const levelFilterMatch = selectedLevels.length === 0 || selectedLevels.includes(piece.level);
+      const countryFilterMatch = selectedCountries.length === 0 || selectedCountries.includes(piece.nationality);
 
-      const composerFilterMatch =
-        selectedComposers.length === 0 || selectedComposers.includes(piece.composer);
-
-      const levelFilterMatch =
-        selectedLevels.length === 0 || selectedLevels.includes(piece.level);
-
-      const countryFilterMatch =
-        selectedCountries.length === 0 || selectedCountries.includes(piece.nationality);
-      // ---- YEAR FILTER LOGIC ----
-      // Make sure your composition_year is a valid integer 
-      // (some data might have missing years, so handle that gracefully)
+      // Year filter logic
       const pieceYear = parseInt((piece as any).composition_year || '0', 10);
       const validYear = !isNaN(pieceYear) && pieceYear > 0;
+      const yearFilterMatch = validYear ? pieceYear >= minYear && pieceYear <= maxYear : true;
 
-      const yearFilterMatch = validYear
-        ? pieceYear >= minYear && pieceYear <= maxYear
-        : true;
-      // If you want to exclude undefined years, you could do: : false;
+      // Instrumentation filter logic
       const instrumentationMatch =
         selectedInstruments.length === 0 ||
         selectedInstruments.some((selectedInstrument) => {
-          const normalizedSelectedInstrument =
-            selectedInstrument === 'Cello Solo' ? 'Cello' : selectedInstrument;
-
+          const normalizedSelectedInstrument = selectedInstrument === 'Cello Solo' ? 'Cello' : selectedInstrument;
           if (Array.isArray(piece.instrumentation)) {
             const normalizedInstrumentation = piece.instrumentation.map((instr) =>
               instr.toLowerCase() === 'cello solo' ? 'cello' : instr.toLowerCase()
             );
             const selectedParts = normalizedSelectedInstrument.toLowerCase().split(' and ');
-
             if (selectedParts.length === 1) {
               return (
                 normalizedInstrumentation.length === 1 &&
                 normalizedInstrumentation.includes(selectedParts[0])
               );
-            } else {
-              return selectedParts.every((part) => normalizedInstrumentation.includes(part));
             }
+            return selectedParts.every((part) => normalizedInstrumentation.includes(part));
           }
           return false;
         });
@@ -203,11 +173,18 @@ const Music: NextPage = () => {
     });
 
     setFilteredPieces(filtered);
-  }, [filter, pieces, selectedComposers, selectedLevels, selectedCountries, selectedInstruments, minYear, maxYear]);
+  }, [
+    filter,
+    pieces,
+    selectedComposers,
+    selectedLevels,
+    selectedCountries,
+    selectedInstruments,
+    minYear,
+    maxYear,
+  ]);
 
-
-
-  // Toggles
+  // Toggle selection helpers
   const toggleComposerSelection = (composer: string) => {
     setSelectedComposers((prev) =>
       prev.includes(composer) ? prev.filter((c) => c !== composer) : [...prev, composer]
@@ -220,7 +197,6 @@ const Music: NextPage = () => {
     );
   };
 
-
   const toggleLevelSelection = (level: string) => {
     setSelectedLevels((prev) =>
       prev.includes(level) ? prev.filter((l) => l !== level) : [...prev, level]
@@ -229,7 +205,6 @@ const Music: NextPage = () => {
 
   const toggleInstrumentSelection = (instrument: string) => {
     const normalizedInstrument = instrument === 'Cello Solo' ? 'Cello' : instrument;
-
     setSelectedInstruments((prev) =>
       prev.includes(normalizedInstrument)
         ? prev.filter((i) => i !== normalizedInstrument)
@@ -237,8 +212,7 @@ const Music: NextPage = () => {
     );
   };
 
-
-  // Sorting handler
+  // Sorting
   const handleSort = (sortOption: string) => {
     const sortedPieces = [...filteredPieces].sort((a, b) => {
       switch (sortOption) {
@@ -251,7 +225,6 @@ const Music: NextPage = () => {
         case 'level-desc':
           return levelOrder.indexOf(b.level) - levelOrder.indexOf(a.level);
         case 'composer-desc':
-          // Sort by composer last name (A-Z)
           if (a.composer_last_name && b.composer_last_name) {
             return a.composer_last_name.localeCompare(b.composer_last_name);
           }
@@ -269,14 +242,7 @@ const Music: NextPage = () => {
         <title>Cello Music</title>
       </Head>
 
-      {/* Your Navbar */}
       <NavbarMain />
-
-      {/* Primary container with gradient background (assuming global CSS or parent layout sets this).
-          If you need a local gradient, uncomment or adjust accordingly:
-          
-          <div className="min-h-screen bg-gradient-to-b from-gray-800 via-gray-900 to-black text-white">
-      */}
 
       <div className="flex mt-4">
         {/* Desktop Filter Aside */}
@@ -298,12 +264,10 @@ const Music: NextPage = () => {
           toggleCountrySelection={toggleCountrySelection}
         />
 
-
-
         {/* Mobile Filter Drawer */}
         {isFilterVisible && (
           <div
-            ref={mobileFilterRef} // Attach the ref here
+            ref={mobileFilterRef}
             className="md:hidden fixed inset-0 ml-20 bg-white z-50 overflow-y-auto p-5 transition-transform transform animate-slideIn"
             aria-label="Mobile Filter Drawer"
           >
@@ -336,7 +300,6 @@ const Music: NextPage = () => {
           </div>
         )}
 
-
         {/* Main Content */}
         <main className="md:ml-64 w-full container mx-auto p-4">
           {/* Top Section: Header + Mobile Filter Toggle + Sort */}
@@ -357,19 +320,17 @@ const Music: NextPage = () => {
               <label className="text-white font-medium text-sm" htmlFor="sort-by">
                 Sort By:
               </label>
-              <div className="relative">
-                <select
-                  id="sort-by"
-                  className="border border-gray-300 rounded-md p-1 text-black font-medium text-sm bg-white focus:outline-none"
-                  onChange={(e) => handleSort(e.target.value)}
-                >
-                  <option value="title-asc">Alphabetically (A-Z)</option>
-                  <option value="title-desc">Alphabetically (Z-A)</option>
-                  <option value="level-asc">Level (Low to High)</option>
-                  <option value="level-desc">Level (High to Low)</option>
-                  <option value="composer-desc">Composer (A-Z)</option>
-                </select>
-              </div>
+              <select
+                id="sort-by"
+                className="border border-gray-300 rounded-md p-1 text-black font-medium text-sm bg-white focus:outline-none"
+                onChange={(e) => handleSort(e.target.value)}
+              >
+                <option value="title-asc">Alphabetically (A-Z)</option>
+                <option value="title-desc">Alphabetically (Z-A)</option>
+                <option value="level-asc">Level (Low to High)</option>
+                <option value="level-desc">Level (High to Low)</option>
+                <option value="composer-desc">Composer (A-Z)</option>
+              </select>
             </div>
           </div>
 
@@ -385,7 +346,6 @@ const Music: NextPage = () => {
               />
             ))}
           </div>
-
         </main>
       </div>
     </div>
