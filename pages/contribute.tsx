@@ -103,7 +103,7 @@ const Contribute: NextPage<ContributeProps> = () => {
                                         <div key={index} className="flex items-center mb-2">
                                             <input
                                                 type="url"
-                                                placeholder={`Resource ${index + 1}`}
+                                                
                                                 value={link}
                                                 onChange={(e) => handleLinkChange(index, e.target.value)}
                                                 required
