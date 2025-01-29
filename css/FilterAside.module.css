@@ -3,7 +3,7 @@
 /* Container Styles */
 .filterAside {
     display: none;
-    position: fixed;
+    position: absolute;
     top: 6rem; /* Equivalent to top-24 */
     left: 0;
     width: 16rem; /* Equivalent to w-64 */

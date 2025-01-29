@@ -35,7 +35,7 @@ body {
 }
 
 .filter-aside {
-  position: sticky;
+  position: absolute;
   top: 0;
   max-height: 100vh;
   overflow-y: auto;
@@ -54,37 +54,3 @@ body {
   background-color: #f1f1f1;
 }
 
-@media (min-width: 768px) {
-  .piece-container {
-    display: grid;
-    grid-template-columns: 1fr auto;
-    gap: 2rem;
-    align-items: start;
-  }
-
-  .accordion-container {
-    max-width: 100%;
-    min-width: 300px;
-    flex-grow: 1;
-  }
-
-  .video-container {
-    max-width: 550px;
-    width: 100%;
-  }
-}
-
-@media (max-width: 1024px) {
-  .piece-container {
-    grid-template-columns: 1fr;
-  }
-
-  .accordion-container {
-    width: 100%;
-  }
-
-  .video-container {
-    max-width: 100%;
-    width: 100%;
-  }
-}

@@ -71,11 +71,9 @@ const FilterAside: React.FC<FilterAsideProps> = ({
 
     return (
         <aside
-            className="hidden md:block fixed top-24 bottom-0 left-0 w-64 p-5 border-gray-300 overflow-y-auto"
-            aria-label="Filter Panel"
-        >
+            className="hidden md:block absolute top-24 bottom-0 left-0 w-64 p-5 border-gray-300 overflow-y-auto"
+            aria-label="Filter Panel">
             <h2 className="text-2xl font-bold text-white mb-4">Filter</h2>
-
             {/* Global Search */}
             <div className="mb-4">
                 <label
@@ -94,7 +92,6 @@ const FilterAside: React.FC<FilterAsideProps> = ({
                     aria-label="Global filter by title or composer"
                 />
             </div>
-
             {/* Clear Filters Button */}
             <button
                 onClick={clearFilters}
@@ -102,7 +99,6 @@ const FilterAside: React.FC<FilterAsideProps> = ({
             >
                 Clear All Filters
             </button>
-
             <div id="accordion" className="space-y-2">
                 {Object.entries(accordionContent).map(([key, content], index) => {
                     const filteredItems = content.filter((item) => {
@@ -115,7 +111,6 @@ const FilterAside: React.FC<FilterAsideProps> = ({
                         // No search filtering for other categories
                         return true;
                     });
-
                     return (
                         <div key={key} className="border border-gray-300 rounded-lg bg-white">
                             <h2 id={`accordion-heading-${index}`}>
