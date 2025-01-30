@@ -101,6 +101,7 @@ const FilterAside: React.FC<FilterAsideProps> = ({
             </button>
             <div id="accordion" className="space-y-2">
                 {Object.entries(accordionContent).map(([key, content], index) => {
+                    
                     const filteredItems = content.filter((item) => {
                         const lowerItem = item.toLowerCase();
                         if (key === 'Composer') {
