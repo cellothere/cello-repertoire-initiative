@@ -1,7 +1,7 @@
 import { NextPage } from 'next';
 import Head from 'next/head';
 import { useRef, useEffect, useState } from 'react';
-import { IoFilter } from 'react-icons/io5';
+import { IoFilter, IoSwapVertical } from 'react-icons/io5'; // <-- ADDED IoSwapVertical
 import NavbarMain from '@/components/navbar-main';
 import FilterAside from '@/components/filter-search';
 import MobileFilterAccordion from '@/components/mobile-filter-search';
@@ -28,6 +28,7 @@ const Music: NextPage = () => {
   const [filteredPieces, setFilteredPieces] = useState<MusicPiece[]>([]);
   const [filter, setFilter] = useState<string>('');
   const [isFilterVisible, setIsFilterVisible] = useState<boolean>(false);
+  const [isSortMenuOpen, setIsSortMenuOpen] = useState(false);
   const [minYear, setMinYear] = useState<number>(1600);
   const [maxYear, setMaxYear] = useState<number>(2025);
 
@@ -74,7 +75,9 @@ const Music: NextPage = () => {
     const fetchPieces = async () => {
       const res = await fetch('/api/celloMusic');
       const data = await res.json();
-      const flattenedPieces = data.flatMap((group: { musicPieces: MusicPiece[] }) => group.musicPieces);
+      const flattenedPieces = data.flatMap(
+        (group: { musicPieces: MusicPiece[] }) => group.musicPieces
+      );
       setPieces(flattenedPieces);
       setFilteredPieces(flattenedPieces);
     };
@@ -87,7 +90,9 @@ const Music: NextPage = () => {
       try {
         const res = await fetch('/api/nationalities');
         const data = await res.json();
-        const nationalities = data.map((item: { nationality: string }) => item.nationality);
+        const nationalities = data.map(
+          (item: { nationality: string }) => item.nationality
+        );
         setAccordionContent((prev) => ({ ...prev, Country: nationalities }));
       } catch (error) {
         console.error('Error fetching nationalities:', error);
@@ -101,8 +106,9 @@ const Music: NextPage = () => {
     const fetchComposers = async () => {
       const res = await fetch('/api/composers');
       const data = await res.json();
-      const composerNames = data.flatMap((group: { composers: Composer[] }) =>
-        group.composers.map((composer) => composer.composer_full_name)
+      const composerNames = data.flatMap(
+        (group: { composers: Composer[] }) =>
+          group.composers.map((composer) => composer.composer_full_name)
       );
       setAccordionContent((prev) => ({ ...prev, Composer: composerNames }));
     };
@@ -130,34 +136,50 @@ const Music: NextPage = () => {
   // Filter logic
   useEffect(() => {
     const filtered = pieces.filter((piece) => {
-      const titleMatch = piece.title.toLowerCase().includes(filter.toLowerCase());
-      const composerMatch = piece.composer.toLowerCase().includes(filter.toLowerCase());
-      const composerFilterMatch = selectedComposers.length === 0 || selectedComposers.includes(piece.composer);
-      const levelFilterMatch = selectedLevels.length === 0 || selectedLevels.includes(piece.level);
-      const countryFilterMatch = selectedCountries.length === 0 || selectedCountries.includes(piece.nationality);
+      const titleMatch = piece.title
+        .toLowerCase()
+        .includes(filter.toLowerCase());
+      const composerMatch = piece.composer
+        .toLowerCase()
+        .includes(filter.toLowerCase());
+      const composerFilterMatch =
+        selectedComposers.length === 0 ||
+        selectedComposers.includes(piece.composer);
+      const levelFilterMatch =
+        selectedLevels.length === 0 || selectedLevels.includes(piece.level);
+      const countryFilterMatch =
+        selectedCountries.length === 0 ||
+        selectedCountries.includes(piece.nationality);
 
       // Year filter logic
       const pieceYear = parseInt((piece as any).composition_year || '0', 10);
       const validYear = !isNaN(pieceYear) && pieceYear > 0;
-      const yearFilterMatch = validYear ? pieceYear >= minYear && pieceYear <= maxYear : true;
+      const yearFilterMatch = validYear
+        ? pieceYear >= minYear && pieceYear <= maxYear
+        : true;
 
       // Instrumentation filter logic
       const instrumentationMatch =
         selectedInstruments.length === 0 ||
         selectedInstruments.some((selectedInstrument) => {
-          const normalizedSelectedInstrument = selectedInstrument === 'Cello Solo' ? 'Cello' : selectedInstrument;
+          const normalizedSelectedInstrument =
+            selectedInstrument === 'Cello Solo' ? 'Cello' : selectedInstrument;
           if (Array.isArray(piece.instrumentation)) {
-            const normalizedInstrumentation = piece.instrumentation.map((instr) =>
-              instr.toLowerCase() === 'cello solo' ? 'cello' : instr.toLowerCase()
+            const normalizedInstrumentation = piece.instrumentation.map(
+              (instr) =>
+                instr.toLowerCase() === 'cello solo' ? 'cello' : instr.toLowerCase()
             );
-            const selectedParts = normalizedSelectedInstrument.toLowerCase().split(' and ');
+            const selectedParts =
+              normalizedSelectedInstrument.toLowerCase().split(' and ');
             if (selectedParts.length === 1) {
               return (
                 normalizedInstrumentation.length === 1 &&
                 normalizedInstrumentation.includes(selectedParts[0])
               );
             }
-            return selectedParts.every((part) => normalizedInstrumentation.includes(part));
+            return selectedParts.every((part) =>
+              normalizedInstrumentation.includes(part)
+            );
           }
           return false;
         });
@@ -264,8 +286,8 @@ const Music: NextPage = () => {
           toggleCountrySelection={toggleCountrySelection}
         />
 
-        {/* Mobile Filter Drawer */}
-        {isFilterVisible && (
+      {/* Mobile Filter Drawer */}
+      {isFilterVisible && (
           <div
             ref={mobileFilterRef}
             className="md:hidden fixed inset-0 ml-20 bg-white z-50 overflow-y-auto p-5 transition-transform transform animate-slideIn"
@@ -300,22 +322,87 @@ const Music: NextPage = () => {
           </div>
         )}
 
-        {/* Main Content */}
         <main className="md:ml-64 w-full container mx-auto p-4">
           {/* Top Section: Header + Mobile Filter Toggle + Sort */}
           <div className="flex items-center justify-between mb-6">
             <h1 className="text-3xl font-bold text-white">Cello Music</h1>
 
-            {/* Mobile Filter Toggle Button */}
-            <button
-              className="md:hidden flex items-center text-white bg-black px-3 py-2 rounded-md"
-              onClick={() => setIsFilterVisible(true)}
-            >
-              <IoFilter className="mr-1" />
-              Filter
-            </button>
+            {/* MOBILE: Filter & Sort Buttons */}
+            <div className="relative md:hidden flex items-center space-x-2">
+              {/* Mobile Filter Toggle Button */}
+              <button
+                className="flex items-center text-white bg-black px-3 py-2 rounded-md"
+                onClick={() => setIsFilterVisible(true)}
+              >
+                <IoFilter className="mr-1" />
+                Filter
+              </button>
 
-            {/* Sorting Controls (Hidden on Mobile if you prefer) */}
+              {/* Mobile Sort Button */}
+              <div className="relative">
+                <button
+                  className="flex items-center text-white bg-black px-3 py-2 rounded-md"
+                  onClick={() => setIsSortMenuOpen(!isSortMenuOpen)}
+                >
+                  <IoSwapVertical className="text-white mr-2" />
+                  Sort
+                </button>
+
+                {/* Sort Dropdown (toggle visibility) */}
+                {isSortMenuOpen && (
+                  <div className="absolute right-0 mt-2 w-[200px] bg-white rounded text-black shadow-md p-2">
+                    {/* Each option calls handleSort then closes the menu */}
+                    <button
+                      className="block w-full text-left px-2 py-1 hover:bg-gray-100"
+                      onClick={() => {
+                        handleSort('title-asc');
+                        setIsSortMenuOpen(false);
+                      }}
+                    >
+                      A-Z
+                    </button>
+                    <button
+                      className="block w-full text-left px-2 py-1 hover:bg-gray-100"
+                      onClick={() => {
+                        handleSort('title-desc');
+                        setIsSortMenuOpen(false);
+                      }}
+                    >
+                      Z-A
+                    </button>
+                    <button
+                      className="block w-full text-left px-2 py-1 hover:bg-gray-100"
+                      onClick={() => {
+                        handleSort('level-asc');
+                        setIsSortMenuOpen(false);
+                      }}
+                    >
+                      Level (Low → High)
+                    </button>
+                    <button
+                      className="block w-full text-left px-2 py-1 hover:bg-gray-100"
+                      onClick={() => {
+                        handleSort('level-desc');
+                        setIsSortMenuOpen(false);
+                      }}
+                    >
+                      Level (High → Low)
+                    </button>
+                    <button
+                      className="block w-full text-left px-2 py-1 hover:bg-gray-100"
+                      onClick={() => {
+                        handleSort('composer-desc');
+                        setIsSortMenuOpen(false);
+                      }}
+                    >
+                      Composer (A-Z)
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* DESKTOP: Sort By Dropdown (hidden on mobile) */}
             <div className="hidden md:flex items-center space-x-2">
               <label className="text-white font-medium text-sm" htmlFor="sort-by">
                 Sort By:

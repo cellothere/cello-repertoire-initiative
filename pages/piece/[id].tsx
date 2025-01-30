@@ -104,7 +104,7 @@ const Piece: NextPage<PieceProps> = ({ piece, composerInfo }) => {
           }`}
       >
         {/* LEFT COLUMN */}
-        <div className="container mx-auto flex flex-col items-start">
+        <div className="container flex flex-col items-start">
           {/* Title + Composer */}
           <div className="mb-4">
 
