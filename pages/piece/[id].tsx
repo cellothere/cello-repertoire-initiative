@@ -173,15 +173,15 @@ const Piece: NextPage<PieceProps> = ({ piece, composerInfo }) => {
                 </p>
               )}
 
-              <p className="text-sm sm:text-md mb-4">
+              {/* <p className="text-sm sm:text-md mb-4">
                 <strong>Arrangement of Original? </strong>
                 {piece.isArrangement ? 'Yes' : 'No'}
-              </p>
-
+              </p> */}
+{/* 
               <p className="text-sm sm:text-md mb-4">
                 <strong>Public Domain? </strong>
                 {piece.is_public_domain ? 'Yes' : 'No'}
-              </p>
+              </p> */}
 
               {piece.publisher_info && (
                 <p className="text-sm sm:text-md mb-4">
