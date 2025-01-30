@@ -124,14 +124,18 @@ const Music: NextPage = () => {
         mobileFilterRef.current &&
         !mobileFilterRef.current.contains(event.target as Node)
       ) {
+        event.preventDefault(); // Prevent default action (e.g., link clicks)
+        event.stopPropagation(); // Stop event from propagating to elements behind
         setIsFilterVisible(false);
       }
     };
+  
     document.addEventListener('mousedown', handleClickOutside);
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, []);
+  
 
   // Filter logic
   useEffect(() => {
