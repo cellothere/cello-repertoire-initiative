@@ -89,7 +89,7 @@ const Contribute: NextPage<ContributeProps> = () => {
                                         type="text"
                                         id="composer"
                                         value={composer}
-                                        placeholder="Full composer name, including any special characters."
+                                        placeholder="Full composer name"
                                         onChange={(e) => setComposer(e.target.value)}
                                         required
                                         className="form-input w-full p-2 rounded bg-white border border-gray-600 text-black"
