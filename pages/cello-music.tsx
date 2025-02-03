@@ -44,6 +44,7 @@ const Music: NextPage = () => {
       'Early Advanced',
       'Advanced',
       'Professional',
+      'Various',
     ],
     Instrumentation: ['Cello and Piano', 'Cello Solo', 'Cello Duet', 'Other'],
     Composer: [] as string[],
@@ -68,6 +69,7 @@ const Music: NextPage = () => {
     'Early Advanced',
     'Advanced',
     'Professional',
+    'Various'
   ];
 
   // Fetch music data
