@@ -119,24 +119,7 @@ const Music: NextPage = () => {
 
   const mobileFilterRef = useRef<HTMLDivElement>(null);
 
-  // Close mobile filter when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (
-        mobileFilterRef.current &&
-        !mobileFilterRef.current.contains(event.target as Node)
-      ) {
-        event.preventDefault(); // Prevent default action (e.g., link clicks)
-        event.stopPropagation(); // Stop event from propagating to elements behind
-        setIsFilterVisible(false);
-      }
-    };
-  
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, []);
+
   
 
   // Filter logic
@@ -269,9 +252,20 @@ const Music: NextPage = () => {
       <Head>
         <title>Cello Music</title>
       </Head>
-
+  
       <NavbarMain />
-
+  
+      {/* Overlay that closes mobile filter and sort when clicked */}
+      {(isFilterVisible || isSortMenuOpen) && (
+        <div
+          className="fixed inset-0 z-40"
+          onClick={() => {
+            setIsFilterVisible(false);
+            setIsSortMenuOpen(false);
+          }}
+        />
+      )}
+  
       <div className="flex mt-4">
         {/* Desktop Filter Aside */}
         <FilterAside
@@ -291,13 +285,14 @@ const Music: NextPage = () => {
           selectedCountries={selectedCountries}
           toggleCountrySelection={toggleCountrySelection}
         />
-
-      {/* Mobile Filter Drawer */}
-      {isFilterVisible && (
+  
+        {/* Mobile Filter Drawer */}
+        {isFilterVisible && (
           <div
             ref={mobileFilterRef}
             className="md:hidden fixed inset-0 ml-20 bg-white z-50 overflow-y-auto p-5 transition-transform transform animate-slideIn"
             aria-label="Mobile Filter Drawer"
+            onClick={(e) => e.stopPropagation()}
           >
             <div className="flex justify-between items-center mx-5">
               <h2 className="text-xl font-bold text-black">Filter</h2>
@@ -327,15 +322,14 @@ const Music: NextPage = () => {
             />
           </div>
         )}
-
+  
         <main className="md:ml-64 w-full container mx-auto p-4">
-          {/* Top Section: Header + Mobile Filter Toggle + Sort */}
+          {/* Top Section: Header + Mobile Filter Toggle & Sort */}
           <div className="flex items-center justify-between mb-6">
             <h1 className="text-3xl font-bold text-white">Cello Music</h1>
-
+  
             {/* MOBILE: Filter & Sort Buttons */}
             <div className="relative md:hidden flex items-center space-x-2">
-              {/* Mobile Filter Toggle Button */}
               <button
                 className="flex items-center text-white bg-black px-3 py-2 rounded-md"
                 onClick={() => setIsFilterVisible(true)}
@@ -343,8 +337,7 @@ const Music: NextPage = () => {
                 <IoFilter className="mr-1" />
                 Filter
               </button>
-
-              {/* Mobile Sort Button */}
+  
               <div className="relative">
                 <button
                   className="flex items-center text-white bg-black px-3 py-2 rounded-md"
@@ -353,11 +346,11 @@ const Music: NextPage = () => {
                   <IoSwapVertical className="text-white mr-2" />
                   Sort
                 </button>
-
-                {/* Sort Dropdown (toggle visibility) */}
                 {isSortMenuOpen && (
-                  <div className="absolute right-0 mt-2 w-[200px] bg-white rounded text-black shadow-md p-2">
-                    {/* Each option calls handleSort then closes the menu */}
+                  <div
+                    className="absolute right-0 mt-2 w-[200px] bg-white rounded text-black shadow-md p-2 z-50"
+                    onClick={(e) => e.stopPropagation()}
+                  >
                     <button
                       className="block w-full text-left px-2 py-1 hover:bg-gray-100"
                       onClick={() => {
@@ -407,7 +400,7 @@ const Music: NextPage = () => {
                 )}
               </div>
             </div>
-
+  
             {/* DESKTOP: Sort By Dropdown (hidden on mobile) */}
             <div className="hidden md:flex items-center space-x-2">
               <label className="text-white font-medium text-sm" htmlFor="sort-by">
@@ -426,7 +419,7 @@ const Music: NextPage = () => {
               </select>
             </div>
           </div>
-
+  
           {/* Grid of Filtered Pieces */}
           <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-4">
             {filteredPieces.map((piece) => (
@@ -442,7 +435,7 @@ const Music: NextPage = () => {
         </main>
       </div>
     </div>
-  );
+  );  
 };
 
 export default Music;
