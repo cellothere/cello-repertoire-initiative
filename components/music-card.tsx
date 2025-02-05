@@ -19,9 +19,14 @@ const MusicCard: React.FC<MusicCardProps> = ({ id, title, composer, level }) => 
                 <div className="flex flex-col h-full">
                     {/* Content */}
                     <div className="flex-grow flex flex-col">
-                        <h2 className={`text-lg font-semibold text-gray-800`}>{title}</h2>
+                        <h2 
+                            className={`font-semibold text-gray-800 ${titleClass}`}
+                            style={{ overflowWrap: "break-word", wordBreak: "break-word", lineHeight: "1.2" }}
+                        >
+                            {title}
+                        </h2>
                         <p className="text-gray-600">
-                            by <span className={`font-medium`}>{composer}</span>
+                            by <span className="font-medium">{composer}</span>
                         </p>
                     </div>
 
