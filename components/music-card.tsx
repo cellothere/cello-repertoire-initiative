@@ -19,9 +19,9 @@ const MusicCard: React.FC<MusicCardProps> = ({ id, title, composer, level }) => 
                 <div className="flex flex-col h-full">
                     {/* Content */}
                     <div className="flex-grow flex flex-col">
-                        <h2 className={`${titleClass} font-semibold text-gray-800`}>{title}</h2>
+                        <h2 className={`text-lg font-semibold text-gray-800`}>{title}</h2>
                         <p className="text-gray-600">
-                            by <span className={`${titleClass} font-medium`}>{composer}</span>
+                            by <span className={`font-medium`}>{composer}</span>
                         </p>
                     </div>
 
