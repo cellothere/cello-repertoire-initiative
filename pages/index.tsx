@@ -50,7 +50,7 @@ const Home: NextPage = () => {
             {isMobileView ? (
               [
                 { href: '/cello-music', src: '/assets/cellist3.png', label: 'Cello Music' },
-                { href: '/cello-music', src: '/assets/whatsNew.png', label: "See What's New", subLabel: 'Coming Soon' },
+                { href: '/cello-music', src: '/assets/whatsNew.png', label: "Resources", subLabel: 'Find Useful Web Resources' },
                 { href: '/contribute', src: '/assets/contribute.png', label: 'Contribute', subLabel: 'Suggest an addition to our catalog' }
               ].map(({ href, src, label, subLabel }, index) => (
                 <Link key={index} href={href}>
@@ -65,7 +65,7 @@ const Home: NextPage = () => {
               ))
             ) : (
               [
-                { href: '/cello-music', src: '/assets/whatsNew.png', label: "See What's New", subLabel: 'Coming Soon' },
+                { href: '/resources', src: '/assets/whatsNew.png', label: "Other Resources", subLabel: '' },
                 { href: '/cello-music', src: '/assets/cellist3.png', label: 'Cello Music' },
                 { href: '/contribute', src: '/assets/contribute.png', label: 'Contribute', subLabel: 'Suggest an addition to our catalog' }
               ].map(({ href, src, label, subLabel }, index) => (
