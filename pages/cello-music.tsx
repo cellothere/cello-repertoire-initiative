@@ -46,7 +46,7 @@ const Music: NextPage = () => {
       'Professional',
       'Various',
     ],
-    Instrumentation: ['Cello and Piano', 'Cello Solo', 'Cello Duet', 'Other'],
+    Instrumentation: ['Cello and Piano', 'Cello Solo', 'Cello Duet','Cello Ensemble','Cello and Orchestra', 'Other'],
     Composer: [] as string[],
     Country: ['United States of America', 'Canada', 'France', 'Mexico', 'China'],
     Year: [],
