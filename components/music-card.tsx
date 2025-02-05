@@ -10,15 +10,18 @@ interface MusicCardProps {
 }
 
 const MusicCard: React.FC<MusicCardProps> = ({ id, title, composer, level }) => {
+    // Dynamically determine the text size
+    const titleClass = title.length > 40 ? "text-sm" : title.length > 25 ? "text-md" : "text-lg";
+
     return (
         <div className="bg-white shadow-md rounded-sm p-4 hover:scale-105 transition-transform duration-300">
             <Link href={`/piece/${id.toString()}`} className="block h-full">
                 <div className="flex flex-col h-full">
                     {/* Content */}
                     <div className="flex-grow flex flex-col">
-                        <h2 className="text-lg font-semibold text-gray-800">{title}</h2>
+                        <h2 className={`${titleClass} font-semibold text-gray-800`}>{title}</h2>
                         <p className="text-gray-600">
-                            by <span className="font-medium">{composer}</span>
+                            by <span className={`${titleClass} font-medium`}>{composer}</span>
                         </p>
                     </div>
 
