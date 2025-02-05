@@ -279,7 +279,7 @@ const NavbarMain = () => {
               <Link href="/coming-soon">Contribute</Link>
             </DropdownItem>
             <DropdownItem className="custom-dropdown-item text-black p-2">
-              <Link href="/coming-soon">Other Resources</Link>
+              <Link href="/resources">Other Resources</Link>
             </DropdownItem>
           </DropdownMenu>
         </Dropdown>
