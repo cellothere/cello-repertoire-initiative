@@ -51,6 +51,28 @@ const isValidUrl = (url: string) => {
   }
 };
 
+// Helper function to parse text and make URLs clickable
+const linkify = (text: string): React.ReactNode => {
+  const urlRegex = /(https?:\/\/[^\s]+)/g;
+  return text.split(urlRegex).map((part, index) => {
+    // Test if the part matches the URL regex (using a non-global regex here)
+    if (/(https?:\/\/[^\s]+)/.test(part)) {
+      return (
+        <Link
+          key={index}
+          href={part}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="underline text-blue-500"
+        >
+          {part}
+        </Link>
+      );
+    }
+    return part;
+  });
+};
+
 const Piece: NextPage<PieceProps> = ({ piece, composerInfo }) => {
   const [videoId1, setVideoId1] = useState<string | null>(null);
   const [hasVideo, setHasVideo] = useState<boolean>(false);
@@ -88,26 +110,23 @@ const Piece: NextPage<PieceProps> = ({ piece, composerInfo }) => {
       </Head>
       <NavbarMain />
       <div className='flex flex-col sm:flex-row justify-between mt-5 mx-auto w-[98%]'>
-  <h1 className="text-2xl sm:text-3xl font-bold">
-    {piece.title}
-  </h1>
-  <button className="hidden sm:block bg-black text-white px-3 py-2 rounded-lg hover:scale-105 transition-transform mt-3 sm:mt-0">
-    <Link href="../cello-music">
-      Back to Music <FaArrowRight className="inline-block ml-2" />
-    </Link>
-  </button>
-</div>
-
+        <h1 className="text-2xl sm:text-3xl font-bold">
+          {piece.title}
+        </h1>
+        <button className="hidden sm:block bg-black text-white px-3 py-2 rounded-lg hover:scale-105 transition-transform mt-3 sm:mt-0">
+          <Link href="../cello-music">
+            Back to Music <FaArrowRight className="inline-block ml-2" />
+          </Link>
+        </button>
+      </div>
 
       <main
-        className={`grid grid-cols-1 gap-6 p-4 ${hasVideo ? 'md:grid-cols-2' : 'md:grid-cols-1'
-          }`}
+        className={`grid grid-cols-1 gap-6 p-4 ${hasVideo ? 'md:grid-cols-2' : 'md:grid-cols-1'}`}
       >
         {/* LEFT COLUMN */}
         <div className="container flex flex-col items-start">
           {/* Title + Composer */}
           <div className="mb-4">
-
             <p className="text-md sm:text-lg mb-1">
               by{' '}
               {composerInfo?.bio_links?.[0] ? (
@@ -148,8 +167,10 @@ const Piece: NextPage<PieceProps> = ({ piece, composerInfo }) => {
             <div className="border-b border-gray-300 my-1"></div>
             <AccordionDetails>
               <p className="text-sm sm:text-md mb-2 font-bold">Description:</p>
-              <p className="text-sm sm:text-md mb-4">
-                {piece.description || 'No description available.'}
+              <p className="text-sm sm:text-md mb-4 break-words">
+                {piece.description
+                  ? linkify(piece.description)
+                  : 'No description available.'}
               </p>
 
               {piece.composition_year && (
@@ -173,32 +194,12 @@ const Piece: NextPage<PieceProps> = ({ piece, composerInfo }) => {
                 </p>
               )}
 
-              {/* <p className="text-sm sm:text-md mb-4">
-                <strong>Arrangement of Original? </strong>
-                {piece.isArrangement ? 'Yes' : 'No'}
-              </p> */}
-{/* 
-              <p className="text-sm sm:text-md mb-4">
-                <strong>Public Domain? </strong>
-                {piece.is_public_domain ? 'Yes' : 'No'}
-              </p> */}
-
               {piece.publisher_info && (
                 <p className="text-sm sm:text-md mb-4">
                   <strong>Publisher Info: </strong>
                   {piece.publisher_info}
                 </p>
               )}
-
-              {/* If you want to show the cover image:
-               {piece.coverImage && (
-                 <img
-                   src={piece.coverImage}
-                   alt={`Cover image of ${piece.title}`}
-                   className="my-4"
-                 />
-               )}
-              */}
             </AccordionDetails>
           </Accordion>
 
@@ -214,8 +215,10 @@ const Piece: NextPage<PieceProps> = ({ piece, composerInfo }) => {
             </AccordionSummary>
             <div className="border-b border-gray-300 my-1"></div>
             <AccordionDetails>
-              <p className="text-sm sm:text-md">
-                {piece.technical_overview || 'No technical overview available.'}
+              <p className="text-sm sm:text-md break-words">
+                {piece.technical_overview
+                  ? linkify(piece.technical_overview)
+                  : 'No technical overview available.'}
               </p>
             </AccordionDetails>
           </Accordion>
@@ -309,17 +312,10 @@ const Piece: NextPage<PieceProps> = ({ piece, composerInfo }) => {
         {/* RIGHT COLUMN (shows up on top/below in mobile, side-by-side on md+) */}
         {hasVideo && (
           <div className="container mx-auto flex flex-col">
-            {/* Button row */}
-            <div className="w-full flex justify-center md:justify-end">
-
-            </div>
-
-            {/* Video (wrap this in a responsive container if needed) */}
+            <div className="w-full flex justify-center md:justify-end"></div>
             <div className="flex justify-center items-center mt-20">
               {videoId1 && (
-                <>
-                  <VideoIframe videoId={videoId1} title={piece.title} />
-                </>
+                <VideoIframe videoId={videoId1} title={piece.title} />
               )}
             </div>
           </div>
@@ -343,7 +339,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
 
   const piece = await collection
     .aggregate([
-      { $match: { id: parsedId } }, // Ensure id is treated as an integer
+      { $match: { id: parsedId } },
       {
         $lookup: {
           from: 'composers',
@@ -387,6 +383,5 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
     },
   };
 };
-
 
 export default Piece;
