@@ -176,9 +176,10 @@ const Piece: NextPage<PieceProps> = ({ piece, composerInfo }) => {
               {piece.composition_year && (
                 <p className="text-sm sm:text-md mb-4">
                   <strong>Composition Year: </strong>
-                  {piece.composition_year}
+                  {piece.composition_year === "0000" ? "N/A" : piece.composition_year}
                 </p>
               )}
+
 
               {piece.instrumentation?.length > 0 && (
                 <p className="text-sm sm:text-md mb-4">
@@ -356,29 +357,29 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
     props: {
       piece: piece
         ? {
-            id: piece.id,
-            title: piece.title || '',
-            composer_id: piece.composer_id || '',
-            composition_year: piece.composition_year || '',
-            level: piece.level || 'Unknown',
-            isArrangement: piece.isArrangement || false,
-            audio_link: piece.audio_link || [],
-            instrumentation: piece.instrumentation || [],
-            publisher_info: piece.publisher_info || '',
-            description: piece.description || '',
-            technical_overview: piece.technical_overview || '',
-            is_public_domain: piece.is_public_domain || false,
-            where_to_buy_or_download: piece.where_to_buy_or_download || [],
-            duration: piece.duration || '',
-            coverImage: piece.coverImage || '',
-          }
+          id: piece.id,
+          title: piece.title || '',
+          composer_id: piece.composer_id || '',
+          composition_year: piece.composition_year || '',
+          level: piece.level || 'Unknown',
+          isArrangement: piece.isArrangement || false,
+          audio_link: piece.audio_link || [],
+          instrumentation: piece.instrumentation || [],
+          publisher_info: piece.publisher_info || '',
+          description: piece.description || '',
+          technical_overview: piece.technical_overview || '',
+          is_public_domain: piece.is_public_domain || false,
+          where_to_buy_or_download: piece.where_to_buy_or_download || [],
+          duration: piece.duration || '',
+          coverImage: piece.coverImage || '',
+        }
         : null,
       composerInfo: piece?.composerDetails
         ? {
-            composer_full_name:
-              piece.composerDetails.composer_full_name || 'Unknown Composer',
-            bio_links: piece.composerDetails.bio_link || [],
-          }
+          composer_full_name:
+            piece.composerDetails.composer_full_name || 'Unknown Composer',
+          bio_links: piece.composerDetails.bio_link || [],
+        }
         : null,
     },
   };
