@@ -170,7 +170,7 @@ const Piece: NextPage<PieceProps> = ({ piece, composerInfo }) => {
               <p className="text-sm sm:text-md mb-4 break-words">
                 {piece.description
                   ? linkify(piece.description)
-                  : 'No description available.'}
+                  : 'Coming soon...'}
               </p>
 
               {piece.composition_year && (
@@ -191,7 +191,7 @@ const Piece: NextPage<PieceProps> = ({ piece, composerInfo }) => {
               {piece.duration && (
                 <p className="text-sm sm:text-md mb-4">
                   <strong>Duration: </strong>
-                  {piece.duration}
+                  {piece.duration === "00:00:00" ? "N/A" : piece.duration}
                 </p>
               )}
 
