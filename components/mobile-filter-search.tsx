@@ -30,7 +30,7 @@ const MobileFilterAccordion: React.FC<MobileFilterAccordionProps> = ({
     toggleLevelSelection,
     selectedInstruments = [],
     toggleInstrumentSelection,
-    selectedCountries = [], // Default to empty array
+    selectedCountries = [],
     toggleCountrySelection,
     minYear,
     maxYear,
@@ -40,6 +40,7 @@ const MobileFilterAccordion: React.FC<MobileFilterAccordionProps> = ({
     const [openAccordion, setOpenAccordion] = useState<number | null>(null);
     const [composerSearch, setComposerSearch] = useState<string>('');
     const [levelSearch, setLevelSearch] = useState<string>('');
+    const [countrySearch, setCountrySearch] = useState<string>(''); // Added state for country search
     const [isFilterVisible, setIsFilterVisible] = useState<boolean>(false);
 
     const toggleAccordion = (index: number) => {
@@ -49,8 +50,9 @@ const MobileFilterAccordion: React.FC<MobileFilterAccordionProps> = ({
     const clearFilters = () => {
         setFilter('');
         setComposerSearch('');
-        selectedComposers.forEach((composer) => toggleComposerSelection(composer));
         setLevelSearch('');
+        setCountrySearch(''); // Clear country search as well
+        selectedComposers.forEach((composer) => toggleComposerSelection(composer));
         selectedLevels.forEach((level) => toggleLevelSelection(level));
         selectedInstruments.forEach((instrument) => toggleInstrumentSelection(instrument));
         selectedCountries.forEach((country) => toggleCountrySelection(country));
@@ -69,15 +71,14 @@ const MobileFilterAccordion: React.FC<MobileFilterAccordionProps> = ({
 
     return (
         <div className="w-full p-5">
-
-    <input
-      type="text"
-      placeholder="Search by title or composer"
-      value={filter}
-      onChange={(e) => setFilter(e.target.value)}
-      className="w-full p-2 border border-gray-300 rounded text-black mb-4"
-      aria-label="Filter by title or composer"
-    />
+            <input
+                type="text"
+                placeholder="Search by title or composer"
+                value={filter}
+                onChange={(e) => setFilter(e.target.value)}
+                className="w-full p-2 border border-gray-300 rounded text-black mb-4"
+                aria-label="Filter by title or composer"
+            />
 
             {/* Clear Filters Button */}
             <button
@@ -96,6 +97,8 @@ const MobileFilterAccordion: React.FC<MobileFilterAccordionProps> = ({
                             return lowerItem.includes(composerSearch.toLowerCase());
                         } else if (key === 'Level') {
                             return lowerItem.includes(levelSearch.toLowerCase());
+                        } else if (key === 'Country') {
+                            return lowerItem.includes(countrySearch.toLowerCase());
                         }
                         return true;
                     });
@@ -134,8 +137,7 @@ const MobileFilterAccordion: React.FC<MobileFilterAccordionProps> = ({
 
                             <div
                                 id={`accordion-body-${index}`}
-                                className={`transition-[max-height] overflow-hidden ${openAccordion === index ? 'max-h-96' : 'max-h-0'
-                                    }`}
+                                className={`transition-[max-height] overflow-hidden ${openAccordion === index ? 'max-h-96' : 'max-h-0'}`}
                             >
                                 <div className="p-4 border-t border-gray-300" style={{ maxHeight: '300px', overflowY: 'auto' }}>
                                     {/* Special Year Range Slider */}
@@ -168,9 +170,23 @@ const MobileFilterAccordion: React.FC<MobileFilterAccordionProps> = ({
                                             <input
                                                 id="composer-search"
                                                 type="text"
-                                                placeholder="Type to search composers..."
+                                                placeholder="Search Composers..."
                                                 value={composerSearch}
                                                 onChange={(e) => setComposerSearch(e.target.value)}
+                                                className="w-full p-2 border border-gray-300 rounded focus:outline-none text-black"
+                                            />
+                                        </div>
+                                    )}
+
+                                    {/* Country Search */}
+                                    {key === 'Country' && (
+                                        <div className="mb-2">
+                                            <input
+                                                id="country-search"
+                                                type="text"
+                                                placeholder="Search Countries..."
+                                                value={countrySearch}
+                                                onChange={(e) => setCountrySearch(e.target.value)}
                                                 className="w-full p-2 border border-gray-300 rounded focus:outline-none text-black"
                                             />
                                         </div>
@@ -186,16 +202,14 @@ const MobileFilterAccordion: React.FC<MobileFilterAccordionProps> = ({
                                                         className="h-5 w-5 rounded border-gray-300 text-blue-600 focus:ring-green-500"
                                                         checked={
                                                             key === 'Composer'
-                                                            ? selectedComposers.includes(item)
-                                                            : key === 'Level'
+                                                                ? selectedComposers.includes(item)
+                                                                : key === 'Level'
                                                                 ? selectedLevels.includes(item)
                                                                 : key === 'Instrumentation'
-                                                                    ? selectedInstruments.includes(
-                                                                        item === 'Cello Solo' ? 'Cello' : item
-                                                                    )
-                                                                    : key === 'Country'
-                                                                        ? selectedCountries.includes(item)
-                                                                        : false
+                                                                ? selectedInstruments.includes(item === 'Cello Solo' ? 'Cello' : item)
+                                                                : key === 'Country'
+                                                                ? selectedCountries.includes(item)
+                                                                : false
                                                         }
                                                         onChange={() => {
                                                             if (key === 'Composer') toggleComposerSelection(item);
@@ -208,8 +222,6 @@ const MobileFilterAccordion: React.FC<MobileFilterAccordionProps> = ({
                                             </li>
                                         ))}
                                     </ul>
-
-
                                 </div>
                             </div>
                         </div>
