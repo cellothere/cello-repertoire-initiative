@@ -1,11 +1,13 @@
 import { NextPage } from 'next';
 import Head from 'next/head';
 import { useRef, useEffect, useState } from 'react';
-import { IoFilter, IoSwapVertical } from 'react-icons/io5'; // <-- ADDED IoSwapVertical
+import { IoFilter, IoSwapVertical, IoList } from 'react-icons/io5';
 import NavbarMain from '@/components/navbar-main';
 import FilterAside from '@/components/filter-search';
 import MobileFilterAccordion from '@/components/mobile-filter-search';
 import MusicCard from '@/components/music-card';
+import MusicListView from '@/components/music-list-view';
+
 
 interface MusicPiece {
   id: number;
@@ -15,6 +17,7 @@ interface MusicPiece {
   instrumentation: string;
   composer_last_name: string;
   nationality: string;
+  duration?: string;
 }
 
 interface Composer {
@@ -31,6 +34,7 @@ const Music: NextPage = () => {
   const [isSortMenuOpen, setIsSortMenuOpen] = useState(false);
   const [minYear, setMinYear] = useState<number>(1600);
   const [maxYear, setMaxYear] = useState<number>(2025);
+  const [viewMode, setViewMode] = useState<'card' | 'list'>('card'); // New state for view mode
 
   // Accordion content categories
   const [accordionContent, setAccordionContent] = useState({
@@ -46,7 +50,14 @@ const Music: NextPage = () => {
       'Professional',
       'Various',
     ],
-    Instrumentation: ['Cello and Piano', 'Cello Solo', 'Cello Duet','Cello Ensemble','Cello and Orchestra', 'Other'],
+    Instrumentation: [
+      'Cello and Piano',
+      'Cello Solo',
+      'Cello Duet',
+      'Cello Ensemble',
+      'Cello and Orchestra',
+      'Other',
+    ],
     Composer: [] as string[],
     Country: ['United States of America', 'Canada', 'France', 'Mexico', 'China'],
     Year: [],
@@ -69,7 +80,7 @@ const Music: NextPage = () => {
     'Early Advanced',
     'Advanced',
     'Professional',
-    'Various'
+    'Various',
   ];
 
   // Fetch music data
@@ -119,9 +130,6 @@ const Music: NextPage = () => {
 
   const mobileFilterRef = useRef<HTMLDivElement>(null);
 
-
-  
-
   // Filter logic
   useEffect(() => {
     const filtered = pieces.filter((piece) => {
@@ -154,9 +162,8 @@ const Music: NextPage = () => {
           const normalizedSelectedInstrument =
             selectedInstrument === 'Cello Solo' ? 'Cello' : selectedInstrument;
           if (Array.isArray(piece.instrumentation)) {
-            const normalizedInstrumentation = piece.instrumentation.map(
-              (instr) =>
-                instr.toLowerCase() === 'cello solo' ? 'cello' : instr.toLowerCase()
+            const normalizedInstrumentation = piece.instrumentation.map((instr) =>
+              instr.toLowerCase() === 'cello solo' ? 'cello' : instr.toLowerCase()
             );
             const selectedParts =
               normalizedSelectedInstrument.toLowerCase().split(' and ');
@@ -198,19 +205,25 @@ const Music: NextPage = () => {
   // Toggle selection helpers
   const toggleComposerSelection = (composer: string) => {
     setSelectedComposers((prev) =>
-      prev.includes(composer) ? prev.filter((c) => c !== composer) : [...prev, composer]
+      prev.includes(composer)
+        ? prev.filter((c) => c !== composer)
+        : [...prev, composer]
     );
   };
 
   const toggleCountrySelection = (country: string) => {
     setSelectedCountries((prev) =>
-      prev.includes(country) ? prev.filter((c) => c !== country) : [...prev, country]
+      prev.includes(country)
+        ? prev.filter((c) => c !== country)
+        : [...prev, country]
     );
   };
 
   const toggleLevelSelection = (level: string) => {
     setSelectedLevels((prev) =>
-      prev.includes(level) ? prev.filter((l) => l !== level) : [...prev, level]
+      prev.includes(level)
+        ? prev.filter((l) => l !== level)
+        : [...prev, level]
     );
   };
 
@@ -252,10 +265,10 @@ const Music: NextPage = () => {
       <Head>
         <title>Cello Music</title>
       </Head>
-  
+
       <NavbarMain />
-  
-      {/* Overlay that closes mobile filter and sort when clicked */}
+
+      {/* Overlay to close mobile filter and sort */}
       {(isFilterVisible || isSortMenuOpen) && (
         <div
           className="fixed inset-0 z-40"
@@ -265,7 +278,7 @@ const Music: NextPage = () => {
           }}
         />
       )}
-  
+
       <div className="flex mt-4">
         {/* Desktop Filter Aside */}
         <FilterAside
@@ -285,7 +298,7 @@ const Music: NextPage = () => {
           selectedCountries={selectedCountries}
           toggleCountrySelection={toggleCountrySelection}
         />
-  
+
         {/* Mobile Filter Drawer */}
         {isFilterVisible && (
           <div
@@ -322,14 +335,42 @@ const Music: NextPage = () => {
             />
           </div>
         )}
-  
+
         <main className="md:ml-64 w-full container mx-auto p-4">
-          {/* Top Section: Header + Mobile Filter Toggle & Sort */}
+          {/* Top Section: Header, Sort & View Dropdowns */}
           <div className="flex items-center justify-between mb-6">
             <h1 className="text-3xl font-bold text-white">Cello Music</h1>
-  
-            {/* MOBILE: Filter & Sort Buttons */}
-            <div className="relative md:hidden flex items-center space-x-2">
+
+            {/* Desktop: Sort & View Dropdowns */}
+            <div className="hidden md:flex items-center space-x-2">
+              <label className="text-white font-medium text-sm" htmlFor="sort-by">
+                Sort By:
+              </label>
+              <select
+                id="sort-by"
+                className="border border-gray-300 rounded-md p-1 text-black font-medium text-sm bg-white focus:outline-none"
+                onChange={(e) => handleSort(e.target.value)}
+              >
+                <option value="title-asc">Alphabetically (A-Z)</option>
+                <option value="title-desc">Alphabetically (Z-A)</option>
+                <option value="level-asc">Level (Low to High)</option>
+                <option value="level-desc">Level (High to Low)</option>
+                <option value="composer-desc">Composer (A-Z)</option>
+              </select>
+              <select
+                value={viewMode}
+                onChange={(e) =>
+                  setViewMode(e.target.value as 'card' | 'list')
+                }
+                className="border border-gray-300 rounded-md p-1 text-black font-medium text-sm bg-white focus:outline-none"
+              >
+                <option value="card">Grid View</option>
+                <option value="list">List View</option>
+              </select>
+            </div>
+
+            {/* Mobile: Filter, Sort & View Dropdown */}
+            <div className="flex md:hidden items-center space-x-2">
               <button
                 className="flex items-center text-white bg-black px-3 py-2 rounded-md"
                 onClick={() => setIsFilterVisible(true)}
@@ -337,7 +378,6 @@ const Music: NextPage = () => {
                 <IoFilter className="mr-1" />
                 Filter
               </button>
-  
               <div className="relative">
                 <button
                   className="flex items-center text-white bg-black px-3 py-2 rounded-md"
@@ -399,43 +439,39 @@ const Music: NextPage = () => {
                   </div>
                 )}
               </div>
-            </div>
-  
-            {/* DESKTOP: Sort By Dropdown (hidden on mobile) */}
-            <div className="hidden md:flex items-center space-x-2">
-              <label className="text-white font-medium text-sm" htmlFor="sort-by">
-                Sort By:
-              </label>
               <select
-                id="sort-by"
+                value={viewMode}
+                onChange={(e) =>
+                  setViewMode(e.target.value as 'card' | 'list')
+                }
                 className="border border-gray-300 rounded-md p-1 text-black font-medium text-sm bg-white focus:outline-none"
-                onChange={(e) => handleSort(e.target.value)}
               >
-                <option value="title-asc">Alphabetically (A-Z)</option>
-                <option value="title-desc">Alphabetically (Z-A)</option>
-                <option value="level-asc">Level (Low to High)</option>
-                <option value="level-desc">Level (High to Low)</option>
-                <option value="composer-desc">Composer (A-Z)</option>
+                <option value="card">Grid View</option>
+                <option value="list">List View</option>
               </select>
             </div>
           </div>
-  
-          {/* Grid of Filtered Pieces */}
-          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-            {filteredPieces.map((piece) => (
-              <MusicCard
-                key={piece.id}
-                id={piece.id}
-                title={piece.title}
-                composer={piece.composer}
-                level={piece.level}
-              />
-            ))}
-          </div>
+
+          {/* Conditionally Render Music Cards or List View */}
+          {viewMode === 'card' ? (
+            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+              {filteredPieces.map((piece) => (
+                <MusicCard
+                  key={piece.id}
+                  id={piece.id}
+                  title={piece.title}
+                  composer={piece.composer}
+                  level={piece.level}
+                />
+              ))}
+            </div>
+          ) : (
+            <MusicListView pieces={filteredPieces} />
+          )}
         </main>
       </div>
     </div>
-  );  
+  );
 };
 
 export default Music;
