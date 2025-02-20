@@ -1,7 +1,7 @@
 import { NextPage } from 'next';
 import Head from 'next/head';
 import { useRef, useEffect, useState } from 'react';
-import { IoFilter, IoSwapVertical, IoList } from 'react-icons/io5';
+import { IoFilter, IoSwapVertical, IoList, IoGrid } from 'react-icons/io5';
 import NavbarMain from '@/components/navbar-main';
 import FilterAside from '@/components/filter-search';
 import MobileFilterAccordion from '@/components/mobile-filter-search';
@@ -369,87 +369,95 @@ const Music: NextPage = () => {
               </select>
             </div>
 
-            {/* Mobile: Filter, Sort & View Dropdown */}
-            <div className="flex md:hidden items-center space-x-2">
-              <button
-                className="flex items-center text-white bg-black px-3 py-2 rounded-md"
-                onClick={() => setIsFilterVisible(true)}
-              >
-                <IoFilter className="mr-1" />
-                Filter
-              </button>
-              <div className="relative">
-                <button
-                  className="flex items-center text-white bg-black px-3 py-2 rounded-md"
-                  onClick={() => setIsSortMenuOpen(!isSortMenuOpen)}
-                >
-                  <IoSwapVertical className="text-white mr-2" />
-                  Sort
-                </button>
-                {isSortMenuOpen && (
-                  <div
-                    className="absolute right-0 mt-2 w-[200px] bg-white rounded text-black shadow-md p-2 z-50"
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    <button
-                      className="block w-full text-left px-2 py-1 hover:bg-gray-100"
-                      onClick={() => {
-                        handleSort('title-asc');
-                        setIsSortMenuOpen(false);
-                      }}
-                    >
-                      A-Z
-                    </button>
-                    <button
-                      className="block w-full text-left px-2 py-1 hover:bg-gray-100"
-                      onClick={() => {
-                        handleSort('title-desc');
-                        setIsSortMenuOpen(false);
-                      }}
-                    >
-                      Z-A
-                    </button>
-                    <button
-                      className="block w-full text-left px-2 py-1 hover:bg-gray-100"
-                      onClick={() => {
-                        handleSort('level-asc');
-                        setIsSortMenuOpen(false);
-                      }}
-                    >
-                      Level (Low → High)
-                    </button>
-                    <button
-                      className="block w-full text-left px-2 py-1 hover:bg-gray-100"
-                      onClick={() => {
-                        handleSort('level-desc');
-                        setIsSortMenuOpen(false);
-                      }}
-                    >
-                      Level (High → Low)
-                    </button>
-                    <button
-                      className="block w-full text-left px-2 py-1 hover:bg-gray-100"
-                      onClick={() => {
-                        handleSort('composer-desc');
-                        setIsSortMenuOpen(false);
-                      }}
-                    >
-                      Composer (A-Z)
-                    </button>
-                  </div>
-                )}
-              </div>
-              <select
-                value={viewMode}
-                onChange={(e) =>
-                  setViewMode(e.target.value as 'card' | 'list')
-                }
-                className="border border-gray-300 rounded-md p-1 text-black font-medium text-sm bg-white focus:outline-none"
-              >
-                <option value="card">Grid View</option>
-                <option value="list">List View</option>
-              </select>
-            </div>
+{/* Mobile: Filter, Sort & View Icons */}
+<div className="flex flex-row md:hidden justify-center space-x-2 items-center">
+
+  <button
+    className="flex items-center text-white bg-black px-3 py-2 rounded-md"
+    onClick={() => setIsFilterVisible(true)}
+  >
+    <IoFilter/>
+  </button>
+
+  <div className="relative">
+    <button
+      className="flex items-center text-white bg-black px-3 py-2 rounded-md"
+      onClick={() => setIsSortMenuOpen(!isSortMenuOpen)}
+    >
+      <IoSwapVertical className="text-white" />
+    </button>
+    {isSortMenuOpen && (
+      <div
+        className="absolute right-0 mt-2 w-[200px] bg-white rounded text-black shadow-md p-2 z-50"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <button
+          className="block w-full text-left px-2 py-1 hover:bg-gray-100"
+          onClick={() => {
+            handleSort('title-asc');
+            setIsSortMenuOpen(false);
+          }}
+        >
+          A-Z
+        </button>
+        <button
+          className="block w-full text-left px-2 py-1 hover:bg-gray-100"
+          onClick={() => {
+            handleSort('title-desc');
+            setIsSortMenuOpen(false);
+          }}
+        >
+          Z-A
+        </button>
+        <button
+          className="block w-full text-left px-2 py-1 hover:bg-gray-100"
+          onClick={() => {
+            handleSort('level-asc');
+            setIsSortMenuOpen(false);
+          }}
+        >
+          Level (Low → High)
+        </button>
+        <button
+          className="block w-full text-left px-2 py-1 hover:bg-gray-100"
+          onClick={() => {
+            handleSort('level-desc');
+            setIsSortMenuOpen(false);
+          }}
+        >
+          Level (High → Low)
+        </button>
+        <button
+          className="block w-full text-left px-2 py-1 hover:bg-gray-100"
+          onClick={() => {
+            handleSort('composer-desc');
+            setIsSortMenuOpen(false);
+          }}
+        >
+          Composer (A-Z)
+        </button>
+      </div>
+    )}
+  </div>
+
+  {/* Grid/List View Toggle Icon */}
+  <button
+    className="flex items-center text-white bg-black px-3 py-2 rounded-md"
+    onClick={() => setViewMode(viewMode === 'card' ? 'list' : 'card')}
+  >
+    {viewMode === 'card' ? (
+      <>
+        <IoList className="text-white" />
+      </>
+    ) : (
+      <>
+        <IoGrid className="text-white" />
+      </>
+    )}
+  </button>
+</div>
+
+
           </div>
 
           {/* Conditionally Render Music Cards or List View */}
