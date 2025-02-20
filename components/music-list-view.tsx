@@ -18,10 +18,10 @@ const MusicListView: React.FC<MusicListViewProps> = ({ pieces }) => {
       <table className="min-w-full border-collapse">
         <thead>
           <tr className="bg-black">
-            <th className="px-4 py-2 border text-left">Piece Name</th>
-            <th className="px-4 py-2 border text-left">Composer Name</th>
-            <th className="px-4 py-2 border text-left">Level</th>
-            <th className="px-4 py-2 border text-left">Duration</th>
+            <th className="px-4 py-2 border text-left text-white">Piece Name</th>
+            <th className="px-4 py-2 border text-left text-white">Composer Name</th>
+            <th className="px-4 py-2 border text-left text-white">Level</th>
+            <th className="px-4 py-2 border text-left text-white">Duration</th>
           </tr>
         </thead>
         <tbody>
