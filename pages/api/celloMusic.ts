@@ -10,6 +10,7 @@ type MusicPiece = {
   instrumentation: string[];
   nationality: string;
   composition_year: string;
+  duration: string;
 };
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -45,6 +46,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 level: '$level',
                 instrumentation: '$instrumentation', // Preserve the instrumentation array
                 nationality: '$composerDetails.nationality', // Include nationality
+                duration: '$duration'
               },
             },
             count: { $sum: 1 },

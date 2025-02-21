@@ -17,7 +17,7 @@ interface MusicPiece {
   instrumentation: string;
   composer_last_name: string;
   nationality: string;
-  duration?: string;
+  duration: string;
 }
 
 interface Composer {

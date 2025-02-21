@@ -18,8 +18,8 @@ const MusicListView: React.FC<MusicListViewProps> = ({ pieces }) => {
       <table className="min-w-full border-collapse">
         <thead>
           <tr className="bg-black">
-            <th className="px-4 py-2 border text-left text-white">Piece Name</th>
-            <th className="px-4 py-2 border text-left text-white">Composer Name</th>
+            <th className="px-4 py-2 border text-left text-white">Piece</th>
+            <th className="px-4 py-2 border text-left text-white">Composer</th>
             <th className="px-4 py-2 border text-left text-white">Level</th>
             <th className="px-4 py-2 border text-left text-white">Duration</th>
           </tr>
@@ -30,7 +30,7 @@ const MusicListView: React.FC<MusicListViewProps> = ({ pieces }) => {
               <td className="px-4 py-2 border">
                 <Link
                   href={`/piece/${piece.id}`}
-                  className="text-blue-500 hover:underline"
+                  className="text-black hover:underline"
                 >
                   {piece.title}
                 </Link>
