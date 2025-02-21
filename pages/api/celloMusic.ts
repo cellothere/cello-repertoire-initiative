@@ -44,8 +44,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 composer_last_name: '$composerDetails.composer_last_name',
                 composition_year: '$composition_year',
                 level: '$level',
-                instrumentation: '$instrumentation', // Preserve the instrumentation array
-                nationality: '$composerDetails.nationality', // Include nationality
+                instrumentation: '$instrumentation', 
+                nationality: '$composerDetails.nationality', 
                 duration: '$duration'
               },
             },
