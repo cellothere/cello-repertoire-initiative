@@ -73,6 +73,28 @@ const linkify = (text: string): React.ReactNode => {
   });
 };
 
+// Helper function to format duration
+const formatDuration = (duration: string): string => {
+  const parts = duration.split(':');
+  if (parts.length !== 3) return duration; // fallback if not matching expected format
+
+  const [hours, minutes, seconds] = parts;
+  const h = parseInt(hours, 10);
+  const m = parseInt(minutes, 10);
+  const s = parseInt(seconds, 10);
+
+  if (h === 0 && m === 0 && s === 0) {
+    return 'N/A';
+  }
+
+  if (h > 0) {
+    return `${h}hr ${String(m).padStart(2, '0')}'${String(s).padStart(2, '0')}''`;
+  }
+
+  return `${m}'${String(s).padStart(2, '0')}''`;
+};
+
+
 const Piece: NextPage<PieceProps> = ({ piece, composerInfo }) => {
   const [videoId1, setVideoId1] = useState<string | null>(null);
   const [hasVideo, setHasVideo] = useState<boolean>(false);
@@ -106,11 +128,11 @@ const Piece: NextPage<PieceProps> = ({ piece, composerInfo }) => {
   return (
     <div>
       <Head>
-        <title>{piece.title}</title>
+        <title className="text-white">{piece.title}</title>
       </Head>
       <NavbarMain />
       <div className='flex flex-col sm:flex-row justify-between mt-5 mx-auto w-[98%]'>
-        <h1 className="text-2xl sm:text-3xl font-bold">
+        <h1 className="text-2xl sm:text-3xl text-white font-bold">
           {piece.title}
         </h1>
         <button className="hidden sm:block bg-black text-white px-3 py-2 rounded-lg hover:scale-105 transition-transform mt-3 sm:mt-0">
@@ -127,7 +149,7 @@ const Piece: NextPage<PieceProps> = ({ piece, composerInfo }) => {
         <div className="container flex flex-col items-start">
           {/* Title + Composer */}
           <div className="mb-4">
-            <p className="text-md sm:text-lg mb-1">
+            <p className="text-md sm:text-lg mb-1 text-white">
               by{' '}
               {composerInfo?.bio_links?.[0] ? (
                 <Link
@@ -145,7 +167,7 @@ const Piece: NextPage<PieceProps> = ({ piece, composerInfo }) => {
 
             {/* Level + Tooltip */}
             <div className="flex items-center">
-              <p className="text-sm sm:text-md italic mr-1">{piece.level}</p>
+              <p className="text-sm text-white sm:text-md italic mr-1">{piece.level}</p>
               <Tooltip title="Levels are approximate.">
                 <span className="cursor-pointer text-gray-500">
                   <AiFillQuestionCircle className="inline-block" />
@@ -191,9 +213,10 @@ const Piece: NextPage<PieceProps> = ({ piece, composerInfo }) => {
               {piece.duration && (
                 <p className="text-sm sm:text-md mb-4">
                   <strong>Duration: </strong>
-                  {piece.duration === "00:00:00" ? "N/A" : piece.duration}
+                  {formatDuration(piece.duration)}
                 </p>
               )}
+
 
               {piece.publisher_info && (
                 <p className="text-sm sm:text-md mb-4">
