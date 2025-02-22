@@ -76,23 +76,19 @@ const linkify = (text: string): React.ReactNode => {
 // Helper function to format duration
 const formatDuration = (duration: string): string => {
   const parts = duration.split(':');
-  if (parts.length !== 3) return duration; // fallback if not matching expected format
-
-  const [hours, minutes, seconds] = parts;
-  const h = parseInt(hours, 10);
-  const m = parseInt(minutes, 10);
-  const s = parseInt(seconds, 10);
-
-  if (h === 0 && m === 0 && s === 0) {
-    return 'N/A';
+  if (parts.length !== 3) return duration;
+  
+  const [hours, minutes, seconds] = parts.map(Number);
+  
+  if (hours === 0 && minutes === 0 && seconds === 0) return 'N/A';
+  if (hours > 0) {
+    return seconds > 0
+      ? `${hours}hr ${minutes}'${seconds}''`
+      : `${hours}hr ${minutes}'`;
   }
-
-  if (h > 0) {
-    return `${h}hr ${String(m).padStart(2, '0')}'${String(s).padStart(2, '0')}''`;
-  }
-
-  return `${m}'${String(s).padStart(2, '0')}''`;
+  return seconds > 0 ? `${minutes}'${seconds}''` : `${minutes}'`;
 };
+
 
 
 const Piece: NextPage<PieceProps> = ({ piece, composerInfo }) => {
