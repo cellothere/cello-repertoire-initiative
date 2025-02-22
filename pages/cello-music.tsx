@@ -35,6 +35,8 @@ const Music: NextPage = () => {
   const [minYear, setMinYear] = useState<number>(1600);
   const [maxYear, setMaxYear] = useState<number>(2025);
   const [viewMode, setViewMode] = useState<'card' | 'list'>('card'); // New state for view mode
+  const [sortConfig, setSortConfig] = useState<{ field: string; direction: 'asc' | 'desc' } | null>(null);
+
 
   // Accordion content categories
   const [accordionContent, setAccordionContent] = useState({
@@ -96,6 +98,37 @@ const Music: NextPage = () => {
     };
     fetchPieces();
   }, []);
+
+  const onSort = (field: string) => {
+    let direction: 'asc' | 'desc' = 'asc';
+    if (sortConfig && sortConfig.field === field && sortConfig.direction === 'asc') {
+      direction = 'desc';
+    }
+    const newSortConfig = { field, direction };
+    setSortConfig(newSortConfig);
+  
+    const sortedPieces = [...filteredPieces].sort((a, b) => {
+      switch (field) {
+        case 'title':
+          return direction === 'asc'
+            ? a.title.localeCompare(b.title)
+            : b.title.localeCompare(a.title);
+        case 'composer':
+          return direction === 'asc'
+            ? a.composer.localeCompare(b.composer)
+            : b.composer.localeCompare(a.composer);
+        case 'level':
+          return direction === 'asc'
+            ? levelOrder.indexOf(a.level) - levelOrder.indexOf(b.level)
+            : levelOrder.indexOf(b.level) - levelOrder.indexOf(a.level);
+        // Add other cases if needed (e.g., for 'duration')
+        default:
+          return 0;
+      }
+    });
+  
+    setFilteredPieces(sortedPieces);
+  };
 
   // Fetch countries
   useEffect(() => {
@@ -474,7 +507,11 @@ const Music: NextPage = () => {
               ))}
             </div>
           ) : (
-            <MusicListView pieces={filteredPieces} />
+            <MusicListView
+            pieces={filteredPieces}
+            sortConfig={sortConfig}
+            onSort={onSort}
+          />
           )}
         </main>
       </div>

@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { IoCaretUpCircle, IoCaretDownCircle, IoCaretForwardCircle } from 'react-icons/io5';
 
 interface MusicPiece {
   id: number;
@@ -8,48 +9,83 @@ interface MusicPiece {
   duration?: string; 
 }
 
+interface SortConfig {
+  field: string;
+  direction: 'asc' | 'desc';
+}
+
 interface MusicListViewProps {
   pieces: MusicPiece[];
+  sortConfig: SortConfig | null;
+  onSort: (field: string) => void;
 }
 
 const formatDuration = (duration: string): string => {
-    // Split the duration assuming format "HH:MM:SS"
-    const parts = duration.split(':');
-    if (parts.length !== 3) return duration; // fallback if not matching expected format
-  
-    const [hours, minutes, seconds] = parts;
-    const h = parseInt(hours, 10);
-    const m = parseInt(minutes, 10);
-    const s = parseInt(seconds, 10);
-  
-    // If all values are 0, return "N/A"
-    if (h === 0 && m === 0 && s === 0) {
-      return 'N/A';
-    }
-  
-    if (h > 0) {
-      // When hours exist, pad minutes & seconds to 2 digits.
-      return `${h}hr ${String(m).padStart(2, '0')}'${String(s).padStart(2, '0')}''`;
-    }
-    // If no hours, show minutes without leading zero and seconds padded to 2 digits.
-    return `${m}'${String(s).padStart(2, '0')}''`;
-  };
-  
+  const parts = duration.split(':');
+  if (parts.length !== 3) return duration;
+  const [hours, minutes, seconds] = parts;
+  const h = parseInt(hours, 10);
+  const m = parseInt(minutes, 10);
+  const s = parseInt(seconds, 10);
+  if (h === 0 && m === 0 && s === 0) return 'N/A';
+  if (h > 0) {
+    return `${h}hr ${String(m).padStart(2, '0')}'${String(s).padStart(2, '0')}''`;
+  }
+  return `${m}'${String(s).padStart(2, '0')}''`;
+};
 
-const MusicListView: React.FC<MusicListViewProps> = ({ pieces }) => {
+const MusicListView: React.FC<MusicListViewProps> = ({ pieces, sortConfig, onSort }) => {
+  const getSortIcon = (field: string) => {
+    if (!sortConfig || sortConfig.field !== field) {
+      return <IoCaretForwardCircle className="inline-block" />;
+    }
+    return sortConfig.direction === 'asc' ? (
+      <IoCaretUpCircle className="inline-block" />
+    ) : (
+      <IoCaretDownCircle className="inline-block" />
+    );
+  };
+
   return (
     <div className="overflow-x-auto bg-white">
       <table className="min-w-full border-collapse">
-        <thead>
-          <tr className="bg-black">
-            <th className="px-4 py-2 border text-left text-white">Piece</th>
-            <th className="px-4 py-2 border text-left text-white">Composer</th>
-            <th className="px-4 py-2 border text-left text-white">Level</th>
-            <th className="px-4 py-2 border text-left text-white hidden md:table-cell">
-              Duration
-            </th>
-          </tr>
-        </thead>
+      <thead>
+  <tr className="bg-black">
+    <th
+      className="px-4 py-2 border text-left text-white cursor-pointer"
+      onClick={() => onSort('title')}
+    >
+      <span className="flex items-center gap-x-1 whitespace-nowrap">
+        Piece {getSortIcon('title')}
+      </span>
+    </th>
+    <th
+      className="px-4 py-2 border text-left text-white cursor-pointer"
+      onClick={() => onSort('composer')}
+    >
+      <span className="flex items-center gap-x-1 whitespace-nowrap">
+        Composer {getSortIcon('composer')}
+      </span>
+    </th>
+    <th
+      className="px-4 py-2 border text-left text-white cursor-pointer"
+      onClick={() => onSort('level')}
+    >
+      <span className="flex items-center gap-x-1 whitespace-nowrap">
+        Level {getSortIcon('level')}
+      </span>
+    </th>
+    <th
+      className="px-4 py-2 border text-left text-white hidden md:table-cell cursor-pointer"
+      onClick={() => onSort('duration')}
+    >
+      <span className="flex items-center gap-x-1 whitespace-nowrap">
+        Duration {getSortIcon('duration')}
+      </span>
+    </th>
+  </tr>
+</thead>
+
         <tbody>
           {pieces.map((piece) => (
             <tr key={piece.id} className="hover:bg-gray-50">
