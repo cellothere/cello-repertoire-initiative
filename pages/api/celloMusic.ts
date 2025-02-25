@@ -6,6 +6,7 @@ type MusicPiece = {
   title: string;
   composer: string;
   composer_last_name: string;
+  composer_first_name: string;
   level: string;
   instrumentation: string[];
   nationality: string;
@@ -42,6 +43,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 title: '$title',
                 composer: '$composerDetails.composer_full_name',
                 composer_last_name: '$composerDetails.composer_last_name',
+                composer_first_name: '$composerDetails.composer_first_name',
                 composition_year: '$composition_year',
                 level: '$level',
                 instrumentation: '$instrumentation', 

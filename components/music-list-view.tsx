@@ -21,20 +21,20 @@ interface MusicListViewProps {
 }
 
 const formatDuration = (duration: string): string => {
-    const parts = duration.split(':');
-    if (parts.length !== 3) return duration;
-    
-    const [hours, minutes, seconds] = parts.map(Number);
-    
-    if (hours === 0 && minutes === 0 && seconds === 0) return 'N/A';
-    if (hours > 0) {
-      return seconds > 0
-        ? `${hours}hr ${minutes}'${seconds}''`
-        : `${hours}hr ${minutes}'`;
-    }
-    return seconds > 0 ? `${minutes}'${seconds}''` : `${minutes}'`;
-  };
+  const parts = duration.split(':');
+  if (parts.length !== 3) return duration;
   
+  const [hours, minutes, seconds] = parts.map(Number);
+  
+  if (hours === 0 && minutes === 0 && seconds === 0) return 'N/A';
+  if (hours > 0) {
+    return seconds > 0
+      ? `${hours}hr ${minutes}'${seconds}''`
+      : `${hours}hr ${minutes}'`;
+  }
+  return seconds > 0 ? `${minutes}'${seconds}''` : `${minutes}'`;
+};
+
 
 const MusicListView: React.FC<MusicListViewProps> = ({ pieces, sortConfig, onSort }) => {
   const getSortIcon = (field: string) => {

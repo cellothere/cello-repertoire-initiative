@@ -16,6 +16,7 @@ interface MusicPiece {
   level: string;
   instrumentation: string;
   composer_last_name: string;
+  composer_first_name: string;
   nationality: string;
   duration: string;
 }
@@ -23,6 +24,7 @@ interface MusicPiece {
 interface Composer {
   composer_full_name: string;
   composer_last_name: string;
+  composer_first_name: string;
   bio_links: string[];
 }
 
@@ -134,7 +136,7 @@ useEffect(() => {
           return 0;
       }
     });
-  
+
     setFilteredPieces(sortedPieces);
   };
 
@@ -173,28 +175,19 @@ useEffect(() => {
 
   // Filter logic
   useEffect(() => {
-    const filtered = pieces.filter((piece) => {
-      const titleMatch = piece.title
-        .toLowerCase()
-        .includes(filter.toLowerCase());
-      const composerMatch = piece.composer
-        .toLowerCase()
-        .includes(filter.toLowerCase());
+    let filtered = pieces.filter((piece) => {
+      const titleMatch = piece.title.toLowerCase().includes(filter.toLowerCase());
+      const composerMatch = piece.composer.toLowerCase().includes(filter.toLowerCase());
       const composerFilterMatch =
-        selectedComposers.length === 0 ||
-        selectedComposers.includes(piece.composer);
+        selectedComposers.length === 0 || selectedComposers.includes(piece.composer);
       const levelFilterMatch =
         selectedLevels.length === 0 || selectedLevels.includes(piece.level);
       const countryFilterMatch =
-        selectedCountries.length === 0 ||
-        selectedCountries.includes(piece.nationality);
-
-      // Year filter logic
+        selectedCountries.length === 0 || selectedCountries.includes(piece.nationality);
+      
       const pieceYear = parseInt((piece as any).composition_year || '0', 10);
       const validYear = !isNaN(pieceYear) && pieceYear > 0;
-      const yearFilterMatch = validYear
-        ? pieceYear >= minYear && pieceYear <= maxYear
-        : true;
+      const yearFilterMatch = validYear ? pieceYear >= minYear && pieceYear <= maxYear : true;
 
       // Instrumentation filter logic
       const instrumentationMatch =
@@ -221,15 +214,37 @@ useEffect(() => {
           return false;
         });
 
-      return (
-        (titleMatch || composerMatch) &&
-        composerFilterMatch &&
-        levelFilterMatch &&
-        countryFilterMatch &&
-        instrumentationMatch &&
-        yearFilterMatch
-      );
+        return (
+          (titleMatch || composerMatch) &&
+          composerFilterMatch &&
+          levelFilterMatch &&
+          countryFilterMatch &&
+          instrumentationMatch &&
+          yearFilterMatch
+        );
     });
+
+      // If a sort configuration exists, apply it
+  if (sortConfig) {
+    filtered = filtered.sort((a, b) => {
+      switch (sortConfig.field) {
+        case 'title':
+          return sortConfig.direction === 'asc'
+            ? a.title.localeCompare(b.title)
+            : b.title.localeCompare(a.title);
+        case 'composer':
+          return sortConfig.direction === 'asc'
+            ? a.composer.localeCompare(b.composer)
+            : b.composer.localeCompare(a.composer);
+        case 'level':
+          return sortConfig.direction === 'asc'
+            ? levelOrder.indexOf(a.level) - levelOrder.indexOf(b.level)
+            : levelOrder.indexOf(b.level) - levelOrder.indexOf(a.level);
+        default:
+          return 0;
+      }
+    });
+  }
 
     setFilteredPieces(filtered);
   }, [
@@ -241,6 +256,7 @@ useEffect(() => {
     selectedInstruments,
     minYear,
     maxYear,
+    sortConfig
   ]);
 
   // Toggle selection helpers
@@ -251,6 +267,24 @@ useEffect(() => {
         : [...prev, composer]
     );
   };
+
+  // Add this helper function inside your component, above your useEffects or inside the component body:
+const sortByComposer = (a: MusicPiece, b: MusicPiece, direction: 'asc' | 'desc') => {
+  // Define the composers to always put at the end (case-insensitive)
+  const specialNames = ['traditional', 'various'];
+  const aIsSpecial = specialNames.includes(a.composer.toLowerCase());
+  const bIsSpecial = specialNames.includes(b.composer.toLowerCase());
+
+  // If one is special and the other is not, put the special one after
+  if (aIsSpecial && !bIsSpecial) return 1;
+  if (!aIsSpecial && bIsSpecial) return -1;
+
+  // Otherwise, sort by last name as normal
+  return direction === 'asc'
+    ? a.composer_last_name.localeCompare(b.composer_last_name)
+    : b.composer_last_name.localeCompare(a.composer_last_name);
+};
+
 
   const toggleCountrySelection = (country: string) => {
     setSelectedCountries((prev) =>
@@ -279,27 +313,57 @@ useEffect(() => {
 
   // Sorting
   const handleSort = (sortOption: string) => {
+    let field = '';
+    let direction: 'asc' | 'desc' = 'asc';
+  
+    switch (sortOption) {
+      case 'title-asc':
+        field = 'title';
+        direction = 'asc';
+        break;
+      case 'title-desc':
+        field = 'title';
+        direction = 'desc';
+        break;
+      case 'level-asc':
+        field = 'level';
+        direction = 'asc';
+        break;
+      case 'level-desc':
+        field = 'level';
+        direction = 'desc';
+        break;
+      case 'composer-desc':
+        field = 'composer';
+        direction = 'desc';
+        break;
+      default:
+        break;
+    }
+  
+    // Update the sort configuration
+    setSortConfig({ field, direction });
+  
+    // sort the filtered pieces immediately
     const sortedPieces = [...filteredPieces].sort((a, b) => {
-      switch (sortOption) {
-        case 'title-asc':
-          return a.title.localeCompare(b.title);
-        case 'title-desc':
-          return b.title.localeCompare(a.title);
-        case 'level-asc':
-          return levelOrder.indexOf(a.level) - levelOrder.indexOf(b.level);
-        case 'level-desc':
-          return levelOrder.indexOf(b.level) - levelOrder.indexOf(a.level);
-        case 'composer-desc':
-          if (a.composer_last_name && b.composer_last_name) {
-            return a.composer_last_name.localeCompare(b.composer_last_name);
-          }
-          return 0;
-        default:
-          return 0;
+      if (field === 'title') {
+        return direction === 'asc'
+          ? a.title.localeCompare(b.title)
+          : b.title.localeCompare(a.title);
+      } else if (field === 'composer') {
+        return direction === 'asc'
+          ? a.composer.localeCompare(b.composer)
+          : b.composer.localeCompare(a.composer);
+      } else if (field === 'level') {
+        return direction === 'asc'
+          ? levelOrder.indexOf(a.level) - levelOrder.indexOf(b.level)
+          : levelOrder.indexOf(b.level) - levelOrder.indexOf(a.level);
       }
+      return 0;
     });
     setFilteredPieces(sortedPieces);
   };
+  
 
   return (
     <div>
@@ -511,7 +575,8 @@ useEffect(() => {
                   key={piece.id}
                   id={piece.id}
                   title={piece.title}
-                  composer={piece.composer}
+                  composer_last_name={piece.composer_last_name}
+                  composer_first_name={piece.composer_first_name}
                   level={piece.level}
                 />
               ))}

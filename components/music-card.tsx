@@ -5,13 +5,21 @@ import { FaInfoCircle } from "react-icons/fa";
 interface MusicCardProps {
     id: number;
     title: string;
-    composer: string;
+    composer_first_name: string;
+    composer_last_name: string;
     level: string;
 }
 
-const MusicCard: React.FC<MusicCardProps> = ({ id, title, composer, level }) => {
+const MusicCard: React.FC<MusicCardProps> = ({ id, title, composer_first_name, composer_last_name, level }) => {
     // Dynamically determine the text size
     const titleClass = title.length > 40 ? "text-sm" : title.length > 25 ? "text-md" : "text-lg";
+
+    // Function to format the composer's name
+    const getFormattedComposer = (firstName: string, lastName: string) => {
+        if (lastName === "Various" || lastName === "Traditional") return lastName;
+        if (firstName === "Various" || firstName === "Traditional") return firstName;
+        return `${lastName}, ${firstName}`.trim();
+    };
 
     return (
         <div className="bg-white shadow-md rounded-sm p-4 hover:scale-105 transition-transform duration-300">
@@ -19,14 +27,14 @@ const MusicCard: React.FC<MusicCardProps> = ({ id, title, composer, level }) => 
                 <div className="flex flex-col h-full">
                     {/* Content */}
                     <div className="flex-grow flex flex-col">
-                        <h2 
+                        <h2
                             className={`font-semibold text-gray-800 ${titleClass}`}
                             style={{ overflowWrap: "break-word", wordBreak: "break-word", lineHeight: "1.2" }}
                         >
                             {title}
                         </h2>
                         <p className="text-gray-600">
-                            by <span className="font-medium">{composer}</span>
+                            by <span className="font-medium">{getFormattedComposer(composer_first_name, composer_last_name)}</span>
                         </p>
                     </div>
 
