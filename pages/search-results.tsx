@@ -95,6 +95,7 @@ const SearchResults: NextPage = () => {
                   composer_first_name={result.composer_first_name}
                   composer_last_name={result.composer_last_name}
                   level={result.level}
+                  instrumentation={result.instrumentation}
                 />
                 ))}
               </div>

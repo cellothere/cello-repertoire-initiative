@@ -578,6 +578,7 @@ const sortByComposer = (a: MusicPiece, b: MusicPiece, direction: 'asc' | 'desc')
                   composer_last_name={piece.composer_last_name}
                   composer_first_name={piece.composer_first_name}
                   level={piece.level}
+                  instrumentation={piece.instrumentation}
                 />
               ))}
             </div>
