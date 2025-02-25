@@ -47,7 +47,7 @@ const imageSrc =
     ? "/assets/early_beginner_celloAndPiano.png"
     : isCelloSolo
     ? "/assets/early_beginner_solo.png"
-    : "/assets/cellist2.png"; // Fallback image
+    : "/assets/cellist3.png"; // Fallback image
 
 
 
