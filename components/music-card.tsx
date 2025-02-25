@@ -34,17 +34,21 @@ const MusicCard: React.FC<MusicCardProps> = ({
 // Conditionally select the image based on level and instrumentation
 const isCelloAndPiano = instrumentation.includes("Cello") && instrumentation.includes("Piano");
 const isCelloSolo = instrumentation.length === 1 && instrumentation.includes("Cello");
+const isAdvanced = level === "Early Advanced" || level === "Advanced";
 
 const imageSrc =
   level === "Professional"
     ? "/assets/cellist3.png"
-    : level === "Early Advanced" || level === "Advanced"
+    : isAdvanced && isCelloAndPiano
+    ? "/assets/advanced_cello_and_piano.png"
+    : isAdvanced
     ? "/assets/advanced_cello_solo.png"
     : isCelloAndPiano
     ? "/assets/early_beginner_celloAndPiano.png"
     : isCelloSolo
     ? "/assets/early_beginner_solo.png"
-    : "/assets/cellist3.png"; // Fallback image
+    : "/assets/cellist2.png"; // Fallback image
+
 
 
 
