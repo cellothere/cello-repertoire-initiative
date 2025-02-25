@@ -89,12 +89,13 @@ const SearchResults: NextPage = () => {
               <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                 {searchResults.map((result) => (
                   <MusicCard
-                    key={result.id}
-                    id={result.id}
-                    title={result.title}
-                    composer={result.composer}
-                    level={result.level}
-                  />
+                  key={result.id}
+                  id={result.id}
+                  title={result.title}
+                  composer_first_name={result.composer_first_name}
+                  composer_last_name={result.composer_last_name}
+                  level={result.level}
+                />
                 ))}
               </div>
             ) : (
