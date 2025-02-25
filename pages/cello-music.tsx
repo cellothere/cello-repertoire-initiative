@@ -88,25 +88,25 @@ const Music: NextPage = () => {
   ];
 
   // Fetch music data
-// Fetch music data
-useEffect(() => {
-  const fetchPieces = async () => {
-    const res = await fetch('/api/celloMusic');
-    const data = await res.json();
-    const flattenedPieces = data.flatMap(
-      (group: { musicPieces: MusicPiece[] }) => group.musicPieces
-    );
-    // Sort the pieces by level (low to high) using levelOrder
-    const sortedPieces = flattenedPieces.sort(
-      (a: MusicPiece, b: MusicPiece) => levelOrder.indexOf(a.level) - levelOrder.indexOf(b.level)
-    );
-    setPieces(sortedPieces);
-    setFilteredPieces(sortedPieces);
-    // Optionally, update the sort configuration state
-    setSortConfig({ field: 'level', direction: 'asc' });
-  };
-  fetchPieces();
-}, []);
+  // Fetch music data
+  useEffect(() => {
+    const fetchPieces = async () => {
+      const res = await fetch('/api/celloMusic');
+      const data = await res.json();
+      const flattenedPieces = data.flatMap(
+        (group: { musicPieces: MusicPiece[] }) => group.musicPieces
+      );
+      // Sort the pieces by level (low to high) using levelOrder
+      const sortedPieces = flattenedPieces.sort(
+        (a: MusicPiece, b: MusicPiece) => levelOrder.indexOf(a.level) - levelOrder.indexOf(b.level)
+      );
+      setPieces(sortedPieces);
+      setFilteredPieces(sortedPieces);
+      // Optionally, update the sort configuration state
+      setSortConfig({ field: 'level', direction: 'asc' });
+    };
+    fetchPieces();
+  }, []);
 
 
   const onSort = (field: string) => {
@@ -116,7 +116,7 @@ useEffect(() => {
     }
     const newSortConfig = { field, direction };
     setSortConfig(newSortConfig);
-  
+
     const sortedPieces = [...filteredPieces].sort((a, b) => {
       switch (field) {
         case 'title':
@@ -184,67 +184,79 @@ useEffect(() => {
         selectedLevels.length === 0 || selectedLevels.includes(piece.level);
       const countryFilterMatch =
         selectedCountries.length === 0 || selectedCountries.includes(piece.nationality);
-      
+
       const pieceYear = parseInt((piece as any).composition_year || '0', 10);
       const validYear = !isNaN(pieceYear) && pieceYear > 0;
       const yearFilterMatch = validYear ? pieceYear >= minYear && pieceYear <= maxYear : true;
 
       // Instrumentation filter logic
       const instrumentationMatch =
-        selectedInstruments.length === 0 ||
-        selectedInstruments.some((selectedInstrument) => {
-          const normalizedSelectedInstrument =
-            selectedInstrument === 'Cello Solo' ? 'Cello' : selectedInstrument;
-          if (Array.isArray(piece.instrumentation)) {
-            const normalizedInstrumentation = piece.instrumentation.map((instr) =>
-              instr.toLowerCase() === 'cello solo' ? 'cello' : instr.toLowerCase()
-            );
-            const selectedParts =
-              normalizedSelectedInstrument.toLowerCase().split(' and ');
-            if (selectedParts.length === 1) {
-              return (
-                normalizedInstrumentation.length === 1 &&
-                normalizedInstrumentation.includes(selectedParts[0])
-              );
-            }
-            return selectedParts.every((part) =>
-              normalizedInstrumentation.includes(part)
+      selectedInstruments.length === 0 ||
+      selectedInstruments.some((selectedInstrument) => {
+        const normalizedSelectedInstrument =
+          selectedInstrument === 'Cello Solo' ? 'Cello' : selectedInstrument;
+    
+        if (Array.isArray(piece.instrumentation)) {
+          const normalizedInstrumentation = piece.instrumentation.map(instr =>
+            instr.toLowerCase() === 'cello solo' ? 'cello' : instr.toLowerCase()
+          );
+    
+          if (normalizedSelectedInstrument.toLowerCase() === 'cello duet') {
+            return (
+              normalizedInstrumentation.length === 2 &&
+              normalizedInstrumentation.every(instr => instr === 'cello')
             );
           }
-          return false;
-        });
+    
+          const selectedParts =
+            normalizedSelectedInstrument.toLowerCase().split(' and ');
+    
+          if (selectedParts.length === 1) {
+            return (
+              normalizedInstrumentation.length === 1 &&
+              normalizedInstrumentation.includes(selectedParts[0])
+            );
+          }
+    
+          return selectedParts.every((part) =>
+            normalizedInstrumentation.includes(part)
+          );
+        }
+        return false;
+      });
+    
 
-        return (
-          (titleMatch || composerMatch) &&
-          composerFilterMatch &&
-          levelFilterMatch &&
-          countryFilterMatch &&
-          instrumentationMatch &&
-          yearFilterMatch
-        );
+      return (
+        (titleMatch || composerMatch) &&
+        composerFilterMatch &&
+        levelFilterMatch &&
+        countryFilterMatch &&
+        instrumentationMatch &&
+        yearFilterMatch
+      );
     });
 
-      // If a sort configuration exists, apply it
-  if (sortConfig) {
-    filtered = filtered.sort((a, b) => {
-      switch (sortConfig.field) {
-        case 'title':
-          return sortConfig.direction === 'asc'
-            ? a.title.localeCompare(b.title)
-            : b.title.localeCompare(a.title);
-        case 'composer':
-          return sortConfig.direction === 'asc'
-            ? a.composer.localeCompare(b.composer)
-            : b.composer.localeCompare(a.composer);
-        case 'level':
-          return sortConfig.direction === 'asc'
-            ? levelOrder.indexOf(a.level) - levelOrder.indexOf(b.level)
-            : levelOrder.indexOf(b.level) - levelOrder.indexOf(a.level);
-        default:
-          return 0;
-      }
-    });
-  }
+    // If a sort configuration exists, apply it
+    if (sortConfig) {
+      filtered = filtered.sort((a, b) => {
+        switch (sortConfig.field) {
+          case 'title':
+            return sortConfig.direction === 'asc'
+              ? a.title.localeCompare(b.title)
+              : b.title.localeCompare(a.title);
+          case 'composer':
+            return sortConfig.direction === 'asc'
+              ? a.composer.localeCompare(b.composer)
+              : b.composer.localeCompare(a.composer);
+          case 'level':
+            return sortConfig.direction === 'asc'
+              ? levelOrder.indexOf(a.level) - levelOrder.indexOf(b.level)
+              : levelOrder.indexOf(b.level) - levelOrder.indexOf(a.level);
+          default:
+            return 0;
+        }
+      });
+    }
 
     setFilteredPieces(filtered);
   }, [
@@ -269,21 +281,21 @@ useEffect(() => {
   };
 
   // Add this helper function inside your component, above your useEffects or inside the component body:
-const sortByComposer = (a: MusicPiece, b: MusicPiece, direction: 'asc' | 'desc') => {
-  // Define the composers to always put at the end (case-insensitive)
-  const specialNames = ['traditional', 'various'];
-  const aIsSpecial = specialNames.includes(a.composer.toLowerCase());
-  const bIsSpecial = specialNames.includes(b.composer.toLowerCase());
+  const sortByComposer = (a: MusicPiece, b: MusicPiece, direction: 'asc' | 'desc') => {
+    // Define the composers to always put at the end (case-insensitive)
+    const specialNames = ['traditional', 'various'];
+    const aIsSpecial = specialNames.includes(a.composer.toLowerCase());
+    const bIsSpecial = specialNames.includes(b.composer.toLowerCase());
 
-  // If one is special and the other is not, put the special one after
-  if (aIsSpecial && !bIsSpecial) return 1;
-  if (!aIsSpecial && bIsSpecial) return -1;
+    // If one is special and the other is not, put the special one after
+    if (aIsSpecial && !bIsSpecial) return 1;
+    if (!aIsSpecial && bIsSpecial) return -1;
 
-  // Otherwise, sort by last name as normal
-  return direction === 'asc'
-    ? a.composer_last_name.localeCompare(b.composer_last_name)
-    : b.composer_last_name.localeCompare(a.composer_last_name);
-};
+    // Otherwise, sort by last name as normal
+    return direction === 'asc'
+      ? a.composer_last_name.localeCompare(b.composer_last_name)
+      : b.composer_last_name.localeCompare(a.composer_last_name);
+  };
 
 
   const toggleCountrySelection = (country: string) => {
@@ -315,7 +327,7 @@ const sortByComposer = (a: MusicPiece, b: MusicPiece, direction: 'asc' | 'desc')
   const handleSort = (sortOption: string) => {
     let field = '';
     let direction: 'asc' | 'desc' = 'asc';
-  
+
     switch (sortOption) {
       case 'title-asc':
         field = 'title';
@@ -340,10 +352,10 @@ const sortByComposer = (a: MusicPiece, b: MusicPiece, direction: 'asc' | 'desc')
       default:
         break;
     }
-  
+
     // Update the sort configuration
     setSortConfig({ field, direction });
-  
+
     // sort the filtered pieces immediately
     const sortedPieces = [...filteredPieces].sort((a, b) => {
       if (field === 'title') {
@@ -363,7 +375,7 @@ const sortByComposer = (a: MusicPiece, b: MusicPiece, direction: 'asc' | 'desc')
     });
     setFilteredPieces(sortedPieces);
   };
-  
+
 
   return (
     <div>
@@ -452,17 +464,17 @@ const sortByComposer = (a: MusicPiece, b: MusicPiece, direction: 'asc' | 'desc')
                 Sort By:
               </label>
               <select
-  id="sort-by"
-  defaultValue="level-asc" // Set the default value here
-  className="border border-gray-300 rounded-md p-1 text-black font-medium text-sm bg-white focus:outline-none"
-  onChange={(e) => handleSort(e.target.value)}
->
-  <option value="title-asc">Alphabetically (A-Z)</option>
-  <option value="title-desc">Alphabetically (Z-A)</option>
-  <option value="level-asc">Level (Low to High)</option>
-  <option value="level-desc">Level (High to Low)</option>
-  <option value="composer-desc">Composer (A-Z)</option>
-</select>
+                id="sort-by"
+                defaultValue="level-asc" // Set the default value here
+                className="border border-gray-300 rounded-md p-1 text-black font-medium text-sm bg-white focus:outline-none"
+                onChange={(e) => handleSort(e.target.value)}
+              >
+                <option value="title-asc">Alphabetically (A-Z)</option>
+                <option value="title-desc">Alphabetically (Z-A)</option>
+                <option value="level-asc">Level (Low to High)</option>
+                <option value="level-desc">Level (High to Low)</option>
+                <option value="composer-desc">Composer (A-Z)</option>
+              </select>
 
               <select
                 value={viewMode}
@@ -476,93 +488,93 @@ const sortByComposer = (a: MusicPiece, b: MusicPiece, direction: 'asc' | 'desc')
               </select>
             </div>
 
-{/* Mobile: Filter, Sort & View Icons */}
-<div className="flex flex-row md:hidden justify-center space-x-2 items-center">
+            {/* Mobile: Filter, Sort & View Icons */}
+            <div className="flex flex-row md:hidden justify-center space-x-2 items-center">
 
-  <button
-    className="flex items-center text-white bg-black px-3 py-2 rounded-md"
-    onClick={() => setIsFilterVisible(true)}
-  >
-    <IoFilter/>
-  </button>
+              <button
+                className="flex items-center text-white bg-black px-3 py-2 rounded-md"
+                onClick={() => setIsFilterVisible(true)}
+              >
+                <IoFilter />
+              </button>
 
-  <div className="relative">
-    <button
-      className="flex items-center text-white bg-black px-3 py-2 rounded-md"
-      onClick={() => setIsSortMenuOpen(!isSortMenuOpen)}
-    >
-      <IoSwapVertical className="text-white" />
-    </button>
-    {isSortMenuOpen && (
-      <div
-        className="absolute right-0 mt-2 w-[200px] bg-white rounded text-black shadow-md p-2 z-50"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <button
-          className="block w-full text-left px-2 py-1 hover:bg-gray-100"
-          onClick={() => {
-            handleSort('title-asc');
-            setIsSortMenuOpen(false);
-          }}
-        >
-          A-Z
-        </button>
-        <button
-          className="block w-full text-left px-2 py-1 hover:bg-gray-100"
-          onClick={() => {
-            handleSort('title-desc');
-            setIsSortMenuOpen(false);
-          }}
-        >
-          Z-A
-        </button>
-        <button
-          className="block w-full text-left px-2 py-1 hover:bg-gray-100"
-          onClick={() => {
-            handleSort('level-asc');
-            setIsSortMenuOpen(false);
-          }}
-        >
-          Level (Low → High)
-        </button>
-        <button
-          className="block w-full text-left px-2 py-1 hover:bg-gray-100"
-          onClick={() => {
-            handleSort('level-desc');
-            setIsSortMenuOpen(false);
-          }}
-        >
-          Level (High → Low)
-        </button>
-        <button
-          className="block w-full text-left px-2 py-1 hover:bg-gray-100"
-          onClick={() => {
-            handleSort('composer-desc');
-            setIsSortMenuOpen(false);
-          }}
-        >
-          Composer (A-Z)
-        </button>
-      </div>
-    )}
-  </div>
+              <div className="relative">
+                <button
+                  className="flex items-center text-white bg-black px-3 py-2 rounded-md"
+                  onClick={() => setIsSortMenuOpen(!isSortMenuOpen)}
+                >
+                  <IoSwapVertical className="text-white" />
+                </button>
+                {isSortMenuOpen && (
+                  <div
+                    className="absolute right-0 mt-2 w-[200px] bg-white rounded text-black shadow-md p-2 z-50"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <button
+                      className="block w-full text-left px-2 py-1 hover:bg-gray-100"
+                      onClick={() => {
+                        handleSort('title-asc');
+                        setIsSortMenuOpen(false);
+                      }}
+                    >
+                      A-Z
+                    </button>
+                    <button
+                      className="block w-full text-left px-2 py-1 hover:bg-gray-100"
+                      onClick={() => {
+                        handleSort('title-desc');
+                        setIsSortMenuOpen(false);
+                      }}
+                    >
+                      Z-A
+                    </button>
+                    <button
+                      className="block w-full text-left px-2 py-1 hover:bg-gray-100"
+                      onClick={() => {
+                        handleSort('level-asc');
+                        setIsSortMenuOpen(false);
+                      }}
+                    >
+                      Level (Low → High)
+                    </button>
+                    <button
+                      className="block w-full text-left px-2 py-1 hover:bg-gray-100"
+                      onClick={() => {
+                        handleSort('level-desc');
+                        setIsSortMenuOpen(false);
+                      }}
+                    >
+                      Level (High → Low)
+                    </button>
+                    <button
+                      className="block w-full text-left px-2 py-1 hover:bg-gray-100"
+                      onClick={() => {
+                        handleSort('composer-desc');
+                        setIsSortMenuOpen(false);
+                      }}
+                    >
+                      Composer (A-Z)
+                    </button>
+                  </div>
+                )}
+              </div>
 
-  {/* Grid/List View Toggle Icon */}
-  <button
-    className="flex items-center text-white bg-black px-3 py-2 rounded-md"
-    onClick={() => setViewMode(viewMode === 'card' ? 'list' : 'card')}
-  >
-    {viewMode === 'card' ? (
-      <>
-        <IoList className="text-white" />
-      </>
-    ) : (
-      <>
-        <IoGrid className="text-white" />
-      </>
-    )}
-  </button>
-</div>
+              {/* Grid/List View Toggle Icon */}
+              <button
+                className="flex items-center text-white bg-black px-3 py-2 rounded-md"
+                onClick={() => setViewMode(viewMode === 'card' ? 'list' : 'card')}
+              >
+                {viewMode === 'card' ? (
+                  <>
+                    <IoList className="text-white" />
+                  </>
+                ) : (
+                  <>
+                    <IoGrid className="text-white" />
+                  </>
+                )}
+              </button>
+            </div>
 
 
           </div>
@@ -584,10 +596,10 @@ const sortByComposer = (a: MusicPiece, b: MusicPiece, direction: 'asc' | 'desc')
             </div>
           ) : (
             <MusicListView
-            pieces={filteredPieces}
-            sortConfig={sortConfig}
-            onSort={onSort}
-          />
+              pieces={filteredPieces}
+              sortConfig={sortConfig}
+              onSort={onSort}
+            />
           )}
         </main>
       </div>
