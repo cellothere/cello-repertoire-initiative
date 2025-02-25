@@ -14,7 +14,7 @@ interface MusicPiece {
   title: string;
   composer: string;
   level: string;
-  instrumentation: string;
+  instrumentation: string[];
   composer_last_name: string;
   composer_first_name: string;
   nationality: string;

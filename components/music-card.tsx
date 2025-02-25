@@ -9,7 +9,7 @@ interface MusicCardProps {
   composer_first_name: string;
   composer_last_name: string;
   level: string;
-  instrumentation: string;
+  instrumentation: string[];
 }
 
 const MusicCard: React.FC<MusicCardProps> = ({
@@ -32,14 +32,20 @@ const MusicCard: React.FC<MusicCardProps> = ({
   };
 
 // Conditionally select the image based on level and instrumentation
+const isCelloAndPiano = instrumentation.includes("Cello") && instrumentation.includes("Piano");
+const isCelloSolo = instrumentation.length === 1 && instrumentation.includes("Cello");
+
 const imageSrc =
   level === "Professional"
     ? "/assets/cellist3.png"
     : level === "Early Advanced" || level === "Advanced"
     ? "/assets/advanced_cello_solo.png"
-    : instrumentation === "Cello and Piano"
+    : isCelloAndPiano
     ? "/assets/early_beginner_celloAndPiano.png"
-    : "/assets/early_beginner_solo.png";
+    : isCelloSolo
+    ? "/assets/early_beginner_solo.png"
+    : "/assets/cellist3.png"; // Fallback image
+
 
 
   return (
