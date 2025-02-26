@@ -48,20 +48,26 @@ const imageSrc =
     ? "/assets/advanced_cello_and_piano.png"
     : isAdvanced
     ? "/assets/advanced_cello_solo.png"
+    : level === "Late Beginner" && isCelloAndPiano 
+    ? "/assets/late_beginner_cello_and_piano.png"
     : isCelloAndPiano
     ? "/assets/early_beginner_cello_and_piano.png"
+    : level === "Late Beginner" && isCelloSolo 
+    ? "/assets/late_beginner_solo_cello.png"
     : level === "Beginner" && isCelloSolo
     ? "/assets/beginner_solo_cello.png"
     : isCelloSolo
     ? "/assets/early_beginner_solo_cello.png"
     : "/assets/cellist3.png"; // Fallback image
 
+
+
   return (
     <div className="bg-white shadow-md rounded-sm p-4 hover:scale-105 transition-transform duration-300">
       <Link href={`/piece/${id.toString()}`} className="block h-full">
         <div className="flex flex-col h-full">
           {/* Image section */}
-          <div className="relative w-full h-60 mb-4">
+          <div className="relative w-full h-40 mb-4">
             <Image
               src={imageSrc}
               alt="Cellist"
