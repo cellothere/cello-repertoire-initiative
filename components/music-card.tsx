@@ -43,10 +43,12 @@ const isLateBeginner = level === "Late Beginner";
 const isProfessional = level === "Professional";
 
 // Select the image
-const imageSrc = isProfessional
-  ? "/assets/cellist3.png"
+const imageSrc = isProfessional && isCelloSolo
+  ? "/assets/professional_cello_solo.png" 
+  : isProfessional
+  ? "/assets/professional_cello_piano.png"
   : isBeginner && isCelloAndPiano
-  ? "/assets/beginner_cello_and_piano.png" // This condition was missing
+  ? "/assets/beginner_cello_and_piano.png"
   : isBeginner && isCelloDuet
   ? "/assets/beginner_duet.png"
   : isCelloDuet
@@ -66,6 +68,7 @@ const imageSrc = isProfessional
   : isCelloAndPiano
   ? "/assets/early_beginner_cello_piano.png"
   : "/assets/default_cello_and_piano.png"; // Default fallback
+
 
 
 

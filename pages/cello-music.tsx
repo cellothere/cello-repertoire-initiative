@@ -8,7 +8,6 @@ import MobileFilterAccordion from '@/components/mobile-filter-search';
 import MusicCard from '@/components/music-card';
 import MusicListView from '@/components/music-list-view';
 
-
 interface MusicPiece {
   id: number;
   title: string;
@@ -36,9 +35,8 @@ const Music: NextPage = () => {
   const [isSortMenuOpen, setIsSortMenuOpen] = useState(false);
   const [minYear, setMinYear] = useState<number>(1600);
   const [maxYear, setMaxYear] = useState<number>(2025);
-  const [viewMode, setViewMode] = useState<'card' | 'list'>('card'); // New state for view mode
+  const [viewMode, setViewMode] = useState<'card' | 'list'>('card');
   const [sortConfig, setSortConfig] = useState<{ field: string; direction: 'asc' | 'desc' } | null>(null);
-
 
   // Accordion content categories
   const [accordionContent, setAccordionContent] = useState({
@@ -87,7 +85,24 @@ const Music: NextPage = () => {
     'Various',
   ];
 
-  // Fetch music data
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  // Determine mobile vs. desktop based on window width (example: mobile if width < 768px)
+  const [isMobile, setIsMobile] = useState<boolean>(false);
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  // Define items per page:
+  // Desktop: 4 rows * 4 columns = 16 items.
+  // Mobile: 10 rows * 2 columns = 20 items.
+  const itemsPerPage = isMobile ? 20 : 16;
+
   // Fetch music data
   useEffect(() => {
     const fetchPieces = async () => {
@@ -108,72 +123,20 @@ const Music: NextPage = () => {
     fetchPieces();
   }, []);
 
-
-  const onSort = (field: string) => {
-    let direction: 'asc' | 'desc' = 'asc';
-    if (sortConfig && sortConfig.field === field && sortConfig.direction === 'asc') {
-      direction = 'desc';
-    }
-    const newSortConfig = { field, direction };
-    setSortConfig(newSortConfig);
-
-    const sortedPieces = [...filteredPieces].sort((a, b) => {
-      switch (field) {
-        case 'title':
-          return direction === 'asc'
-            ? a.title.localeCompare(b.title)
-            : b.title.localeCompare(a.title);
-        case 'composer':
-          return direction === 'asc'
-            ? a.composer.localeCompare(b.composer)
-            : b.composer.localeCompare(a.composer);
-        case 'level':
-          return direction === 'asc'
-            ? levelOrder.indexOf(a.level) - levelOrder.indexOf(b.level)
-            : levelOrder.indexOf(b.level) - levelOrder.indexOf(a.level);
-        // Add other cases if needed (e.g., for 'duration')
-        default:
-          return 0;
-      }
-    });
-
-    setFilteredPieces(sortedPieces);
-  };
-
-  // Fetch countries
+  // Whenever filteredPieces change, reset to the first page
   useEffect(() => {
-    const fetchCountries = async () => {
-      try {
-        const res = await fetch('/api/nationalities');
-        const data = await res.json();
-        const nationalities = data.map(
-          (item: { nationality: string }) => item.nationality
-        );
-        setAccordionContent((prev) => ({ ...prev, Country: nationalities }));
-      } catch (error) {
-        console.error('Error fetching nationalities:', error);
-      }
-    };
-    fetchCountries();
-  }, []);
+    setCurrentPage(1);
+  }, [filteredPieces]);
 
-  // Fetch composers
-  useEffect(() => {
-    const fetchComposers = async () => {
-      const res = await fetch('/api/composers');
-      const data = await res.json();
-      const composerNames = data.flatMap(
-        (group: { composers: Composer[] }) =>
-          group.composers.map((composer) => composer.composer_full_name)
-      );
-      setAccordionContent((prev) => ({ ...prev, Composer: composerNames }));
-    };
-    fetchComposers();
-  }, []);
+  // Calculate pagination
+  const totalPages = Math.ceil(filteredPieces.length / itemsPerPage);
+  const paginatedPieces = filteredPieces.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
 
-  const mobileFilterRef = useRef<HTMLDivElement>(null);
-
-  // Filter logic
+  // Sorting and filtering logic…
+  // (The rest of your filtering/sorting code remains unchanged)
   useEffect(() => {
     let filtered = pieces.filter((piece) => {
       const titleMatch = piece.title.toLowerCase().includes(filter.toLowerCase());
@@ -191,40 +154,34 @@ const Music: NextPage = () => {
 
       // Instrumentation filter logic
       const instrumentationMatch =
-      selectedInstruments.length === 0 ||
-      selectedInstruments.some((selectedInstrument) => {
-        const normalizedSelectedInstrument =
-          selectedInstrument === 'Cello Solo' ? 'Cello' : selectedInstrument;
-    
-        if (Array.isArray(piece.instrumentation)) {
-          const normalizedInstrumentation = piece.instrumentation.map(instr =>
-            instr.toLowerCase() === 'cello solo' ? 'cello' : instr.toLowerCase()
-          );
-    
-          if (normalizedSelectedInstrument.toLowerCase() === 'cello duet') {
-            return (
-              normalizedInstrumentation.length === 2 &&
-              normalizedInstrumentation.every(instr => instr === 'cello')
+        selectedInstruments.length === 0 ||
+        selectedInstruments.some((selectedInstrument) => {
+          const normalizedSelectedInstrument =
+            selectedInstrument === 'Cello Solo' ? 'Cello' : selectedInstrument;
+          if (Array.isArray(piece.instrumentation)) {
+            const normalizedInstrumentation = piece.instrumentation.map(instr =>
+              instr.toLowerCase() === 'cello solo' ? 'cello' : instr.toLowerCase()
+            );
+            if (normalizedSelectedInstrument.toLowerCase() === 'cello duet') {
+              return (
+                normalizedInstrumentation.length === 2 &&
+                normalizedInstrumentation.every(instr => instr === 'cello')
+              );
+            }
+            const selectedParts =
+              normalizedSelectedInstrument.toLowerCase().split(' and ');
+            if (selectedParts.length === 1) {
+              return (
+                normalizedInstrumentation.length === 1 &&
+                normalizedInstrumentation.includes(selectedParts[0])
+              );
+            }
+            return selectedParts.every((part) =>
+              normalizedInstrumentation.includes(part)
             );
           }
-    
-          const selectedParts =
-            normalizedSelectedInstrument.toLowerCase().split(' and ');
-    
-          if (selectedParts.length === 1) {
-            return (
-              normalizedInstrumentation.length === 1 &&
-              normalizedInstrumentation.includes(selectedParts[0])
-            );
-          }
-    
-          return selectedParts.every((part) =>
-            normalizedInstrumentation.includes(part)
-          );
-        }
-        return false;
-      });
-    
+          return false;
+        });
 
       return (
         (titleMatch || composerMatch) &&
@@ -257,7 +214,6 @@ const Music: NextPage = () => {
         }
       });
     }
-
     setFilteredPieces(filtered);
   }, [
     filter,
@@ -271,7 +227,7 @@ const Music: NextPage = () => {
     sortConfig
   ]);
 
-  // Toggle selection helpers
+  // Helper functions for toggling filters and sorting...
   const toggleComposerSelection = (composer: string) => {
     setSelectedComposers((prev) =>
       prev.includes(composer)
@@ -279,24 +235,6 @@ const Music: NextPage = () => {
         : [...prev, composer]
     );
   };
-
-  // Add this helper function inside your component, above your useEffects or inside the component body:
-  const sortByComposer = (a: MusicPiece, b: MusicPiece, direction: 'asc' | 'desc') => {
-    // Define the composers to always put at the end (case-insensitive)
-    const specialNames = ['traditional', 'various'];
-    const aIsSpecial = specialNames.includes(a.composer.toLowerCase());
-    const bIsSpecial = specialNames.includes(b.composer.toLowerCase());
-
-    // If one is special and the other is not, put the special one after
-    if (aIsSpecial && !bIsSpecial) return 1;
-    if (!aIsSpecial && bIsSpecial) return -1;
-
-    // Otherwise, sort by last name as normal
-    return direction === 'asc'
-      ? a.composer_last_name.localeCompare(b.composer_last_name)
-      : b.composer_last_name.localeCompare(a.composer_last_name);
-  };
-
 
   const toggleCountrySelection = (country: string) => {
     setSelectedCountries((prev) =>
@@ -323,11 +261,38 @@ const Music: NextPage = () => {
     );
   };
 
-  // Sorting
+  const onSort = (field: string) => {
+    let direction: 'asc' | 'desc' = 'asc';
+    if (sortConfig && sortConfig.field === field && sortConfig.direction === 'asc') {
+      direction = 'desc';
+    }
+    const newSortConfig = { field, direction };
+    setSortConfig(newSortConfig);
+
+    const sortedPieces = [...filteredPieces].sort((a, b) => {
+      switch (field) {
+        case 'title':
+          return direction === 'asc'
+            ? a.title.localeCompare(b.title)
+            : b.title.localeCompare(a.title);
+        case 'composer':
+          return direction === 'asc'
+            ? a.composer.localeCompare(b.composer)
+            : b.composer.localeCompare(a.composer);
+        case 'level':
+          return direction === 'asc'
+            ? levelOrder.indexOf(a.level) - levelOrder.indexOf(b.level)
+            : levelOrder.indexOf(b.level) - levelOrder.indexOf(a.level);
+        default:
+          return 0;
+      }
+    });
+    setFilteredPieces(sortedPieces);
+  };
+
   const handleSort = (sortOption: string) => {
     let field = '';
     let direction: 'asc' | 'desc' = 'asc';
-
     switch (sortOption) {
       case 'title-asc':
         field = 'title';
@@ -352,11 +317,7 @@ const Music: NextPage = () => {
       default:
         break;
     }
-
-    // Update the sort configuration
     setSortConfig({ field, direction });
-
-    // sort the filtered pieces immediately
     const sortedPieces = [...filteredPieces].sort((a, b) => {
       if (field === 'title') {
         return direction === 'asc'
@@ -376,6 +337,7 @@ const Music: NextPage = () => {
     setFilteredPieces(sortedPieces);
   };
 
+  const mobileFilterRef = useRef<HTMLDivElement>(null);
 
   return (
     <div>
@@ -385,7 +347,6 @@ const Music: NextPage = () => {
 
       <NavbarMain />
 
-      {/* Overlay to close mobile filter and sort */}
       {(isFilterVisible || isSortMenuOpen) && (
         <div
           className="fixed inset-0 z-40"
@@ -397,7 +358,6 @@ const Music: NextPage = () => {
       )}
 
       <div className="flex mt-4">
-        {/* Desktop Filter Aside */}
         <FilterAside
           filter={filter}
           setFilter={setFilter}
@@ -416,7 +376,6 @@ const Music: NextPage = () => {
           toggleCountrySelection={toggleCountrySelection}
         />
 
-        {/* Mobile Filter Drawer */}
         {isFilterVisible && (
           <div
             ref={mobileFilterRef}
@@ -454,18 +413,15 @@ const Music: NextPage = () => {
         )}
 
         <main className="md:ml-64 w-full container mx-auto p-4">
-          {/* Top Section: Header, Sort & View Dropdowns */}
           <div className="flex items-center justify-between mb-6">
             <h1 className="text-3xl font-bold text-white">Cello Music</h1>
-
-            {/* Desktop: Sort & View Dropdowns */}
             <div className="hidden md:flex items-center space-x-2">
               <label className="text-white font-medium text-sm" htmlFor="sort-by">
                 Sort By:
               </label>
               <select
                 id="sort-by"
-                defaultValue="level-asc" // Set the default value here
+                defaultValue="level-asc"
                 className="border border-gray-300 rounded-md p-1 text-black font-medium text-sm bg-white focus:outline-none"
                 onChange={(e) => handleSort(e.target.value)}
               >
@@ -475,7 +431,6 @@ const Music: NextPage = () => {
                 <option value="level-desc">Level (High to Low)</option>
                 <option value="composer-desc">Composer (A-Z)</option>
               </select>
-
               <select
                 value={viewMode}
                 onChange={(e) =>
@@ -487,17 +442,13 @@ const Music: NextPage = () => {
                 <option value="list">List View</option>
               </select>
             </div>
-
-            {/* Mobile: Filter, Sort & View Icons */}
             <div className="flex flex-row md:hidden justify-center space-x-2 items-center">
-
               <button
                 className="flex items-center text-white bg-black px-3 py-2 rounded-md"
                 onClick={() => setIsFilterVisible(true)}
               >
                 <IoFilter />
               </button>
-
               <div className="relative">
                 <button
                   className="flex items-center text-white bg-black px-3 py-2 rounded-md"
@@ -558,31 +509,18 @@ const Music: NextPage = () => {
                   </div>
                 )}
               </div>
-
-              {/* Grid/List View Toggle Icon */}
               <button
                 className="flex items-center text-white bg-black px-3 py-2 rounded-md"
                 onClick={() => setViewMode(viewMode === 'card' ? 'list' : 'card')}
               >
-                {viewMode === 'card' ? (
-                  <>
-                    <IoList className="text-white" />
-                  </>
-                ) : (
-                  <>
-                    <IoGrid className="text-white" />
-                  </>
-                )}
+                {viewMode === 'card' ? <IoList className="text-white" /> : <IoGrid className="text-white" />}
               </button>
             </div>
-
-
           </div>
 
-          {/* Conditionally Render Music Cards or List View */}
           {viewMode === 'card' ? (
-            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-              {filteredPieces.map((piece) => (
+            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-4 gap-5">
+              {paginatedPieces.map((piece) => (
                 <MusicCard
                   key={piece.id}
                   id={piece.id}
@@ -595,11 +533,38 @@ const Music: NextPage = () => {
               ))}
             </div>
           ) : (
-            <MusicListView
-              pieces={filteredPieces}
-              sortConfig={sortConfig}
-              onSort={onSort}
-            />
+            <MusicListView pieces={paginatedPieces} sortConfig={sortConfig} onSort={onSort} />
+          )}
+
+          {/* Pagination Controls */}
+          {totalPages > 1 && (
+            <div className="flex justify-center items-center mt-4">
+              <button
+                className="px-3 py-1 mx-1 border rounded disabled:opacity-50"
+                onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                disabled={currentPage === 1}
+              >
+                Prev
+              </button>
+              {Array.from({ length: totalPages }, (_, index) => (
+                <button
+                  key={index}
+                  className={`px-3 py-1 mx-1 border rounded ${
+                    currentPage === index + 1 ? 'bg-blue-500 text-white' : 'bg-white text-black'
+                  }`}
+                  onClick={() => setCurrentPage(index + 1)}
+                >
+                  {index + 1}
+                </button>
+              ))}
+              <button
+                className="px-3 py-1 mx-1 border rounded disabled:opacity-50"
+                onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+                disabled={currentPage === totalPages}
+              >
+                Next
+              </button>
+            </div>
           )}
         </main>
       </div>
