@@ -270,13 +270,13 @@ const NavbarMain = () => {
             onMouseLeave={() => setisAboutHovered(false)}
           >
             <DropdownItem className="custom-dropdown-item text-black p-2">
-              <Link href="/coming-soon">Our Mission</Link>
+              <Link href="/about-us">Our Mission</Link>
             </DropdownItem>
             <DropdownItem className="custom-dropdown-item text-black p-2">
-              <Link href="/coming-soon">Contact Us</Link>
+              <Link href="/contact">Contact Us</Link>
             </DropdownItem>
             <DropdownItem className="custom-dropdown-item text-black p-2">
-              <Link href="/coming-soon">Contribute</Link>
+              <Link href="/contribute">Contribute</Link>
             </DropdownItem>
             <DropdownItem className="custom-dropdown-item text-black p-2">
               <Link href="/resources">Other Resources</Link>
