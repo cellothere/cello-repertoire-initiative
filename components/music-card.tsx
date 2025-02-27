@@ -52,7 +52,7 @@ const imageSrc = isProfessional
   : isCelloDuet
   ? "/assets/early_beginner_duet.png"
   : isAdvanced && isCelloAndPiano
-  ? "/assets/advanced_cello_and_piano.png"
+  ? "/assets/advanced_cello_piano.png"
   : isAdvanced
   ? "/assets/advanced_cello_solo.png"
   : isLateBeginner && isCelloAndPiano
