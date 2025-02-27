@@ -31,34 +31,43 @@ const MusicCard: React.FC<MusicCardProps> = ({
     return `${lastName}, ${firstName}`.trim();
   };
 
-// Conditionally select the image based on level and instrumentation
+// Determine the instrumentation type
 const isCelloAndPiano = instrumentation.includes("Cello") && instrumentation.includes("Piano");
 const isCelloSolo = instrumentation.length === 1 && instrumentation.includes("Cello");
 const isCelloDuet = instrumentation.length === 2 && instrumentation.every(inst => inst === "Cello");
-const isAdvanced = level === "Early Advanced" || level === "Advanced";
 
-const imageSrc =
-  level === "Professional"
-    ? "/assets/cellist3.png"
-    : level === "Beginner" && isCelloDuet
-    ? "/assets/beginner_cello_duet.png"
-    : isCelloDuet
-    ? "/assets/early_beginner_cello_duet.png"
-    : isAdvanced && isCelloAndPiano
-    ? "/assets/advanced_cello_and_piano.png"
-    : isAdvanced
-    ? "/assets/advanced_cello_solo.png"
-    : level === "Late Beginner" && isCelloAndPiano 
-    ? "/assets/late_beginner_cello_and_piano.png"
-    : isCelloAndPiano
-    ? "/assets/early_beginner_cello_and_piano.png"
-    : level === "Late Beginner" && isCelloSolo 
-    ? "/assets/late_beginner_solo_cello.png"
-    : level === "Beginner" && isCelloSolo
-    ? "/assets/beginner_solo_cello.png"
-    : isCelloSolo
-    ? "/assets/early_beginner_solo_cello.png"
-    : "/assets/cellist3.png"; // Fallback image
+// Determine the level
+const isAdvanced = level === "Early Advanced" || level === "Advanced";
+const isBeginner = level === "Beginner";
+const isLateBeginner = level === "Late Beginner";
+const isProfessional = level === "Professional";
+
+// Select the image
+const imageSrc = isProfessional
+  ? "/assets/cellist3.png"
+  : isBeginner && isCelloAndPiano
+  ? "/assets/beginner_cello_and_piano.png" // This condition was missing
+  : isBeginner && isCelloDuet
+  ? "/assets/beginner_duet.png"
+  : isCelloDuet
+  ? "/assets/early_beginner_duet.png"
+  : isAdvanced && isCelloAndPiano
+  ? "/assets/advanced_cello_and_piano.png"
+  : isAdvanced
+  ? "/assets/advanced_cello_solo.png"
+  : isLateBeginner && isCelloAndPiano
+  ? "/assets/late_beginner_cello_piano.png"
+  : isLateBeginner && isCelloSolo
+  ? "/assets/late_beginner_solo_cello.png"
+  : isBeginner && isCelloSolo
+  ? "/assets/beginner_solo.png"
+  : level === "Early Beginner" && isCelloSolo
+  ? "/assets/early_beginner_cello_solo.png"
+  : isCelloAndPiano
+  ? "/assets/early_beginner_cello_piano.png"
+  : "/assets/default_cello_and_piano.png"; // Default fallback
+
+
 
 
 
