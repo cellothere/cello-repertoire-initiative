@@ -27,6 +27,7 @@ const Home: NextPage = () => {
     <div>
       <Head>
         <title>Cello Repertoire Initiative</title>
+        <meta name="description" content="Discover music that resonates with you and your students." />
       </Head>
       <NavbarMain />
       <main

@@ -550,7 +550,7 @@ const Music: NextPage = () => {
                 <button
                   key={index}
                   className={`px-3 py-1 mx-1 border rounded ${
-                    currentPage === index + 1 ? 'bg-blue-500 text-white' : 'bg-white text-black'
+                    currentPage === index + 1 ? 'bg-black text-white' : 'bg-white text-black'
                   }`}
                   onClick={() => setCurrentPage(index + 1)}
                 >
