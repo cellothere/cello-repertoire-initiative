@@ -3,7 +3,7 @@ import Head from 'next/head';
 import NavbarMain from '@/components/navbar-main';
 import { FaArrowRight } from 'react-icons/fa';
 import { useEffect, useState } from 'react';
-import { Link } from '@nextui-org/react';
+import { Link } from '@heroui/react';
 import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 
