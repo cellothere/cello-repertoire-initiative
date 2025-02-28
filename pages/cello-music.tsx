@@ -127,8 +127,6 @@ const Music: NextPage = () => {
   useEffect(() => {
     setCurrentPage(1);
   }, [filteredPieces]);
-
-
   useEffect(() => {
     const fetchNationalities = async () => {
       const res = await fetch('/api/nationalities');
