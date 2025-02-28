@@ -77,6 +77,7 @@ const Contribute: NextPage<ContributeProps> = () => {
                                     <input
                                         type="text"
                                         id="pieceName"
+                                        placeholder='Sonata No.1, Op. 25'
                                         value={pieceName}
                                         onChange={(e) => setPieceName(e.target.value)}
                                         required

@@ -26,24 +26,31 @@ const MusicCard: React.FC<MusicCardProps> = ({
 
   // Function to format the composer's name
   const getFormattedComposer = (firstName: string, lastName: string) => {
-    if (lastName === "Various" || lastName === "Traditional") return lastName;
-    if (firstName === "Various" || firstName === "Traditional") return firstName;
+    if (lastName === "Other" || lastName === "Traditional") return lastName;
+    if (firstName === "Other" || firstName === "Traditional") return firstName;
     return `${lastName}, ${firstName}`.trim();
   };
 
+// Convert instrumentation and level to lowercase for case-insensitive comparison
+const lowerInstrumentation = instrumentation.map(inst => inst.toLowerCase());
+const lowerLevel = level.toLowerCase();
+
 // Determine the instrumentation type
-const isCelloAndPiano = instrumentation.includes("Cello") && instrumentation.includes("Piano");
-const isCelloSolo = instrumentation.length === 1 && instrumentation.includes("Cello");
-const isCelloDuet = instrumentation.length === 2 && instrumentation.every(inst => inst === "Cello");
+const isOther = lowerInstrumentation.includes("other");
+const isCelloAndPiano = lowerInstrumentation.includes("cello") && lowerInstrumentation.includes("piano");
+const isCelloSolo = lowerInstrumentation.length === 1 && lowerInstrumentation.includes("cello");
+const isCelloDuet = lowerInstrumentation.length === 2 && lowerInstrumentation.every(inst => inst === "cello");
 
 // Determine the level
-const isAdvanced = level === "Early Advanced" || level === "Advanced";
-const isBeginner = level === "Beginner";
-const isLateBeginner = level === "Late Beginner";
-const isProfessional = level === "Professional";
+const isAdvanced = lowerLevel === "early advanced" || lowerLevel === "advanced";
+const isBeginner = lowerLevel === "beginner";
+const isLateBeginner = lowerLevel === "late beginner";
+const isProfessional = lowerLevel === "professional";
 
 // Select the image
-const imageSrc = isProfessional && isCelloSolo
+const imageSrc = isOther
+  ? "/assets/Other.png"
+  : isProfessional && isCelloSolo
   ? "/assets/professional_cello_solo.png" 
   : isProfessional
   ? "/assets/professional_cello_piano.png"
@@ -63,16 +70,11 @@ const imageSrc = isProfessional && isCelloSolo
   ? "/assets/late_beginner_solo_cello.png"
   : isBeginner && isCelloSolo
   ? "/assets/beginner_solo.png"
-  : level === "Early Beginner" && isCelloSolo
+  : lowerLevel === "early beginner" && isCelloSolo
   ? "/assets/early_beginner_cello_solo.png"
   : isCelloAndPiano
   ? "/assets/early_beginner_cello_piano.png"
   : "/assets/default_cello_and_piano.png"; // Default fallback
-
-
-
-
-
 
   return (
     <div className="bg-white shadow-md rounded-sm p-4 hover:scale-105 transition-transform duration-300">
