@@ -128,6 +128,31 @@ const Music: NextPage = () => {
     setCurrentPage(1);
   }, [filteredPieces]);
 
+
+  useEffect(() => {
+    const fetchNationalities = async () => {
+      const res = await fetch('/api/nationalities');
+      const data: { nationality: string }[] = await res.json(); // Define expected type
+      const countries = data.map((item) => item.nationality);
+      setAccordionContent((prev) => ({ ...prev, Country: countries }));
+    };
+    fetchNationalities();
+  }, []);
+  
+  useEffect(() => {
+    const fetchComposers = async () => {
+      const res = await fetch('/api/composers');
+      const data = await res.json();
+      // Depending on your API structure, extract the full names:
+      const composers = data.map((group: { composers: Composer[] }) =>
+        group.composers.map((composer) => composer.composer_full_name)
+      ).flat();
+      setAccordionContent((prev) => ({ ...prev, Composer: composers }));
+    };
+    fetchComposers();
+  }, []);
+  
+  
   // Calculate pagination
   const totalPages = Math.ceil(filteredPieces.length / itemsPerPage);
   const paginatedPieces = filteredPieces.slice(
