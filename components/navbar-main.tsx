@@ -6,7 +6,7 @@ import {
   DropdownMenu,
   DropdownItem,
   Button,
-} from "@nextui-org/react";
+} from "@heroui/react";
 import { RxHamburgerMenu } from "react-icons/rx";
 import { FaSearch } from "react-icons/fa";
 import { BiSolidHomeCircle } from "react-icons/bi";
@@ -239,10 +239,10 @@ const NavbarMain = () => {
             onMouseEnter={() => setisMusicHovered(true)}
             onMouseLeave={() => setisMusicHovered(false)}
           >
-            <DropdownItem className="custom-dropdown-item text-black p-2">
+            <DropdownItem key="CelloMusicSelection" className="custom-dropdown-item text-black p-2">
               <Link href="/cello-music">Cello</Link>
             </DropdownItem>
-            <DropdownItem className="custom-dropdown-item text-black p-2">
+            <DropdownItem key="RecentlyAdded" className="custom-dropdown-item text-black p-2">
               <Link href="/cello-music">Recently Added</Link>
             </DropdownItem>
           </DropdownMenu>
@@ -269,16 +269,16 @@ const NavbarMain = () => {
             onMouseEnter={() => setisAboutHovered(true)}
             onMouseLeave={() => setisAboutHovered(false)}
           >
-            <DropdownItem className="custom-dropdown-item text-black p-2">
+            <DropdownItem key="OurMission" className="custom-dropdown-item text-black p-2">
               <Link href="/about-us">Our Mission</Link>
             </DropdownItem>
-            <DropdownItem className="custom-dropdown-item text-black p-2">
+            <DropdownItem key="ContactUs" className="custom-dropdown-item text-black p-2">
               <Link href="/contact">Contact Us</Link>
             </DropdownItem>
-            <DropdownItem className="custom-dropdown-item text-black p-2">
+            <DropdownItem key="Contribute" className="custom-dropdown-item text-black p-2">
               <Link href="/contribute">Contribute</Link>
             </DropdownItem>
-            <DropdownItem className="custom-dropdown-item text-black p-2">
+            <DropdownItem key="OtherResources" className="custom-dropdown-item text-black p-2">
               <Link href="/resources">Other Resources</Link>
             </DropdownItem>
           </DropdownMenu>
