@@ -50,8 +50,10 @@ const MusicCard: React.FC<MusicCardProps> = ({
   // Select the image
   const imageSrc = isOther
     ? "/assets/Other.png"
+    : isProfessional && isCelloDuet
+    ? "/assets/professional_duet.png"
     : isProfessional && isCelloSolo
-    ? "/assets/professional_cello_solo.png" 
+    ? "/assets/professional_cello_solo.png"
     : isProfessional
     ? "/assets/professional_cello_piano.png"
     : isBeginner && isCelloAndPiano
