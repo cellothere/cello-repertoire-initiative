@@ -46,6 +46,7 @@ const MusicCard: React.FC<MusicCardProps> = ({
   const isBeginner = lowerLevel === "beginner";
   const isLateBeginner = lowerLevel === "late beginner";
   const isProfessional = lowerLevel === "professional";
+  const isIntermediate = lowerLevel === "intermediate";
 
   // Select the image
   const imageSrc = isOther
@@ -64,6 +65,10 @@ const MusicCard: React.FC<MusicCardProps> = ({
     ? "/assets/late_beginner_duet.png"
     : isCelloDuet
     ? "/assets/early_beginner_duet.png"
+    : isIntermediate && isCelloAndPiano
+    ? "/assets/intermediate_cello_piano.png"
+    : isIntermediate && isCelloSolo
+    ? "/assets/intermediate_solo.png"
     : isAdvanced && isCelloAndPiano
     ? "/assets/advanced_cello_piano.png"
     : isAdvanced
