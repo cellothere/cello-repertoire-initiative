@@ -27,6 +27,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           }
         },
         // Group by distinct nationalities
+        { $unwind: "$nationality" },
         {
           $group: {
             _id: "$nationality"

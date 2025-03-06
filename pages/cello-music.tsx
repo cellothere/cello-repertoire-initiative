@@ -16,7 +16,7 @@ interface MusicPiece {
   instrumentation: string[];
   composer_last_name: string;
   composer_first_name: string;
-  nationality: string;
+  nationality: string[];
   duration: string;
 }
 
@@ -168,8 +168,8 @@ const Music: NextPage = () => {
         selectedComposers.length === 0 || selectedComposers.includes(piece.composer);
       const levelFilterMatch =
         selectedLevels.length === 0 || selectedLevels.includes(piece.level);
-      const countryFilterMatch =
-        selectedCountries.length === 0 || selectedCountries.includes(piece.nationality);
+        const countryFilterMatch =
+        selectedCountries.length === 0 || piece.nationality.some(nat => selectedCountries.includes(nat));
 
       const pieceYear = parseInt((piece as any).composition_year || '0', 10);
       const validYear = !isNaN(pieceYear) && pieceYear > 0;
@@ -291,7 +291,7 @@ const Music: NextPage = () => {
     }
     const newSortConfig = { field, direction };
     setSortConfig(newSortConfig);
-
+  
     const sortedPieces = [...filteredPieces].sort((a, b) => {
       switch (field) {
         case 'title':
@@ -306,12 +306,29 @@ const Music: NextPage = () => {
           return direction === 'asc'
             ? levelOrder.indexOf(a.level) - levelOrder.indexOf(b.level)
             : levelOrder.indexOf(b.level) - levelOrder.indexOf(a.level);
+        case 'instrumentation':
+          // First sort by the number of instruments
+          const lenDiff = direction === 'asc'
+            ? a.instrumentation.length - b.instrumentation.length
+            : b.instrumentation.length - a.instrumentation.length;
+          if (lenDiff !== 0) return lenDiff;
+          // Then sort alphabetically by the second instrument (or empty string if not present)
+          const secondA = a.instrumentation[1] || '';
+          const secondB = b.instrumentation[1] || '';
+          return direction === 'asc'
+            ? secondA.localeCompare(secondB)
+            : secondB.localeCompare(secondA);
+        case 'duration':
+          return direction === 'asc'
+            ? (a.duration || '').localeCompare(b.duration || '')
+            : (b.duration || '').localeCompare(a.duration || '');
         default:
           return 0;
       }
     });
     setFilteredPieces(sortedPieces);
   };
+  
 
   const handleSort = (sortOption: string) => {
     let field = '';

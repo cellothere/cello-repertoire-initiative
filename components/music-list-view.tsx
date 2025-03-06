@@ -6,6 +6,7 @@ interface MusicPiece {
   title: string;
   composer: string;
   level: string;
+  instrumentation: string[]; // New instrumentation field
   duration?: string; 
 }
 
@@ -35,7 +36,6 @@ const formatDuration = (duration: string): string => {
   return seconds > 0 ? `${minutes}'${seconds}''` : `${minutes}'`;
 };
 
-
 const MusicListView: React.FC<MusicListViewProps> = ({ pieces, sortConfig, onSort }) => {
   const getSortIcon = (field: string) => {
     if (!sortConfig || sortConfig.field !== field) {
@@ -51,43 +51,50 @@ const MusicListView: React.FC<MusicListViewProps> = ({ pieces, sortConfig, onSor
   return (
     <div className="overflow-x-auto bg-white">
       <table className="min-w-full border-collapse">
-      <thead>
-  <tr className="bg-black">
-    <th
-      className="px-4 py-2 border text-left text-white cursor-pointer"
-      onClick={() => onSort('title')}
-    >
-      <span className="flex items-center gap-x-1 whitespace-nowrap">
-        Piece {getSortIcon('title')}
-      </span>
-    </th>
-    <th
-      className="px-4 py-2 border text-left text-white cursor-pointer"
-      onClick={() => onSort('composer')}
-    >
-      <span className="flex items-center gap-x-1 whitespace-nowrap">
-        Composer {getSortIcon('composer')}
-      </span>
-    </th>
-    <th
-      className="px-4 py-2 border text-left text-white cursor-pointer"
-      onClick={() => onSort('level')}
-    >
-      <span className="flex items-center gap-x-1 whitespace-nowrap">
-        Level {getSortIcon('level')}
-      </span>
-    </th>
-    <th
-      className="px-4 py-2 border text-left text-white hidden md:table-cell cursor-pointer"
-      onClick={() => onSort('duration')}
-    >
-      <span className="flex items-center gap-x-1 whitespace-nowrap">
-        Duration {getSortIcon('duration')}
-      </span>
-    </th>
-  </tr>
-</thead>
-
+        <thead>
+          <tr className="bg-black">
+            <th
+              className="px-4 py-2 border text-left text-white cursor-pointer"
+              onClick={() => onSort('title')}
+            >
+              <span className="flex items-center gap-x-1 whitespace-nowrap">
+                Piece {getSortIcon('title')}
+              </span>
+            </th>
+            <th
+              className="px-4 py-2 border text-left text-white cursor-pointer"
+              onClick={() => onSort('instrumentation')}
+            >
+              <span className="flex items-center gap-x-1 whitespace-nowrap">
+                Instrumentation {getSortIcon('instrumentation')}
+              </span>
+            </th>
+            <th
+              className="px-4 py-2 border text-left text-white cursor-pointer"
+              onClick={() => onSort('composer')}
+            >
+              <span className="flex items-center gap-x-1 whitespace-nowrap">
+                Composer {getSortIcon('composer')}
+              </span>
+            </th>
+            <th
+              className="px-4 py-2 border text-left text-white cursor-pointer"
+              onClick={() => onSort('level')}
+            >
+              <span className="flex items-center gap-x-1 whitespace-nowrap">
+                Level {getSortIcon('level')}
+              </span>
+            </th>
+            <th
+              className="px-4 py-2 border text-left text-white hidden md:table-cell cursor-pointer"
+              onClick={() => onSort('duration')}
+            >
+              <span className="flex items-center gap-x-1 whitespace-nowrap">
+                Duration {getSortIcon('duration')}
+              </span>
+            </th>
+          </tr>
+        </thead>
         <tbody>
           {pieces.map((piece) => (
             <tr key={piece.id} className="hover:bg-gray-50">
@@ -98,6 +105,9 @@ const MusicListView: React.FC<MusicListViewProps> = ({ pieces, sortConfig, onSor
                 >
                   {piece.title}
                 </Link>
+              </td>
+              <td className="px-4 py-2 border text-black">
+                {piece.instrumentation.join(', ')}
               </td>
               <td className="px-4 py-2 border text-black">{piece.composer}</td>
               <td className="px-4 py-2 border text-black">{piece.level}</td>
