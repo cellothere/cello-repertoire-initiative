@@ -102,16 +102,19 @@ const FilterAside: React.FC<FilterAsideProps> = ({
       <div id="accordion" className="space-y-2">
         {Object.entries(accordionContent).map(([key, content], index) => {
           // Update filtering logic to include country search
+          // Utility function to remove diacritics
+          const removeDiacritics = (str: string): string =>
+            str.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+
           const filteredItems = content.filter((item) => {
-            const lowerItem = item.toLowerCase();
+            const normalizedItem = removeDiacritics(item.toLowerCase());
             if (key === 'Composer') {
-              return lowerItem.includes(composerSearch.toLowerCase());
+              return normalizedItem.includes(removeDiacritics(composerSearch.toLowerCase()));
             } else if (key === 'Level') {
-              return lowerItem.includes(levelSearch.toLowerCase());
+              return normalizedItem.includes(removeDiacritics(levelSearch.toLowerCase()));
             } else if (key === 'Country') {
-              return lowerItem.includes(countrySearch.toLowerCase());
+              return normalizedItem.includes(removeDiacritics(countrySearch.toLowerCase()));
             }
-            // No search filtering for other categories
             return true;
           });
 

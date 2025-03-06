@@ -150,6 +150,8 @@ const Music: NextPage = () => {
     fetchComposers();
   }, []);
   
+  const removeDiacritics = (str: string): string =>
+    str.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
   
   // Calculate pagination
   const totalPages = Math.ceil(filteredPieces.length / itemsPerPage);
@@ -162,8 +164,8 @@ const Music: NextPage = () => {
   // (The rest of your filtering/sorting code remains unchanged)
   useEffect(() => {
     let filtered = pieces.filter((piece) => {
-      const titleMatch = piece.title.toLowerCase().includes(filter.toLowerCase());
-      const composerMatch = piece.composer.toLowerCase().includes(filter.toLowerCase());
+      const titleMatch = removeDiacritics(piece.title.toLowerCase()).includes(removeDiacritics(filter.toLowerCase()));
+      const composerMatch = removeDiacritics(piece.composer.toLowerCase()).includes(removeDiacritics(filter.toLowerCase()));      
       const composerFilterMatch =
         selectedComposers.length === 0 || selectedComposers.includes(piece.composer);
       const levelFilterMatch =
