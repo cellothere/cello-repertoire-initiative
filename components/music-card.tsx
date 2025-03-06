@@ -31,59 +31,70 @@ const MusicCard: React.FC<MusicCardProps> = ({
     return `${lastName}, ${firstName}`.trim();
   };
 
-  // Convert instrumentation and level to lowercase for case-insensitive comparison
-  const lowerInstrumentation = instrumentation.map(inst => inst.toLowerCase());
-  const lowerLevel = level.toLowerCase();
+ // Convert instrumentation and level to lowercase for case-insensitive comparison
+const lowerInstrumentation = instrumentation.map(inst => inst.toLowerCase());
+const lowerLevel = level.toLowerCase();
 
-  // Determine the instrumentation type
-  const isOther = lowerInstrumentation.includes("other");
-  const isCelloAndPiano = lowerInstrumentation.includes("cello") && lowerInstrumentation.includes("piano");
-  const isCelloSolo = lowerInstrumentation.length === 1 && lowerInstrumentation.includes("cello");
-  const isCelloDuet = lowerInstrumentation.length === 2 && lowerInstrumentation.every(inst => inst === "cello");
+// Determine the instrumentation type
+const isOther = lowerInstrumentation.includes("other");
+const isCelloAndPiano = lowerInstrumentation.includes("cello") && lowerInstrumentation.includes("piano");
+const isCelloSolo = lowerInstrumentation.length === 1 && lowerInstrumentation.includes("cello");
+const isCelloDuet = lowerInstrumentation.length === 2 && lowerInstrumentation.every(inst => inst === "cello");
+const isCelloWithOrchestra = lowerInstrumentation.includes("cello") && lowerInstrumentation.includes("orchestra");
 
-  // Determine the level
-  const isAdvanced = lowerLevel === "early advanced" || lowerLevel === "advanced";
-  const isBeginner = lowerLevel === "beginner";
-  const isLateBeginner = lowerLevel === "late beginner";
-  const isProfessional = lowerLevel === "professional";
-  const isIntermediate = lowerLevel === "intermediate";
+// Determine the level
+const isAdvanced = lowerLevel === "early advanced" || lowerLevel === "advanced";
+const isBeginner = lowerLevel === "beginner";
+const isLateBeginner = lowerLevel === "late beginner";
+const isProfessional = lowerLevel === "professional";
+const isIntermediate = lowerLevel === "intermediate";
+const isLateIntermediate = lowerLevel === "late intermediate"; // New variable
 
-  // Select the image
-  const imageSrc = isOther
-    ? "/assets/Other.png"
-    : isProfessional && isCelloDuet
-    ? "/assets/professional_duet.png"
-    : isProfessional && isCelloSolo
-    ? "/assets/professional_cello_solo.png"
-    : isProfessional
-    ? "/assets/professional_cello_piano.png"
-    : isBeginner && isCelloAndPiano
-    ? "/assets/beginner_cello_and_piano.png"
-    : isBeginner && isCelloDuet
-    ? "/assets/beginner_duet.png"
-    : isLateBeginner && isCelloDuet
-    ? "/assets/late_beginner_duet.png"
-    : isCelloDuet
-    ? "/assets/early_beginner_duet.png"
-    : isIntermediate && isCelloAndPiano
-    ? "/assets/intermediate_cello_piano.png"
-    : isIntermediate && isCelloSolo
-    ? "/assets/intermediate_solo.png"
-    : isAdvanced && isCelloAndPiano
-    ? "/assets/advanced_cello_piano.png"
-    : isAdvanced
-    ? "/assets/advanced_cello_solo.png"
-    : isLateBeginner && isCelloAndPiano
-    ? "/assets/late_beginner_cello_piano.png"
-    : isLateBeginner && isCelloSolo
-    ? "/assets/late_beginner_solo.png"
-    : isBeginner && isCelloSolo
-    ? "/assets/beginner_solo.png"
-    : lowerLevel === "early beginner" && isCelloSolo
-    ? "/assets/early_beginner_cello_solo.png"
-    : isCelloAndPiano
-    ? "/assets/early_beginner_cello_piano.png"
-    : "/assets/default_cello_and_piano.png"; // Default fallback
+// Select the image
+const imageSrc = isOther
+  ? "/assets/Other.png"
+  : isProfessional && isCelloDuet
+  ? "/assets/professional_duet.png"
+  : isProfessional && isCelloSolo
+  ? "/assets/professional_cello_solo.png"
+  : isProfessional && isCelloWithOrchestra
+  ? "/assets/professional_cello_orchestra.png"
+  : isProfessional
+  ? "/assets/professional_cello_piano.png"
+  : isBeginner && isCelloAndPiano
+  ? "/assets/beginner_cello_and_piano.png"
+  : isBeginner && isCelloDuet
+  ? "/assets/beginner_duet.png"
+  : isLateBeginner && isCelloDuet
+  ? "/assets/late_beginner_duet.png"
+  : isIntermediate && isCelloDuet
+  ? "/assets/intermediate_duet.png"
+  : isLateIntermediate && isCelloSolo  
+  ? "/assets/late_intermediate_solo.png"
+    : isLateIntermediate && isCelloAndPiano  
+  ? "/assets/late_intermediate_cello_piano.png"
+  : isCelloDuet
+  ? "/assets/early_beginner_duet.png"
+  : isIntermediate && isCelloAndPiano
+  ? "/assets/intermediate_cello_piano.png"
+  : isIntermediate && isCelloSolo
+  ? "/assets/intermediate_solo.png"
+  : isAdvanced && isCelloAndPiano
+  ? "/assets/advanced_cello_piano.png"
+  : isAdvanced
+  ? "/assets/advanced_cello_solo.png"
+  : isLateBeginner && isCelloAndPiano
+  ? "/assets/late_beginner_cello_piano.png"
+  : isLateBeginner && isCelloSolo
+  ? "/assets/late_beginner_solo.png"
+  : isBeginner && isCelloSolo
+  ? "/assets/beginner_solo.png"
+  : lowerLevel === "early beginner" && isCelloSolo
+  ? "/assets/early_beginner_cello_solo.png"
+  : isCelloAndPiano
+  ? "/assets/early_beginner_cello_piano.png"
+  : "/assets/default_cello_and_piano.png"; // Default fallback
+
 
   return (
     <div className="bg-white shadow-md rounded-sm p-4 hover:scale-105 transition-transform duration-300">
