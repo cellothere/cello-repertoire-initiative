@@ -461,7 +461,7 @@ const Music: NextPage = () => {
           </div>
         )}
 
-        <main className="md:ml-64 w-full container mx-auto p-4">
+        <main className="md:ml-4 w-full container mx-auto p-4">
           {/* Header Section */}
           <div className="flex flex-col items-center justify-center mb-6 space-y-4 md:flex-row md:justify-between md:items-center">
             <h1 className="text-3xl font-bold text-white text-center">Cello Music</h1>
