@@ -476,8 +476,8 @@ const Music: NextPage = () => {
                 className="border border-gray-300 rounded-md p-1 text-black font-medium text-sm bg-white focus:outline-none"
                 onChange={(e) => handleSort(e.target.value)}
               >
-                <option value="title-asc">Alphabetically (A-Z)</option>
-                <option value="title-desc">Alphabetically (Z-A)</option>
+                <option value="title-asc">Title (A-Z)</option>
+                <option value="title-desc">Title (Z-A)</option>
                 <option value="level-asc">Level (Low to High)</option>
                 <option value="level-desc">Level (High to Low)</option>
                 <option value="composer-asc">Composer (A-Z)</option>

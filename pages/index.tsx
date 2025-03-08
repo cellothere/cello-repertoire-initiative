@@ -35,7 +35,7 @@ const Home: NextPage = () => {
         style={{ marginTop: isMobileView ? '30px' : '0' }}
       >
         <h1 className={`text-4xl font-mono font-bold mb-4 text-center ${isMobileView ? 'mobile-title' : ''}`}>
-          Explore. Learn. Teach.
+          Teach. Learn. Perform.
         </h1>
         <p className="text-center mb-5">
           Discover music that resonates with you and your students.

@@ -74,9 +74,7 @@ const FilterAside: React.FC<FilterAsideProps> = ({
   };
 
   return (
-    <aside
-      className="hidden md:block absolute top-24 bottom-0 left-0 w-64 p-5 border-gray-300 overflow-y-auto"
-      aria-label="Filter Panel">
+<aside className="hidden md:block relative w-64 p-5 border-gray-300" aria-label="Filter Panel">
       <h2 className="text-2xl font-bold text-white mb-4">Filter</h2>
       {/* Global Search */}
       <div className="mb-4">
