@@ -12,10 +12,10 @@ interface MusicPiece {
   id: number;
   title: string;
   composer: string;
-  level: string;
-  instrumentation: string[];
   composer_last_name: string;
   composer_first_name: string;
+  level: string;
+  instrumentation: string[];
   nationality: string[];
   duration: string;
 }
@@ -227,9 +227,10 @@ const Music: NextPage = () => {
               ? a.title.localeCompare(b.title)
               : b.title.localeCompare(a.title);
           case 'composer':
+            // Sort by composer_last_name instead of full name
             return sortConfig.direction === 'asc'
-              ? a.composer.localeCompare(b.composer)
-              : b.composer.localeCompare(a.composer);
+              ? a.composer_last_name.localeCompare(b.composer_last_name)
+              : b.composer_last_name.localeCompare(a.composer_last_name);
           case 'level':
             return sortConfig.direction === 'asc'
               ? levelOrder.indexOf(a.level) - levelOrder.indexOf(b.level)
@@ -301,9 +302,10 @@ const Music: NextPage = () => {
             ? a.title.localeCompare(b.title)
             : b.title.localeCompare(a.title);
         case 'composer':
+          // Sort by composer_last_name
           return direction === 'asc'
-            ? a.composer.localeCompare(b.composer)
-            : b.composer.localeCompare(a.composer);
+            ? a.composer_last_name.localeCompare(b.composer_last_name)
+            : b.composer_last_name.localeCompare(a.composer_last_name);
         case 'level':
           return direction === 'asc'
             ? levelOrder.indexOf(a.level) - levelOrder.indexOf(b.level)
@@ -352,10 +354,14 @@ const Music: NextPage = () => {
         field = 'level';
         direction = 'desc';
         break;
-      case 'composer-desc':
+      case 'composer-asc':
         field = 'composer';
-        direction = 'desc';
+        direction = 'asc';
         break;
+        case 'composer-desc':
+          field = 'composer';
+          direction = 'desc';
+          break;
       default:
         break;
     }
@@ -366,9 +372,10 @@ const Music: NextPage = () => {
           ? a.title.localeCompare(b.title)
           : b.title.localeCompare(a.title);
       } else if (field === 'composer') {
+        // Sort by composer_last_name
         return direction === 'asc'
-          ? a.composer.localeCompare(b.composer)
-          : b.composer.localeCompare(a.composer);
+          ? a.composer_last_name.localeCompare(b.composer_last_name)
+          : b.composer_last_name.localeCompare(a.composer_last_name);
       } else if (field === 'level') {
         return direction === 'asc'
           ? levelOrder.indexOf(a.level) - levelOrder.indexOf(b.level)
@@ -473,7 +480,8 @@ const Music: NextPage = () => {
                 <option value="title-desc">Alphabetically (Z-A)</option>
                 <option value="level-asc">Level (Low to High)</option>
                 <option value="level-desc">Level (High to Low)</option>
-                <option value="composer-desc">Composer (A-Z)</option>
+                <option value="composer-asc">Composer (A-Z)</option>
+                <option value="composer-desc">Composer (Z-A)</option>
               </select>
               <select
                 value={viewMode}
@@ -500,6 +508,7 @@ const Music: NextPage = () => {
                   className="flex items-center text-white bg-black px-3 py-2 rounded-md"
                   onClick={() => setIsSortMenuOpen(!isSortMenuOpen)}
                 >
+                  {/* <IoSwapVertical className="text-white" /> */}
                   <div>Sort</div>
                 </button>
                 {isSortMenuOpen && (
@@ -514,7 +523,7 @@ const Music: NextPage = () => {
                         setIsSortMenuOpen(false);
                       }}
                     >
-                      A-Z
+                      Title A-Z
                     </button>
                     <button
                       className="block w-full text-left px-2 py-1 hover:bg-gray-100"
@@ -523,7 +532,7 @@ const Music: NextPage = () => {
                         setIsSortMenuOpen(false);
                       }}
                     >
-                      Z-A
+                      Title Z-A
                     </button>
                     <button
                       className="block w-full text-left px-2 py-1 hover:bg-gray-100"
@@ -546,11 +555,20 @@ const Music: NextPage = () => {
                     <button
                       className="block w-full text-left px-2 py-1 hover:bg-gray-100"
                       onClick={() => {
-                        handleSort('composer-desc');
+                        handleSort('composer-asc');
                         setIsSortMenuOpen(false);
                       }}
                     >
                       Composer (A-Z)
+                    </button>
+                    <button
+                      className="block w-full text-left px-2 py-1 hover:bg-gray-100"
+                      onClick={() => {
+                        handleSort('composer-desc');
+                        setIsSortMenuOpen(false);
+                      }}
+                    >
+                      Composer (Z-A)
                     </button>
                   </div>
                 )}
@@ -559,8 +577,8 @@ const Music: NextPage = () => {
                 className="flex items-center text-white bg-black px-3 py-2 rounded-md"
                 onClick={() => setViewMode(viewMode === 'card' ? 'list' : 'card')}
               >
-                {/* {viewMode === 'card' ? <IoList className="text-white" /> : <IoGrid className="text-white" />} */}
                 {viewMode === 'card' ? <div>List View</div> : <div>Grid View</div>}
+                {/* {viewMode === 'card' ? <IoList className="text-white" /> : <IoGrid className="text-white" />} */}
               </button>
             </div>
           </div>

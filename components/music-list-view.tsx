@@ -4,9 +4,10 @@ import { IoCaretUpCircle, IoCaretDownCircle, IoCaretForwardCircle } from 'react-
 interface MusicPiece {
   id: number;
   title: string;
-  composer: string;
+  composer_first_name: string;
+  composer_last_name: string;
   level: string;
-  instrumentation: string[]; // New instrumentation field
+  instrumentation: string[];
   duration?: string; 
 }
 
@@ -46,6 +47,18 @@ const MusicListView: React.FC<MusicListViewProps> = ({ pieces, sortConfig, onSor
     ) : (
       <IoCaretDownCircle className="inline-block" />
     );
+  };
+
+  const formatComposer = (first: string, last: string): string => {
+    const lowerFirst = first.toLowerCase();
+    const lowerLast = last.toLowerCase();
+    if (lowerFirst.includes("various") || lowerLast.includes("various")) {
+      return "Various";
+    }
+    if (lowerFirst.includes("traditional") || lowerLast.includes("traditional")) {
+      return "Traditional";
+    }
+    return `${first}, ${last}`;
   };
 
   return (
@@ -109,7 +122,9 @@ const MusicListView: React.FC<MusicListViewProps> = ({ pieces, sortConfig, onSor
               <td className="px-4 py-2 border text-black">
                 {piece.instrumentation.join(', ')}
               </td>
-              <td className="px-4 py-2 border text-black">{piece.composer}</td>
+              <td className="px-4 py-2 border text-black">
+                {formatComposer( piece.composer_last_name, piece.composer_first_name)}
+              </td>
               <td className="px-4 py-2 border text-black">{piece.level}</td>
               <td className="px-4 py-2 border text-black hidden md:table-cell">
                 {piece.duration ? formatDuration(piece.duration) : 'N/A'}
