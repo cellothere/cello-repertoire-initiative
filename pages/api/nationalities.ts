@@ -3,8 +3,6 @@ import clientPromise from '../../lib/mongodb';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   try {
-    console.log("Fetching nationalities with music pieces...");
-
     const client = await clientPromise;
     const db = client.db('cello_repertoire');
 
