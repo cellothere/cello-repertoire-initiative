@@ -77,9 +77,9 @@ const linkify = (text: string): React.ReactNode => {
 const formatDuration = (duration: string): string => {
   const parts = duration.split(':');
   if (parts.length !== 3) return duration;
-  
+
   const [hours, minutes, seconds] = parts.map(Number);
-  
+
   if (hours === 0 && minutes === 0 && seconds === 0) return 'N/A';
   if (hours > 0) {
     return seconds > 0
@@ -128,9 +128,10 @@ const Piece: NextPage<PieceProps> = ({ piece, composerInfo }) => {
       </Head>
       <NavbarMain />
       <div className='flex flex-col sm:flex-row justify-between mt-5 mx-auto w-[98%]'>
-        <h1 className="text-2xl sm:text-3xl text-white font-bold">
+        <h1 className="ml-[11px] sm:ml-0 text-2xl sm:text-3xl text-white font-bold">
           {piece.title}
         </h1>
+
         <button className="hidden sm:block bg-black text-white px-3 py-2 rounded-lg hover:scale-105 transition-transform mt-3 sm:mt-0">
           <Link href="../cello-music">
             Back to Music <FaArrowRight className="inline-block ml-2" />
@@ -222,27 +223,6 @@ const Piece: NextPage<PieceProps> = ({ piece, composerInfo }) => {
               )}
             </AccordionDetails>
           </Accordion>
-
-          {/* Technical Overview Accordion */}
-          <Accordion className="w-full max-w-full md:max-w-2xl">
-            <AccordionSummary
-              expandIcon={<ExpandMoreIcon />}
-              aria-controls="panel2-content"
-              id="panel2-header"
-              className="ml-1 text-lg font-bold bg-clip-text"
-            >
-              Technical Overview
-            </AccordionSummary>
-            <div className="border-b border-gray-300 my-1"></div>
-            <AccordionDetails>
-              <p className="text-sm sm:text-md break-words">
-                {piece.technical_overview
-                  ? linkify(piece.technical_overview)
-                  : 'No technical overview available.'}
-              </p>
-            </AccordionDetails>
-          </Accordion>
-
           {/* Where to Buy/Download Accordion */}
           <Accordion className="w-full max-w-full md:max-w-2xl">
             <AccordionSummary
@@ -251,7 +231,7 @@ const Piece: NextPage<PieceProps> = ({ piece, composerInfo }) => {
               id="panel3-header"
               className="ml-1 text-lg font-bold bg-clip-text"
             >
-              Where to Buy/Download
+              Purchase or Download
             </AccordionSummary>
             <div className="border-b border-gray-300 my-1"></div>
             <AccordionDetails>
@@ -287,6 +267,26 @@ const Piece: NextPage<PieceProps> = ({ piece, composerInfo }) => {
               ) : (
                 <p className="text-sm sm:text-md">Nothing here.</p>
               )}
+            </AccordionDetails>
+          </Accordion>
+
+          {/* Technical Overview Accordion */}
+          <Accordion className="w-full max-w-full md:max-w-2xl">
+            <AccordionSummary
+              expandIcon={<ExpandMoreIcon />}
+              aria-controls="panel2-content"
+              id="panel2-header"
+              className="ml-1 text-lg font-bold bg-clip-text"
+            >
+              Technical Overview
+            </AccordionSummary>
+            <div className="border-b border-gray-300 my-1"></div>
+            <AccordionDetails>
+              <p className="text-sm sm:text-md break-words">
+                {piece.technical_overview
+                  ? linkify(piece.technical_overview)
+                  : 'No technical overview available.'}
+              </p>
             </AccordionDetails>
           </Accordion>
 

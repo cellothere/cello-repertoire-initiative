@@ -38,40 +38,6 @@ const Music: NextPage = () => {
   const [viewMode, setViewMode] = useState<'card' | 'list'>('card');
   const [sortConfig, setSortConfig] = useState<{ field: string; direction: 'asc' | 'desc' } | null>(null);
 
-  // Accordion content categories
-  const [accordionContent, setAccordionContent] = useState({
-    Level: [
-      'Early Beginner',
-      'Beginner',
-      'Late Beginner',
-      'Early Intermediate',
-      'Intermediate',
-      'Late Intermediate',
-      'Early Advanced',
-      'Advanced',
-      'Professional',
-      'Various',
-    ],
-    Instrumentation: [
-      'Cello and Piano',
-      'Cello Solo',
-      'Cello Duet',
-      'Cello Ensemble',
-      'Cello and Orchestra',
-      'Other',
-    ],
-    Composer: [] as string[],
-    Country: ['United States of America', 'Canada', 'France', 'Mexico', 'China'],
-    Year: [],
-  });
-
-  // Selected filters
-  const [selectedComposers, setSelectedComposers] = useState<string[]>([]);
-  const [selectedLevels, setSelectedLevels] = useState<string[]>([]);
-  const [selectedInstruments, setSelectedInstruments] = useState<string[]>([]);
-  const [selectedCountries, setSelectedCountries] = useState<string[]>([]);
-
-  // Used to sort by level
   const levelOrder = [
     'Early Beginner',
     'Beginner',
@@ -85,9 +51,27 @@ const Music: NextPage = () => {
     'Various',
   ];
 
-  // Pagination state
+  const [accordionContent, setAccordionContent] = useState({
+    Level: levelOrder,
+    Instrumentation: [
+      'Cello and Piano',
+      'Cello Solo',
+      'Cello Duet',
+      'Cello Ensemble',
+      'Cello and Orchestra',
+      'Other',
+    ],
+    Composer: [] as string[],
+    Country: ['United States of America', 'Canada', 'France', 'Mexico', 'China'],
+    Year: [],
+  });
+
+  const [selectedComposers, setSelectedComposers] = useState<string[]>([]);
+  const [selectedLevels, setSelectedLevels] = useState<string[]>([]);
+  const [selectedInstruments, setSelectedInstruments] = useState<string[]>([]);
+  const [selectedCountries, setSelectedCountries] = useState<string[]>([]);
+
   const [currentPage, setCurrentPage] = useState(1);
-  // Determine mobile vs. desktop based on window width (example: mobile if width < 768px)
   const [isMobile, setIsMobile] = useState<boolean>(false);
   useEffect(() => {
     const handleResize = () => {
@@ -98,12 +82,8 @@ const Music: NextPage = () => {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  // Define items per page:
-  // Desktop: 4 rows * 4 columns = 16 items.
-  // Mobile: 10 rows * 2 columns = 20 items.
   const itemsPerPage = isMobile ? 20 : 16;
 
-  // Fetch music data
   useEffect(() => {
     const fetchPieces = async () => {
       const res = await fetch('/api/celloMusic');
@@ -111,19 +91,16 @@ const Music: NextPage = () => {
       const flattenedPieces = data.flatMap(
         (group: { musicPieces: MusicPiece[] }) => group.musicPieces
       );
-      // Sort the pieces by level (low to high) using levelOrder
       const sortedPieces = flattenedPieces.sort(
         (a: MusicPiece, b: MusicPiece) => levelOrder.indexOf(a.level) - levelOrder.indexOf(b.level)
       );
       setPieces(sortedPieces);
       setFilteredPieces(sortedPieces);
-      // Optionally, update the sort configuration state
       setSortConfig({ field: 'level', direction: 'asc' });
     };
     fetchPieces();
   }, []);
 
-  // Whenever filteredPieces change, reset to the first page
   useEffect(() => {
     setCurrentPage(1);
   }, [filteredPieces]);
@@ -131,7 +108,7 @@ const Music: NextPage = () => {
   useEffect(() => {
     const fetchNationalities = async () => {
       const res = await fetch('/api/nationalities');
-      const data: { nationality: string }[] = await res.json(); // Define expected type
+      const data: { nationality: string }[] = await res.json();
       const countries = data.map((item) => item.nationality);
       setAccordionContent((prev) => ({ ...prev, Country: countries }));
     };
@@ -142,7 +119,6 @@ const Music: NextPage = () => {
     const fetchComposers = async () => {
       const res = await fetch('/api/composers');
       const data = await res.json();
-      // Depending on your API structure, extract the full names:
       const composers = data.map((group: { composers: Composer[] }) =>
         group.composers.map((composer) => composer.composer_full_name)
       ).flat();
@@ -154,14 +130,41 @@ const Music: NextPage = () => {
   const removeDiacritics = (str: string): string =>
     str.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
   
-  // Calculate pagination
   const totalPages = Math.ceil(filteredPieces.length / itemsPerPage);
   const paginatedPieces = filteredPieces.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
   );
 
-  // Sorting and filtering logic…
+  const convertDurationToSeconds = (duration: string): number | null => {
+    const parts = duration.split(':');
+    if (parts.length !== 3) return null;
+    const [hours, minutes, seconds] = parts.map(Number);
+    if (hours === 0 && minutes === 0 && seconds === 0) return null;
+    return hours * 3600 + minutes * 60 + seconds;
+  };
+
+  const compareDurations = (
+    aDuration: string | undefined,
+    bDuration: string | undefined,
+    direction: 'asc' | 'desc'
+  ): number => {
+    const isValid = (duration: string | undefined) =>
+      duration !== undefined && duration !== '00:00:00';
+
+    const aValid = isValid(aDuration);
+    const bValid = isValid(bDuration);
+
+    if (aValid && !bValid) return -1;
+    if (!aValid && bValid) return 1;
+    if (!aValid && !bValid) return 0;
+
+    const secondsA = convertDurationToSeconds(aDuration!);
+    const secondsB = convertDurationToSeconds(bDuration!);
+    if (secondsA === null || secondsB === null) return 0;
+    return direction === 'asc' ? secondsA - secondsB : secondsB - secondsA;
+  };
+
   useEffect(() => {
     let filtered = pieces.filter((piece) => {
       const titleMatch = removeDiacritics(piece.title.toLowerCase()).includes(removeDiacritics(filter.toLowerCase()));
@@ -177,7 +180,6 @@ const Music: NextPage = () => {
       const validYear = !isNaN(pieceYear) && pieceYear > 0;
       const yearFilterMatch = validYear ? pieceYear >= minYear && pieceYear <= maxYear : true;
 
-      // Instrumentation filter logic
       const instrumentationMatch =
         selectedInstruments.length === 0 ||
         selectedInstruments.some((selectedInstrument) => {
@@ -218,7 +220,6 @@ const Music: NextPage = () => {
       );
     });
 
-    // If a sort configuration exists, apply it
     if (sortConfig) {
       filtered = filtered.sort((a, b) => {
         switch (sortConfig.field) {
@@ -227,7 +228,6 @@ const Music: NextPage = () => {
               ? a.title.localeCompare(b.title)
               : b.title.localeCompare(a.title);
           case 'composer':
-            // Sort by composer_last_name instead of full name
             return sortConfig.direction === 'asc'
               ? a.composer_last_name.localeCompare(b.composer_last_name)
               : b.composer_last_name.localeCompare(a.composer_last_name);
@@ -235,6 +235,8 @@ const Music: NextPage = () => {
             return sortConfig.direction === 'asc'
               ? levelOrder.indexOf(a.level) - levelOrder.indexOf(b.level)
               : levelOrder.indexOf(b.level) - levelOrder.indexOf(a.level);
+          case 'duration':
+            return compareDurations(a.duration, b.duration, sortConfig.direction);
           default:
             return 0;
         }
@@ -253,7 +255,6 @@ const Music: NextPage = () => {
     sortConfig
   ]);
 
-  // Helper functions for toggling filters and sorting...
   const toggleComposerSelection = (composer: string) => {
     setSelectedComposers((prev) =>
       prev.includes(composer)
@@ -302,7 +303,6 @@ const Music: NextPage = () => {
             ? a.title.localeCompare(b.title)
             : b.title.localeCompare(a.title);
         case 'composer':
-          // Sort by composer_last_name
           return direction === 'asc'
             ? a.composer_last_name.localeCompare(b.composer_last_name)
             : b.composer_last_name.localeCompare(a.composer_last_name);
@@ -311,28 +311,23 @@ const Music: NextPage = () => {
             ? levelOrder.indexOf(a.level) - levelOrder.indexOf(b.level)
             : levelOrder.indexOf(b.level) - levelOrder.indexOf(a.level);
         case 'instrumentation':
-          // First sort by the number of instruments
           const lenDiff = direction === 'asc'
             ? a.instrumentation.length - b.instrumentation.length
             : b.instrumentation.length - a.instrumentation.length;
           if (lenDiff !== 0) return lenDiff;
-          // Then sort alphabetically by the second instrument (or empty string if not present)
           const secondA = a.instrumentation[1] || '';
           const secondB = b.instrumentation[1] || '';
           return direction === 'asc'
             ? secondA.localeCompare(secondB)
             : secondB.localeCompare(secondA);
         case 'duration':
-          return direction === 'asc'
-            ? (a.duration || '').localeCompare(b.duration || '')
-            : (b.duration || '').localeCompare(a.duration || '');
+          return compareDurations(a.duration, b.duration, direction);
         default:
           return 0;
       }
     });
     setFilteredPieces(sortedPieces);
   };
-  
 
   const handleSort = (sortOption: string) => {
     let field = '';
@@ -358,10 +353,10 @@ const Music: NextPage = () => {
         field = 'composer';
         direction = 'asc';
         break;
-        case 'composer-desc':
-          field = 'composer';
-          direction = 'desc';
-          break;
+      case 'composer-desc':
+        field = 'composer';
+        direction = 'desc';
+        break;
       default:
         break;
     }
@@ -372,7 +367,6 @@ const Music: NextPage = () => {
           ? a.title.localeCompare(b.title)
           : b.title.localeCompare(a.title);
       } else if (field === 'composer') {
-        // Sort by composer_last_name
         return direction === 'asc'
           ? a.composer_last_name.localeCompare(b.composer_last_name)
           : b.composer_last_name.localeCompare(a.composer_last_name);
@@ -462,10 +456,8 @@ const Music: NextPage = () => {
         )}
 
         <main className="md:ml-4 w-full container mx-auto p-4">
-          {/* Header Section */}
           <div className="flex flex-col items-center justify-center mb-6 space-y-4 md:flex-row md:justify-between md:items-center">
             <h1 className="text-3xl font-bold text-white text-center">Cello Music</h1>
-            {/* Desktop Controls */}
             <div className="hidden md:flex items-center space-x-2">
               <label className="text-white font-medium text-sm" htmlFor="sort-by">
                 Sort By:
@@ -494,13 +486,11 @@ const Music: NextPage = () => {
                 <option value="list">List View</option>
               </select>
             </div>
-            {/* Mobile Controls */}
             <div className="flex flex-row md:hidden justify-center items-center space-x-2">
               <button
                 className="flex items-center text-white bg-black px-3 py-2 rounded-md"
                 onClick={() => setIsFilterVisible(true)}
               >
-                {/* <IoFilter /> */}
                 <div>Filter</div>
               </button>
               <div className="relative">
@@ -508,7 +498,6 @@ const Music: NextPage = () => {
                   className="flex items-center text-white bg-black px-3 py-2 rounded-md"
                   onClick={() => setIsSortMenuOpen(!isSortMenuOpen)}
                 >
-                  {/* <IoSwapVertical className="text-white" /> */}
                   <div>Sort</div>
                 </button>
                 {isSortMenuOpen && (
@@ -578,7 +567,6 @@ const Music: NextPage = () => {
                 onClick={() => setViewMode(viewMode === 'card' ? 'list' : 'card')}
               >
                 {viewMode === 'card' ? <div>List View</div> : <div>Grid View</div>}
-                {/* {viewMode === 'card' ? <IoList className="text-white" /> : <IoGrid className="text-white" />} */}
               </button>
             </div>
           </div>
@@ -601,7 +589,6 @@ const Music: NextPage = () => {
             <MusicListView pieces={paginatedPieces} sortConfig={sortConfig} onSort={onSort} />
           )}
 
-          {/* Pagination Controls */}
           {totalPages > 1 && (
             <div className="flex justify-center items-center mt-4">
               <button

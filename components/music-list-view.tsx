@@ -27,7 +27,7 @@ const formatDuration = (duration: string): string => {
   if (parts.length !== 3) return duration;
   
   const [hours, minutes, seconds] = parts.map(Number);
-  
+  // If the duration is 00:00:00, we display as N/A.
   if (hours === 0 && minutes === 0 && seconds === 0) return 'N/A';
   if (hours > 0) {
     return seconds > 0
@@ -35,6 +35,37 @@ const formatDuration = (duration: string): string => {
       : `${hours}hr ${minutes}'`;
   }
   return seconds > 0 ? `${minutes}'${seconds}''` : `${minutes}'`;
+};
+
+const convertDurationToSeconds = (duration: string): number | null => {
+  const parts = duration.split(':');
+  if (parts.length !== 3) return null;
+  const [hours, minutes, seconds] = parts.map(Number);
+  if (hours === 0 && minutes === 0 && seconds === 0) return null;
+  return hours * 3600 + minutes * 60 + seconds;
+};
+
+const compareDurations = (
+  aDuration: string | undefined,
+  bDuration: string | undefined,
+  direction: 'asc' | 'desc'
+): number => {
+  const isValid = (duration: string | undefined) =>
+    duration !== undefined && duration !== '00:00:00';
+
+  const aValid = isValid(aDuration);
+  const bValid = isValid(bDuration);
+
+  // If one is valid and the other isn’t, valid ones come first.
+  if (aValid && !bValid) return -1;
+  if (!aValid && bValid) return 1;
+  if (!aValid && !bValid) return 0;
+
+  // Both durations are valid; convert to seconds.
+  const secondsA = convertDurationToSeconds(aDuration!);
+  const secondsB = convertDurationToSeconds(bDuration!);
+  if (secondsA === null || secondsB === null) return 0;
+  return direction === 'asc' ? secondsA - secondsB : secondsB - secondsA;
 };
 
 const MusicListView: React.FC<MusicListViewProps> = ({ pieces, sortConfig, onSort }) => {
@@ -123,7 +154,7 @@ const MusicListView: React.FC<MusicListViewProps> = ({ pieces, sortConfig, onSor
                 {piece.instrumentation.join(', ')}
               </td>
               <td className="px-4 py-2 border text-black">
-                {formatComposer( piece.composer_last_name, piece.composer_first_name)}
+                {formatComposer(piece.composer_last_name, piece.composer_first_name)}
               </td>
               <td className="px-4 py-2 border text-black">{piece.level}</td>
               <td className="px-4 py-2 border text-black hidden md:table-cell">
