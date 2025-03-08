@@ -127,6 +127,7 @@ const Music: NextPage = () => {
   useEffect(() => {
     setCurrentPage(1);
   }, [filteredPieces]);
+
   useEffect(() => {
     const fetchNationalities = async () => {
       const res = await fetch('/api/nationalities');
@@ -161,7 +162,6 @@ const Music: NextPage = () => {
   );
 
   // Sorting and filtering logic…
-  // (The rest of your filtering/sorting code remains unchanged)
   useEffect(() => {
     let filtered = pieces.filter((piece) => {
       const titleMatch = removeDiacritics(piece.title.toLowerCase()).includes(removeDiacritics(filter.toLowerCase()));
@@ -170,7 +170,7 @@ const Music: NextPage = () => {
         selectedComposers.length === 0 || selectedComposers.includes(piece.composer);
       const levelFilterMatch =
         selectedLevels.length === 0 || selectedLevels.includes(piece.level);
-        const countryFilterMatch =
+      const countryFilterMatch =
         selectedCountries.length === 0 || piece.nationality.some(nat => selectedCountries.includes(nat));
 
       const pieceYear = parseInt((piece as any).composition_year || '0', 10);
@@ -455,8 +455,10 @@ const Music: NextPage = () => {
         )}
 
         <main className="md:ml-64 w-full container mx-auto p-4">
-          <div className="flex items-center justify-between mb-6">
-            <h1 className="text-3xl font-bold text-white">Cello Music</h1>
+          {/* Header Section */}
+          <div className="flex flex-col items-center justify-center mb-6 space-y-4 md:flex-row md:justify-between md:items-center">
+            <h1 className="text-3xl font-bold text-white text-center">Cello Music</h1>
+            {/* Desktop Controls */}
             <div className="hidden md:flex items-center space-x-2">
               <label className="text-white font-medium text-sm" htmlFor="sort-by">
                 Sort By:
@@ -484,19 +486,21 @@ const Music: NextPage = () => {
                 <option value="list">List View</option>
               </select>
             </div>
-            <div className="flex flex-row md:hidden justify-center space-x-2 items-center">
+            {/* Mobile Controls */}
+            <div className="flex flex-row md:hidden justify-center items-center space-x-2">
               <button
                 className="flex items-center text-white bg-black px-3 py-2 rounded-md"
                 onClick={() => setIsFilterVisible(true)}
               >
-                <IoFilter />
+                {/* <IoFilter /> */}
+                <div>Filter</div>
               </button>
               <div className="relative">
                 <button
                   className="flex items-center text-white bg-black px-3 py-2 rounded-md"
                   onClick={() => setIsSortMenuOpen(!isSortMenuOpen)}
                 >
-                  <IoSwapVertical className="text-white" />
+                  <div>Sort</div>
                 </button>
                 {isSortMenuOpen && (
                   <div
@@ -555,7 +559,8 @@ const Music: NextPage = () => {
                 className="flex items-center text-white bg-black px-3 py-2 rounded-md"
                 onClick={() => setViewMode(viewMode === 'card' ? 'list' : 'card')}
               >
-                {viewMode === 'card' ? <IoList className="text-white" /> : <IoGrid className="text-white" />}
+                {/* {viewMode === 'card' ? <IoList className="text-white" /> : <IoGrid className="text-white" />} */}
+                {viewMode === 'card' ? <div>List View</div> : <div>Grid View</div>}
               </button>
             </div>
           </div>
