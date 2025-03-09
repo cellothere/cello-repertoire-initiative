@@ -79,12 +79,12 @@ const FilterAside: React.FC<FilterAsideProps> = ({
       {/* Global Search */}
       <div className="mb-4">
         <label htmlFor="global-filter" className="block mb-2 text-sm font-semibold text-white">
-          Search by Title or Composer:
+          Search:
         </label>
         <input
           id="global-filter"
           type="text"
-          placeholder="Type to filter..."
+          placeholder="Title or Composer"
           value={filter}
           onChange={(e) => setFilter(e.target.value)}
           className="w-full p-2 border border-gray-300 rounded focus:outline-none text-black"

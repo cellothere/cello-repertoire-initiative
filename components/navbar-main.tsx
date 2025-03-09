@@ -240,7 +240,10 @@ const NavbarMain = () => {
             onMouseLeave={() => setisMusicHovered(false)}
           >
             <DropdownItem key="CelloMusicSelection" className="custom-dropdown-item text-black p-2">
-              <Link href="/cello-music">Cello</Link>
+              <Link href="/cello-music">Cello Music</Link>
+            </DropdownItem>
+            <DropdownItem key="ComposerSelection" className="custom-dropdown-item text-black p-2">
+              <Link href="/composers">Composer List</Link>
             </DropdownItem>
             <DropdownItem key="RecentlyAdded" className="custom-dropdown-item text-black p-2">
               <Link href="/cello-music">Recently Added</Link>
