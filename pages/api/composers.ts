@@ -1,15 +1,17 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import clientPromise from '../../lib/mongodb';
 
-// Define the Composer type
+// Define the Composer type to match your database schema
 type Composer = {
   composer_full_name: string;
   composer_last_name: string;
   composer_first_name: string;
-  id: number;
+  born?: string;
+  died?: string;
+  bio_link: string[];
   nationality: string[];
   tags: string[];
-  articles: string[];
+  id: number;
 };
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -40,12 +42,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             composers: {
               $push: {
                 composer_full_name: '$composer_full_name',
-                composer_last_name: '$lastName',
-                composer_first_name: '$firstName',
+                composer_last_name: '$composer_last_name',
+                composer_first_name: '$composer_first_name',
+                born: '$born',
+                died: '$died',
+                bio_link: '$bio_link',
                 id: '$id',
                 nationality: '$nationality',
                 tags: '$tags',
-                articles: '$articles',
               },
             },
             count: { $sum: 1 },
@@ -62,7 +66,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     res.status(200).json(composers);
   } catch (error) {
-    console.error('Error fetching composers:', error); // Log error for debugging
+    console.error('Error fetching composers:', error);
     res.status(500).json({ error: 'Failed to fetch composers' });
   }
 }

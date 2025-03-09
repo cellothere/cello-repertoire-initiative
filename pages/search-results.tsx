@@ -100,7 +100,7 @@ const SearchResults: NextPage = () => {
                 ))}
               </div>
             ) : (
-              <p className="text-center text-black">No results found.</p>
+              <p className="text-center text-white">No results found.</p>
             )}
           </>
         )}
