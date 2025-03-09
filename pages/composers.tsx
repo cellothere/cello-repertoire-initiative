@@ -47,18 +47,18 @@ const ComposersPage: React.FC = () => {
   const filteredComposers = composers.filter((composer) => {
     const name = `${composer.firstName} ${composer.lastName}`.toLowerCase();
     const searchLower = searchTerm.toLowerCase();
-  
+
     // Check if the search term matches the composer's name
     const matchesName = name.includes(searchLower);
-  
+
     // Check if the search term matches any of the composer's nationalities
     const matchesNationality = composer.nationalities?.some((nat) =>
       nat.toLowerCase().includes(searchLower)
     );
-  
+
     return matchesName || matchesNationality;
   });
-  
+
   const formatComposer = (first: string, last: string): string => {
     const lowerFirst = first.toLowerCase();
     const lowerLast = last.toLowerCase();
@@ -109,32 +109,32 @@ const ComposersPage: React.FC = () => {
   // Sort filtered composers based on the current sort configuration
   const sortedComposers = sortConfig
     ? [...filteredComposers].sort((a, b) => {
-        if (sortConfig.field === 'lastname') {
-          return sortConfig.direction === 'asc'
-            ? a.lastName.localeCompare(b.lastName)
-            : b.lastName.localeCompare(a.lastName);
-        } else if (sortConfig.field === 'nationality') {
-          // Sort by the first nationality available (or empty string if none)
-          const aNationality = a.nationalities && a.nationalities.length > 0 ? a.nationalities[0] : '';
-          const bNationality = b.nationalities && b.nationalities.length > 0 ? b.nationalities[0] : '';
-          return sortConfig.direction === 'asc'
-            ? aNationality.localeCompare(bNationality)
-            : bNationality.localeCompare(aNationality);
-        } else if (sortConfig.field === 'born') {
-          // Convert birth years to numbers. If missing, treat as null.
-          const aBorn = a.born ? parseInt(a.born) : null;
-          const bBorn = b.born ? parseInt(b.born) : null;
-          // If both composers have a birth year, sort numerically.
-          if (aBorn !== null && bBorn !== null) {
-            return sortConfig.direction === 'asc' ? aBorn - bBorn : bBorn - aBorn;
-          }
-          // If one is missing, it should be sorted at the bottom.
-          if (aBorn === null && bBorn === null) return 0;
-          if (aBorn === null) return 1;
-          if (bBorn === null) return -1;
+      if (sortConfig.field === 'lastname') {
+        return sortConfig.direction === 'asc'
+          ? a.lastName.localeCompare(b.lastName)
+          : b.lastName.localeCompare(a.lastName);
+      } else if (sortConfig.field === 'nationality') {
+        // Sort by the first nationality available (or empty string if none)
+        const aNationality = a.nationalities && a.nationalities.length > 0 ? a.nationalities[0] : '';
+        const bNationality = b.nationalities && b.nationalities.length > 0 ? b.nationalities[0] : '';
+        return sortConfig.direction === 'asc'
+          ? aNationality.localeCompare(bNationality)
+          : bNationality.localeCompare(aNationality);
+      } else if (sortConfig.field === 'born') {
+        // Convert birth years to numbers. If missing, treat as null.
+        const aBorn = a.born ? parseInt(a.born) : null;
+        const bBorn = b.born ? parseInt(b.born) : null;
+        // If both composers have a birth year, sort numerically.
+        if (aBorn !== null && bBorn !== null) {
+          return sortConfig.direction === 'asc' ? aBorn - bBorn : bBorn - aBorn;
         }
-        return 0;
-      })
+        // If one is missing, it should be sorted at the bottom.
+        if (aBorn === null && bBorn === null) return 0;
+        if (aBorn === null) return 1;
+        if (bBorn === null) return -1;
+      }
+      return 0;
+    })
     : filteredComposers;
 
   return (
@@ -187,9 +187,13 @@ const ComposersPage: React.FC = () => {
                     </span>
                   ) : null}
                 </span>
-                <Link href={`/composer/${composer.id}`} className="text-blue-500 hover:underline">
-                  View Details
+                <Link
+                  href={`/search-results?query=${encodeURIComponent(`${composer.firstName} ${composer.lastName}`)}`}
+                  className="text-blue-500 hover:underline"
+                >
+                  View Works
                 </Link>
+
               </li>
             ))}
           </ul>

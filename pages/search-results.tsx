@@ -1,29 +1,28 @@
 // pages/search-results.tsx (or wherever your SearchResults component is located)
 import { useState, useEffect } from "react";
+import { useRouter } from "next/router";
 import Head from "next/head";
 import NavbarMain from "@/components/navbar-main";
 import { NextPage } from "next";
-import MusicCard from "../components/music-card"; // Import MusicCard
+import MusicCard from "@/components/music-card"; // Updated to use absolute import
 import LoadingAnimation from "@/components/loading-animation";
 
 const SearchResults: NextPage = () => {
+  const router = useRouter();
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [searchResults, setSearchResults] = useState<any[]>([]);
-  const [loading, setLoading] = useState<boolean>(false); // Optional: Loading state
-  const [error, setError] = useState<string | null>(null); // Optional: Error state
+  const [loading, setLoading] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    // Fetch query from URL if provided
-    if (typeof window !== "undefined") {
-      const urlParams = new URLSearchParams(window.location.search);
-      const query = urlParams.get("query") || "";
-      setSearchQuery(query);
-
-      if (query) {
-        fetchSearchResults(query);
+    if (router.isReady) {
+      const queryParam = (router.query.query as string) || "";
+      setSearchQuery(queryParam);
+      if (queryParam) {
+        fetchSearchResults(queryParam);
       }
     }
-  }, []);
+  }, [router.isReady, router.query.query]);
 
   const fetchSearchResults = async (query: string) => {
     setLoading(true);
@@ -45,8 +44,11 @@ const SearchResults: NextPage = () => {
 
   const handleSearch = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (searchQuery.trim()) {
-      fetchSearchResults(searchQuery.trim());
+    const trimmedQuery = searchQuery.trim();
+    if (trimmedQuery) {
+      // Update URL so that the search query is reflected in the browser
+      router.push(`/search-results?query=${encodeURIComponent(trimmedQuery)}`);
+      fetchSearchResults(trimmedQuery);
     }
   };
 
@@ -58,7 +60,7 @@ const SearchResults: NextPage = () => {
         </title>
       </Head>
       <NavbarMain />
-      <main className="p-4 min-h-screen">
+      <main className="p-4 min-h-screen container mx-auto">
         <h1 className="text-3xl font-bold text-center mb-6">Search Results</h1>
         {/* Search Form */}
         <form onSubmit={handleSearch} className="max-w-md mx-auto mb-8 flex flex-col sm:flex-row items-stretch sm:items-center">
@@ -79,7 +81,7 @@ const SearchResults: NextPage = () => {
         </form>
 
         {/* Loading and Error States */}
-        {loading && <p className="text-gray-700"><LoadingAnimation /></p>}
+        {loading && <p className="text-gray-700 text-center"><LoadingAnimation /></p>}
         {error && <p className="text-center text-red-500">{error}</p>}
 
         {/* Search Results */}
@@ -89,14 +91,14 @@ const SearchResults: NextPage = () => {
               <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                 {searchResults.map((result) => (
                   <MusicCard
-                  key={result.id}
-                  id={result.id}
-                  title={result.title}
-                  composer_first_name={result.composer_first_name}
-                  composer_last_name={result.composer_last_name}
-                  level={result.level}
-                  instrumentation={result.instrumentation}
-                />
+                    key={result.id}
+                    id={result.id}
+                    title={result.title}
+                    composer_first_name={result.composer_first_name}
+                    composer_last_name={result.composer_last_name}
+                    level={result.level}
+                    instrumentation={result.instrumentation}
+                  />
                 ))}
               </div>
             ) : (
