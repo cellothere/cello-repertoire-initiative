@@ -272,7 +272,7 @@ const Music: NextPage = () => {
         selectedCountries.length === 0 || piece.nationality.some((nat) => selectedCountries.includes(nat));
       const pieceYear = parseInt((piece as any).composition_year || '0', 10);
       const validYear = !isNaN(pieceYear) && pieceYear > 0;
-      const yearFilterMatch = validYear ? pieceYear >= minYear && pieceYear <= maxYear : true;
+      const yearFilterMatch = validYear && pieceYear >= minYear && pieceYear <= maxYear;
       const instrumentationMatch =
         selectedInstruments.length === 0 ||
         selectedInstruments.some((selectedInstrument) => {

@@ -117,11 +117,11 @@ const Piece: NextPage<PieceProps> = ({ piece, composerInfo }) => {
         <h1 className="ml-[11px] sm:ml-0 text-2xl sm:text-3xl text-white font-bold">
           {piece.title}
         </h1>
-        <button className="hidden sm:block bg-black text-white px-3 py-2 rounded-lg hover:scale-105 transition-transform mt-3 sm:mt-0">
+        {/* <button className="hidden sm:block bg-black text-white px-3 py-2 rounded-lg hover:scale-105 transition-transform mt-3 sm:mt-0">
           <Link href="../cello-music">
             Back to Music <FaArrowRight className="inline-block ml-2" />
           </Link>
-        </button>
+        </button> */}
       </div>
       <main
         className={`grid grid-cols-1 gap-6 p-4 ${hasVideo ? 'md:grid-cols-2' : 'md:grid-cols-1'}`}
