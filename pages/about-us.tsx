@@ -15,7 +15,7 @@ const AboutUs: NextPage = () => {
             <NavbarMain />
             <section className="flex flex-col items-center justify-center min-h-screen px-6 py-12 text-center">
                 <div className="max-w-3xl">
-                    <h1 className="text-3xl font-bold font-mono text-gray-900">
+                    <h1 className="text-3xl font-bold font-mono text-white">
                         The Cello Repertoire Initiative
                     </h1>
                     <p className="mt-4 text-lg text-gray-700 leading-relaxed">
