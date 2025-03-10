@@ -18,7 +18,7 @@ const AboutUs: NextPage = () => {
                     <h1 className="text-3xl font-bold font-mono text-white">
                         The Cello Repertoire Initiative
                     </h1>
-                    <p className="mt-4 text-lg text-gray-700 leading-relaxed">
+                    <p className="mt-4 text-lg text-gray-900 leading-relaxed">
                         We exist to provide teachers, students, and performers with a searchable database 
                         of level-appropriate musical literature and teaching resources. By featuring works 
                         by under-recognized and underrepresented composers, we hope you will discover music 

@@ -11,6 +11,7 @@ import { RxHamburgerMenu } from "react-icons/rx";
 import { FaSearch } from "react-icons/fa";
 import { BiSolidHomeCircle } from "react-icons/bi";
 import { useRouter } from "next/router";
+import Image from "next/image";
 
 const NavbarMain = () => {
   const router = useRouter();
@@ -24,7 +25,7 @@ const NavbarMain = () => {
   // Detect mobile view
   const [isMobileView, setIsMobileView] = useState(false);
 
-  // 1. Create a ref for the menu container
+  // Create a ref for the menu container
   const menuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -40,7 +41,7 @@ const NavbarMain = () => {
     };
   }, []);
 
-  // 2. Close the menu if a click happens outside of the menuRef
+  // Close the menu if a click happens outside of the menuRef
   useEffect(() => {
     if (!isMenuOpen) return;
 
@@ -89,7 +90,13 @@ const NavbarMain = () => {
       <div className="flex items-center">
         <div className="flex-shrink-0">
           <Link href="/">
-            <img src="/assets/altLogo.png" alt="Logo" className="h-16 w-auto" />
+            <Image 
+              src="/assets/altLogo.png" 
+              alt="Logo" 
+              width={100} // Adjust width as needed
+              height={64} // Adjust height as needed to match your design (h-16 ≈ 64px)
+              className="h-16 w-auto" 
+            />
           </Link>
         </div>
         <Link href="/" id="navName" className="hidden md:inline">
@@ -185,7 +192,7 @@ const NavbarMain = () => {
           </>
         )}
 
-        {/* 3. Wrap the dropdown menu with the ref */}
+        {/* Wrap the dropdown menu with the ref */}
         {isMenuOpen && (
           <div
             ref={menuRef}

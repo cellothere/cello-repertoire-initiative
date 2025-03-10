@@ -4,6 +4,7 @@ import NavbarMain from '@/components/navbar-main';
 import { FaArrowRight } from 'react-icons/fa';
 import { useEffect, useState } from 'react';
 import { Link } from '@heroui/react';
+import Image from 'next/image';
 import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 
@@ -56,7 +57,13 @@ const Home: NextPage = () => {
               ].map(({ href, src, label, subLabel }, index) => (
                 <Link key={index} href={href}>
                   <div className={`relative ${isMobileView ? '' : 'hover:scale-105'} duration-300`}>
-                    <img src={src} className={`w-80 h-120 rounded-lg transition-opacity duration-300 ${isMobileView ? '' : 'hover:opacity-75'}`} />
+                    <Image 
+                      src={src}
+                      alt={label}
+                      width={320}  // Adjust width as needed
+                      height={480} // Adjust height as needed
+                      className={`w-80 h-120 rounded-lg transition-opacity duration-300 ${isMobileView ? '' : 'hover:opacity-75'}`}
+                    />
                     <div className={`absolute inset-0 flex flex-col items-center justify-center bg-black ${isMobileView ? 'bg-opacity-20' : 'bg-opacity-50 opacity-0 hover:opacity-100'} transition-opacity duration-300`}>
                       <p className="text-white text-lg font-bold">{label}</p>
                       {subLabel && <p className="text-sm font-bold text-white">{subLabel}</p>}
@@ -72,7 +79,13 @@ const Home: NextPage = () => {
               ].map(({ href, src, label, subLabel }, index) => (
                 <Link key={index} href={href}>
                   <div className="relative hover:scale-105 duration-300">
-                    <img src={src} className="w-80 h-120 rounded-lg transition-opacity duration-300 hover:opacity-75" />
+                    <Image 
+                      src={src}
+                      alt={label}
+                      width={320}  // Adjust width as needed
+                      height={480} // Adjust height as needed
+                      className="w-80 h-120 rounded-lg transition-opacity duration-300 hover:opacity-75"
+                    />
                     <div className="absolute inset-0 flex flex-col items-center justify-center bg-black bg-opacity-50 opacity-0 hover:opacity-100 transition-opacity duration-300">
                       <p className="text-white text-lg font-bold">{label}</p>
                       {subLabel && <p className="text-sm font-bold text-white">{subLabel}</p>}
