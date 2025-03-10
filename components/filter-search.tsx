@@ -20,7 +20,10 @@ interface FilterAsideProps {
   maxYear: number;
   setMinYear: React.Dispatch<React.SetStateAction<number>>;
   setMaxYear: React.Dispatch<React.SetStateAction<number>>;
+  setCurrentPage: React.Dispatch<React.SetStateAction<number>>; 
 }
+
+
 
 const FilterAside: React.FC<FilterAsideProps> = ({
   filter,
@@ -38,7 +41,9 @@ const FilterAside: React.FC<FilterAsideProps> = ({
   maxYear,
   setMinYear,
   setMaxYear,
+  setCurrentPage 
 }) => {
+
   const [openAccordion, setOpenAccordion] = useState<number | null>(null);
   const [composerSearch, setComposerSearch] = useState<string>('');
   const [levelSearch, setLevelSearch] = useState<string>('');
@@ -61,7 +66,9 @@ const FilterAside: React.FC<FilterAsideProps> = ({
     selectedCountries.forEach((country) => toggleCountrySelection(country));
     setMinYear(1600);
     setMaxYear(2025);
+    setCurrentPage(1); 
     setOpenAccordion(null);
+    
   };
 
   // Utility to get selected count

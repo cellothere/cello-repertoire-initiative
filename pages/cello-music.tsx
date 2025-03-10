@@ -1,6 +1,7 @@
 import { NextPage } from 'next';
 import Head from 'next/head';
-import { useRef, useEffect, useState } from 'react';
+import { useRef, useEffect, useState, useMemo, useCallback } from 'react';
+import { useRouter } from 'next/router';
 import { IoFilter, IoSwapVertical, IoList, IoGrid } from 'react-icons/io5';
 import NavbarMain from '@/components/navbar-main';
 import FilterAside from '@/components/filter-search';
@@ -28,17 +29,39 @@ interface Composer {
 }
 
 const Music: NextPage = () => {
+  const router = useRouter();
+
+  // States for data and filters
   const [pieces, setPieces] = useState<MusicPiece[]>([]);
   const [filteredPieces, setFilteredPieces] = useState<MusicPiece[]>([]);
   const [filter, setFilter] = useState<string>('');
-  const [isFilterVisible, setIsFilterVisible] = useState<boolean>(false);
-  const [isSortMenuOpen, setIsSortMenuOpen] = useState(false);
+  const [selectedComposers, setSelectedComposers] = useState<string[]>([]);
+  const [selectedLevels, setSelectedLevels] = useState<string[]>([]);
+  const [selectedInstruments, setSelectedInstruments] = useState<string[]>([]);
+  const [selectedCountries, setSelectedCountries] = useState<string[]>([]);
   const [minYear, setMinYear] = useState<number>(1600);
   const [maxYear, setMaxYear] = useState<number>(2025);
+  const [currentPage, setCurrentPage] = useState(1);
   const [viewMode, setViewMode] = useState<'card' | 'list'>('card');
   const [sortConfig, setSortConfig] = useState<{ field: string; direction: 'asc' | 'desc' } | null>(null);
 
-  const levelOrder = [
+  // UI controls
+  const [isFilterVisible, setIsFilterVisible] = useState<boolean>(false);
+  const [isSortMenuOpen, setIsSortMenuOpen] = useState(false);
+  const [isMobile, setIsMobile] = useState<boolean>(false);
+
+  // Handle window resizing
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 768);
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  const itemsPerPage = isMobile ? 20 : 16;
+
+  // Wrap levelOrder in useMemo so its reference is stable
+  const levelOrder = useMemo(() => [
     'Early Beginner',
     'Beginner',
     'Late Beginner',
@@ -49,8 +72,9 @@ const Music: NextPage = () => {
     'Advanced',
     'Professional',
     'Various',
-  ];
+  ], []);
 
+  // Accordion content for filtering
   const [accordionContent, setAccordionContent] = useState({
     Level: levelOrder,
     Instrumentation: [
@@ -66,31 +90,98 @@ const Music: NextPage = () => {
     Year: [],
   });
 
-  const [selectedComposers, setSelectedComposers] = useState<string[]>([]);
-  const [selectedLevels, setSelectedLevels] = useState<string[]>([]);
-  const [selectedInstruments, setSelectedInstruments] = useState<string[]>([]);
-  const [selectedCountries, setSelectedCountries] = useState<string[]>([]);
-
-  const [currentPage, setCurrentPage] = useState(1);
-  const [isMobile, setIsMobile] = useState<boolean>(false);
+  // --- 1. Read Query Parameters on Mount ---
   useEffect(() => {
-    const handleResize = () => {
-      setIsMobile(window.innerWidth < 768);
+    if (router.isReady) {
+      const {
+        filter: qFilter,
+        selectedComposers: qSelectedComposers,
+        selectedLevels: qSelectedLevels,
+        selectedInstruments: qSelectedInstruments,
+        selectedCountries: qSelectedCountries,
+        minYear: qMinYear,
+        maxYear: qMaxYear,
+        page: qPage,
+        viewMode: qViewMode,
+        sortField,
+        sortDirection,
+      } = router.query;
+
+      if (qFilter) setFilter(qFilter as string);
+      if (qSelectedComposers) {
+        setSelectedComposers(
+          Array.isArray(qSelectedComposers)
+            ? qSelectedComposers as string[]
+            : [qSelectedComposers as string]
+        );
+      }
+      if (qSelectedLevels) {
+        setSelectedLevels(
+          Array.isArray(qSelectedLevels)
+            ? qSelectedLevels as string[]
+            : [qSelectedLevels as string]
+        );
+      }
+      if (qSelectedInstruments) {
+        setSelectedInstruments(
+          Array.isArray(qSelectedInstruments)
+            ? qSelectedInstruments as string[]
+            : [qSelectedInstruments as string]
+        );
+      }
+      if (qSelectedCountries) {
+        setSelectedCountries(
+          Array.isArray(qSelectedCountries)
+            ? qSelectedCountries as string[]
+            : [qSelectedCountries as string]
+        );
+      }
+      if (qMinYear) setMinYear(Number(qMinYear));
+      if (qMaxYear) setMaxYear(Number(qMaxYear));
+      if (qPage) setCurrentPage(Number(qPage));
+      if (qViewMode) setViewMode(qViewMode as 'card' | 'list');
+      if (sortField && sortDirection) {
+        setSortConfig({ field: sortField as string, direction: sortDirection as 'asc' | 'desc' });
+      }
+    }
+  }, [router.isReady]);
+
+  // --- 2. Update URL Query When Filters Change ---
+  useEffect(() => {
+    const query = {
+      filter,
+      selectedComposers,
+      selectedLevels,
+      selectedInstruments,
+      selectedCountries,
+      minYear,
+      maxYear,
+      page: currentPage,
+      viewMode,
+      sortField: sortConfig?.field,
+      sortDirection: sortConfig?.direction,
     };
-    handleResize();
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
+    router.replace({ pathname: router.pathname, query }, undefined, { shallow: true });
+  }, [
+    filter,
+    selectedComposers,
+    selectedLevels,
+    selectedInstruments,
+    selectedCountries,
+    minYear,
+    maxYear,
+    currentPage,
+    viewMode,
+    sortConfig,
+    router.pathname,
+  ]);
 
-  const itemsPerPage = isMobile ? 20 : 16;
-
+  // Fetch music pieces from API
   useEffect(() => {
     const fetchPieces = async () => {
       const res = await fetch('/api/celloMusic');
       const data = await res.json();
-      const flattenedPieces = data.flatMap(
-        (group: { musicPieces: MusicPiece[] }) => group.musicPieces
-      );
+      const flattenedPieces = data.flatMap((group: { musicPieces: MusicPiece[] }) => group.musicPieces);
       const sortedPieces = flattenedPieces.sort(
         (a: MusicPiece, b: MusicPiece) => levelOrder.indexOf(a.level) - levelOrder.indexOf(b.level)
       );
@@ -99,11 +190,11 @@ const Music: NextPage = () => {
       setSortConfig({ field: 'level', direction: 'asc' });
     };
     fetchPieces();
-  }, []);
+  }, [levelOrder]);
 
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [filteredPieces]);
+  // useEffect(() => {
+  //   setCurrentPage(1);
+  // }, [filteredPieces]);
 
   useEffect(() => {
     const fetchNationalities = async () => {
@@ -114,22 +205,24 @@ const Music: NextPage = () => {
     };
     fetchNationalities();
   }, []);
-  
+
   useEffect(() => {
     const fetchComposers = async () => {
       const res = await fetch('/api/composers');
       const data = await res.json();
-      const composers = data.map((group: { composers: Composer[] }) =>
-        group.composers.map((composer) => composer.composer_full_name)
-      ).flat();
+      const composers = data
+        .map((group: { composers: Composer[] }) =>
+          group.composers.map((composer) => composer.composer_full_name)
+        )
+        .flat();
       setAccordionContent((prev) => ({ ...prev, Composer: composers }));
     };
     fetchComposers();
   }, []);
-  
+
   const removeDiacritics = (str: string): string =>
     str.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-  
+
   const totalPages = Math.ceil(filteredPieces.length / itemsPerPage);
   const paginatedPieces = filteredPieces.slice(
     (currentPage - 1) * itemsPerPage,
@@ -144,72 +237,68 @@ const Music: NextPage = () => {
     return hours * 3600 + minutes * 60 + seconds;
   };
 
-  const compareDurations = (
-    aDuration: string | undefined,
-    bDuration: string | undefined,
-    direction: 'asc' | 'desc'
-  ): number => {
-    const isValid = (duration: string | undefined) =>
-      duration !== undefined && duration !== '00:00:00';
+  // Memoize compareDurations so that its reference remains stable.
+  const compareDurations = useCallback(
+    (aDuration: string | undefined, bDuration: string | undefined, direction: 'asc' | 'desc'): number => {
+      const isValid = (duration: string | undefined) =>
+        duration !== undefined && duration !== '00:00:00';
+      const aValid = isValid(aDuration);
+      const bValid = isValid(bDuration);
+      if (aValid && !bValid) return -1;
+      if (!aValid && bValid) return 1;
+      if (!aValid && !bValid) return 0;
+      const secondsA = convertDurationToSeconds(aDuration!);
+      const secondsB = convertDurationToSeconds(bDuration!);
+      if (secondsA === null || secondsB === null) return 0;
+      return direction === 'asc' ? secondsA - secondsB : secondsB - secondsA;
+    },
+    []
+  );
 
-    const aValid = isValid(aDuration);
-    const bValid = isValid(bDuration);
-
-    if (aValid && !bValid) return -1;
-    if (!aValid && bValid) return 1;
-    if (!aValid && !bValid) return 0;
-
-    const secondsA = convertDurationToSeconds(aDuration!);
-    const secondsB = convertDurationToSeconds(bDuration!);
-    if (secondsA === null || secondsB === null) return 0;
-    return direction === 'asc' ? secondsA - secondsB : secondsB - secondsA;
-  };
-
+  // Filter and sort pieces based on filter state
   useEffect(() => {
     let filtered = pieces.filter((piece) => {
-      const titleMatch = removeDiacritics(piece.title.toLowerCase()).includes(removeDiacritics(filter.toLowerCase()));
-      const composerMatch = removeDiacritics(piece.composer.toLowerCase()).includes(removeDiacritics(filter.toLowerCase()));      
+      const titleMatch = removeDiacritics(piece.title.toLowerCase()).includes(
+        removeDiacritics(filter.toLowerCase())
+      );
+      const composerMatch = removeDiacritics(piece.composer.toLowerCase()).includes(
+        removeDiacritics(filter.toLowerCase())
+      );
       const composerFilterMatch =
         selectedComposers.length === 0 || selectedComposers.includes(piece.composer);
       const levelFilterMatch =
         selectedLevels.length === 0 || selectedLevels.includes(piece.level);
       const countryFilterMatch =
-        selectedCountries.length === 0 || piece.nationality.some(nat => selectedCountries.includes(nat));
-
+        selectedCountries.length === 0 || piece.nationality.some((nat) => selectedCountries.includes(nat));
       const pieceYear = parseInt((piece as any).composition_year || '0', 10);
       const validYear = !isNaN(pieceYear) && pieceYear > 0;
       const yearFilterMatch = validYear ? pieceYear >= minYear && pieceYear <= maxYear : true;
-
       const instrumentationMatch =
         selectedInstruments.length === 0 ||
         selectedInstruments.some((selectedInstrument) => {
           const normalizedSelectedInstrument =
             selectedInstrument === 'Cello Solo' ? 'Cello' : selectedInstrument;
           if (Array.isArray(piece.instrumentation)) {
-            const normalizedInstrumentation = piece.instrumentation.map(instr =>
+            const normalizedInstrumentation = piece.instrumentation.map((instr) =>
               instr.toLowerCase() === 'cello solo' ? 'cello' : instr.toLowerCase()
             );
             if (normalizedSelectedInstrument.toLowerCase() === 'cello duet') {
               return (
                 normalizedInstrumentation.length === 2 &&
-                normalizedInstrumentation.every(instr => instr === 'cello')
+                normalizedInstrumentation.every((instr) => instr === 'cello')
               );
             }
-            const selectedParts =
-              normalizedSelectedInstrument.toLowerCase().split(' and ');
+            const selectedParts = normalizedSelectedInstrument.toLowerCase().split(' and ');
             if (selectedParts.length === 1) {
               return (
                 normalizedInstrumentation.length === 1 &&
                 normalizedInstrumentation.includes(selectedParts[0])
               );
             }
-            return selectedParts.every((part) =>
-              normalizedInstrumentation.includes(part)
-            );
+            return selectedParts.every((part) => normalizedInstrumentation.includes(part));
           }
           return false;
         });
-
       return (
         (titleMatch || composerMatch) &&
         composerFilterMatch &&
@@ -219,7 +308,6 @@ const Music: NextPage = () => {
         yearFilterMatch
       );
     });
-
     if (sortConfig) {
       filtered = filtered.sort((a, b) => {
         switch (sortConfig.field) {
@@ -252,30 +340,27 @@ const Music: NextPage = () => {
     selectedInstruments,
     minYear,
     maxYear,
-    sortConfig
+    sortConfig,
+    levelOrder,
+    compareDurations,
   ]);
 
+  // Toggle functions for checkboxes
   const toggleComposerSelection = (composer: string) => {
     setSelectedComposers((prev) =>
-      prev.includes(composer)
-        ? prev.filter((c) => c !== composer)
-        : [...prev, composer]
+      prev.includes(composer) ? prev.filter((c) => c !== composer) : [...prev, composer]
     );
   };
 
   const toggleCountrySelection = (country: string) => {
     setSelectedCountries((prev) =>
-      prev.includes(country)
-        ? prev.filter((c) => c !== country)
-        : [...prev, country]
+      prev.includes(country) ? prev.filter((c) => c !== country) : [...prev, country]
     );
   };
 
   const toggleLevelSelection = (level: string) => {
     setSelectedLevels((prev) =>
-      prev.includes(level)
-        ? prev.filter((l) => l !== level)
-        : [...prev, level]
+      prev.includes(level) ? prev.filter((l) => l !== level) : [...prev, level]
     );
   };
 
@@ -293,9 +378,7 @@ const Music: NextPage = () => {
     if (sortConfig && sortConfig.field === field && sortConfig.direction === 'asc') {
       direction = 'desc';
     }
-    const newSortConfig = { field, direction };
-    setSortConfig(newSortConfig);
-  
+    setSortConfig({ field, direction });
     const sortedPieces = [...filteredPieces].sort((a, b) => {
       switch (field) {
         case 'title':
@@ -311,9 +394,10 @@ const Music: NextPage = () => {
             ? levelOrder.indexOf(a.level) - levelOrder.indexOf(b.level)
             : levelOrder.indexOf(b.level) - levelOrder.indexOf(a.level);
         case 'instrumentation':
-          const lenDiff = direction === 'asc'
-            ? a.instrumentation.length - b.instrumentation.length
-            : b.instrumentation.length - a.instrumentation.length;
+          const lenDiff =
+            direction === 'asc'
+              ? a.instrumentation.length - b.instrumentation.length
+              : b.instrumentation.length - a.instrumentation.length;
           if (lenDiff !== 0) return lenDiff;
           const secondA = a.instrumentation[1] || '';
           const secondB = b.instrumentation[1] || '';
@@ -387,9 +471,7 @@ const Music: NextPage = () => {
       <Head>
         <title>Cello Music</title>
       </Head>
-
       <NavbarMain />
-
       {(isFilterVisible || isSortMenuOpen) && (
         <div
           className="fixed inset-0 z-40"
@@ -399,25 +481,25 @@ const Music: NextPage = () => {
           }}
         />
       )}
-
       <div className="flex mt-4">
-        <FilterAside
-          filter={filter}
-          setFilter={setFilter}
-          minYear={minYear}
-          maxYear={maxYear}
-          setMinYear={setMinYear}
-          setMaxYear={setMaxYear}
-          accordionContent={accordionContent}
-          selectedComposers={selectedComposers}
-          toggleComposerSelection={toggleComposerSelection}
-          selectedLevels={selectedLevels}
-          toggleLevelSelection={toggleLevelSelection}
-          selectedInstruments={selectedInstruments}
-          toggleInstrumentSelection={toggleInstrumentSelection}
-          selectedCountries={selectedCountries}
-          toggleCountrySelection={toggleCountrySelection}
-        />
+      <FilterAside
+  filter={filter}
+  setFilter={setFilter}
+  minYear={minYear}
+  maxYear={maxYear}
+  setMinYear={setMinYear}
+  setMaxYear={setMaxYear}
+  accordionContent={accordionContent}
+  selectedComposers={selectedComposers}
+  toggleComposerSelection={toggleComposerSelection}
+  selectedLevels={selectedLevels}
+  toggleLevelSelection={toggleLevelSelection}
+  selectedInstruments={selectedInstruments}
+  toggleInstrumentSelection={toggleInstrumentSelection}
+  selectedCountries={selectedCountries}
+  toggleCountrySelection={toggleCountrySelection}
+  setCurrentPage={setCurrentPage} 
+/>
 
         {isFilterVisible && (
           <div
@@ -426,15 +508,6 @@ const Music: NextPage = () => {
             aria-label="Mobile Filter Drawer"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex justify-between items-center mx-5">
-              <h2 className="text-xl font-bold text-black">Filter</h2>
-              <button
-                className="text-lg text-black p-2 rounded"
-                onClick={() => setIsFilterVisible(false)}
-              >
-                X
-              </button>
-            </div>
             <MobileFilterAccordion
               filter={filter}
               setFilter={setFilter}
@@ -449,19 +522,17 @@ const Music: NextPage = () => {
               toggleCountrySelection={toggleCountrySelection}
               minYear={minYear}
               maxYear={maxYear}
+              setCurrentPage={setCurrentPage} 
               setMinYear={setMinYear}
               setMaxYear={setMaxYear}
             />
           </div>
         )}
-
         <main className="md:ml-4 w-full container mx-auto p-4">
           <div className="flex flex-col items-center justify-center mb-6 space-y-4 md:flex-row md:justify-between md:items-center">
             <h1 className="text-3xl font-bold text-white text-center">Cello Music</h1>
             <div className="hidden md:flex items-center space-x-2">
-              <label className="text-white font-medium text-sm" htmlFor="sort-by">
-                Sort By:
-              </label>
+              <label className="text-white font-medium text-sm" htmlFor="sort-by">Sort By:</label>
               <select
                 id="sort-by"
                 defaultValue="level-asc"
@@ -477,9 +548,7 @@ const Music: NextPage = () => {
               </select>
               <select
                 value={viewMode}
-                onChange={(e) =>
-                  setViewMode(e.target.value as 'card' | 'list')
-                }
+                onChange={(e) => setViewMode(e.target.value as 'card' | 'list')}
                 className="border border-gray-300 rounded-md p-1 text-black font-medium text-sm bg-white focus:outline-none"
               >
                 <option value="card">Grid View</option>
@@ -505,60 +574,12 @@ const Music: NextPage = () => {
                     className="absolute right-0 mt-2 w-[200px] bg-white rounded text-black shadow-md p-2 z-50"
                     onClick={(e) => e.stopPropagation()}
                   >
-                    <button
-                      className="block w-full text-left px-2 py-1 hover:bg-gray-100"
-                      onClick={() => {
-                        handleSort('title-asc');
-                        setIsSortMenuOpen(false);
-                      }}
-                    >
-                      Title A-Z
-                    </button>
-                    <button
-                      className="block w-full text-left px-2 py-1 hover:bg-gray-100"
-                      onClick={() => {
-                        handleSort('title-desc');
-                        setIsSortMenuOpen(false);
-                      }}
-                    >
-                      Title Z-A
-                    </button>
-                    <button
-                      className="block w-full text-left px-2 py-1 hover:bg-gray-100"
-                      onClick={() => {
-                        handleSort('level-asc');
-                        setIsSortMenuOpen(false);
-                      }}
-                    >
-                      Level (Low → High)
-                    </button>
-                    <button
-                      className="block w-full text-left px-2 py-1 hover:bg-gray-100"
-                      onClick={() => {
-                        handleSort('level-desc');
-                        setIsSortMenuOpen(false);
-                      }}
-                    >
-                      Level (High → Low)
-                    </button>
-                    <button
-                      className="block w-full text-left px-2 py-1 hover:bg-gray-100"
-                      onClick={() => {
-                        handleSort('composer-asc');
-                        setIsSortMenuOpen(false);
-                      }}
-                    >
-                      Composer (A-Z)
-                    </button>
-                    <button
-                      className="block w-full text-left px-2 py-1 hover:bg-gray-100"
-                      onClick={() => {
-                        handleSort('composer-desc');
-                        setIsSortMenuOpen(false);
-                      }}
-                    >
-                      Composer (Z-A)
-                    </button>
+                    <button className="block w-full text-left px-2 py-1 hover:bg-gray-100" onClick={() => { handleSort('title-asc'); setIsSortMenuOpen(false); }}>Title A-Z</button>
+                    <button className="block w-full text-left px-2 py-1 hover:bg-gray-100" onClick={() => { handleSort('title-desc'); setIsSortMenuOpen(false); }}>Title Z-A</button>
+                    <button className="block w-full text-left px-2 py-1 hover:bg-gray-100" onClick={() => { handleSort('level-asc'); setIsSortMenuOpen(false); }}>Level (Low → High)</button>
+                    <button className="block w-full text-left px-2 py-1 hover:bg-gray-100" onClick={() => { handleSort('level-desc'); setIsSortMenuOpen(false); }}>Level (High → Low)</button>
+                    <button className="block w-full text-left px-2 py-1 hover:bg-gray-100" onClick={() => { handleSort('composer-asc'); setIsSortMenuOpen(false); }}>Composer (A-Z)</button>
+                    <button className="block w-full text-left px-2 py-1 hover:bg-gray-100" onClick={() => { handleSort('composer-desc'); setIsSortMenuOpen(false); }}>Composer (Z-A)</button>
                   </div>
                 )}
               </div>
@@ -570,7 +591,6 @@ const Music: NextPage = () => {
               </button>
             </div>
           </div>
-
           {viewMode === 'card' ? (
             <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-4 gap-5">
               {paginatedPieces.map((piece) => (
@@ -588,7 +608,6 @@ const Music: NextPage = () => {
           ) : (
             <MusicListView pieces={paginatedPieces} sortConfig={sortConfig} onSort={onSort} />
           )}
-
           {totalPages > 1 && (
             <div className="flex justify-center items-center mt-4">
               <button
@@ -601,9 +620,7 @@ const Music: NextPage = () => {
               {Array.from({ length: totalPages }, (_, index) => (
                 <button
                   key={index}
-                  className={`px-3 py-1 mx-1 border rounded ${
-                    currentPage === index + 1 ? 'bg-black text-white' : 'bg-white text-black'
-                  }`}
+                  className={`px-3 py-1 mx-1 border rounded ${currentPage === index + 1 ? 'bg-black text-white' : 'bg-white text-black'}`}
                   onClick={() => setCurrentPage(index + 1)}
                 >
                   {index + 1}

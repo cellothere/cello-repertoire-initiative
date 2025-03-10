@@ -34,7 +34,6 @@ interface PieceProps {
     duration: string;
     coverImage: string;
   } | null;
-
   composerInfo: {
     composer_full_name: string;
     composer_last_name: string;
@@ -51,11 +50,9 @@ const isValidUrl = (url: string) => {
   }
 };
 
-// Helper function to parse text and make URLs clickable
 const linkify = (text: string): React.ReactNode => {
   const urlRegex = /(https?:\/\/[^\s]+)/g;
   return text.split(urlRegex).map((part, index) => {
-    // Test if the part matches the URL regex (using a non-global regex here)
     if (/(https?:\/\/[^\s]+)/.test(part)) {
       return (
         <Link
@@ -73,23 +70,16 @@ const linkify = (text: string): React.ReactNode => {
   });
 };
 
-// Helper function to format duration
 const formatDuration = (duration: string): string => {
   const parts = duration.split(':');
   if (parts.length !== 3) return duration;
-
   const [hours, minutes, seconds] = parts.map(Number);
-
   if (hours === 0 && minutes === 0 && seconds === 0) return 'N/A';
   if (hours > 0) {
-    return seconds > 0
-      ? `${hours}hr ${minutes}'${seconds}''`
-      : `${hours}hr ${minutes}'`;
+    return seconds > 0 ? `${hours}hr ${minutes}'${seconds}''` : `${hours}hr ${minutes}'`;
   }
   return seconds > 0 ? `${minutes}'${seconds}''` : `${minutes}'`;
 };
-
-
 
 const Piece: NextPage<PieceProps> = ({ piece, composerInfo }) => {
   const [videoId1, setVideoId1] = useState<string | null>(null);
@@ -98,12 +88,10 @@ const Piece: NextPage<PieceProps> = ({ piece, composerInfo }) => {
   useEffect(() => {
     if (piece && piece.audio_link.length > 0) {
       const audioLink1 = piece.audio_link[0];
-
       try {
         const url = new URL(audioLink1);
         const isYouTube =
           url.hostname.includes('youtube.com') || url.hostname.includes('youtu.be');
-
         if (isYouTube) {
           const videoId = url.searchParams.get('v') || url.pathname.slice(1);
           if (videoId) {
@@ -117,34 +105,28 @@ const Piece: NextPage<PieceProps> = ({ piece, composerInfo }) => {
     }
   }, [piece]);
 
-  if (!piece) {
-    return <LoadingAnimation />;
-  }
+  if (!piece) return <LoadingAnimation />;
 
   return (
     <div>
       <Head>
-        <title className="text-white">{piece.title}</title>
+        <title>{piece.title}</title>
       </Head>
       <NavbarMain />
       <div className='flex flex-col sm:flex-row justify-between mt-5 mx-auto w-[98%]'>
         <h1 className="ml-[11px] sm:ml-0 text-2xl sm:text-3xl text-white font-bold">
           {piece.title}
         </h1>
-
         <button className="hidden sm:block bg-black text-white px-3 py-2 rounded-lg hover:scale-105 transition-transform mt-3 sm:mt-0">
           <Link href="../cello-music">
             Back to Music <FaArrowRight className="inline-block ml-2" />
           </Link>
         </button>
       </div>
-
       <main
         className={`grid grid-cols-1 gap-6 p-4 ${hasVideo ? 'md:grid-cols-2' : 'md:grid-cols-1'}`}
       >
-        {/* LEFT COLUMN */}
         <div className="container flex flex-col items-start">
-          {/* Title + Composer */}
           <div className="mb-4">
             <p className="text-md sm:text-lg mb-1 text-white">
               by{' '}
@@ -161,8 +143,6 @@ const Piece: NextPage<PieceProps> = ({ piece, composerInfo }) => {
                 <span>{composerInfo?.composer_full_name || 'Unknown Composer'}</span>
               )}
             </p>
-
-            {/* Level + Tooltip */}
             <div className="flex items-center">
               <p className="text-sm text-white sm:text-md italic mr-1">{piece.level}</p>
               <Tooltip title="Levels are approximate.">
@@ -172,8 +152,6 @@ const Piece: NextPage<PieceProps> = ({ piece, composerInfo }) => {
               </Tooltip>
             </div>
           </div>
-
-          {/* Info Accordion */}
           <Accordion className="w-full max-w-full md:max-w-2xl" defaultExpanded>
             <AccordionSummary
               expandIcon={<ExpandMoreIcon />}
@@ -187,34 +165,26 @@ const Piece: NextPage<PieceProps> = ({ piece, composerInfo }) => {
             <AccordionDetails>
               <p className="text-sm sm:text-md mb-2 font-bold">Description:</p>
               <p className="text-sm sm:text-md mb-4 break-words">
-                {piece.description
-                  ? linkify(piece.description)
-                  : 'Coming soon...'}
+                {piece.description ? linkify(piece.description) : 'Coming soon...'}
               </p>
-
               {piece.composition_year && (
                 <p className="text-sm sm:text-md mb-4">
                   <strong>Composition Year: </strong>
                   {piece.composition_year === "0000" ? "N/A" : piece.composition_year}
                 </p>
               )}
-
-
               {piece.instrumentation?.length > 0 && (
                 <p className="text-sm sm:text-md mb-4">
                   <strong>Instrumentation: </strong>
                   {piece.instrumentation.join(', ')}
                 </p>
               )}
-
               {piece.duration && (
                 <p className="text-sm sm:text-md mb-4">
                   <strong>Duration: </strong>
                   {formatDuration(piece.duration)}
                 </p>
               )}
-
-
               {piece.publisher_info && (
                 <p className="text-sm sm:text-md mb-4">
                   <strong>Publisher Info: </strong>
@@ -223,7 +193,6 @@ const Piece: NextPage<PieceProps> = ({ piece, composerInfo }) => {
               )}
             </AccordionDetails>
           </Accordion>
-          {/* Where to Buy/Download Accordion */}
           <Accordion className="w-full max-w-full md:max-w-2xl">
             <AccordionSummary
               expandIcon={<ExpandMoreIcon />}
@@ -269,8 +238,6 @@ const Piece: NextPage<PieceProps> = ({ piece, composerInfo }) => {
               )}
             </AccordionDetails>
           </Accordion>
-
-          {/* Technical Overview Accordion */}
           <Accordion className="w-full max-w-full md:max-w-2xl">
             <AccordionSummary
               expandIcon={<ExpandMoreIcon />}
@@ -283,14 +250,10 @@ const Piece: NextPage<PieceProps> = ({ piece, composerInfo }) => {
             <div className="border-b border-gray-300 my-1"></div>
             <AccordionDetails>
               <p className="text-sm sm:text-md break-words">
-                {piece.technical_overview
-                  ? linkify(piece.technical_overview)
-                  : 'No technical overview available.'}
+                {piece.technical_overview ? linkify(piece.technical_overview) : 'No technical overview available.'}
               </p>
             </AccordionDetails>
           </Accordion>
-
-          {/* Audio Accordion */}
           <Accordion className="w-full max-w-full md:max-w-2xl">
             <AccordionSummary
               expandIcon={<ExpandMoreIcon />}
@@ -328,15 +291,11 @@ const Piece: NextPage<PieceProps> = ({ piece, composerInfo }) => {
             </AccordionDetails>
           </Accordion>
         </div>
-
-        {/* RIGHT COLUMN (shows up on top/below in mobile, side-by-side on md+) */}
         {hasVideo && (
           <div className="container mx-auto flex flex-col">
             <div className="w-full flex justify-center md:justify-end"></div>
             <div className="flex justify-center items-center mt-20">
-              {videoId1 && (
-                <VideoIframe videoId={videoId1} title={piece.title} />
-              )}
+              {videoId1 && <VideoIframe videoId={videoId1} title={piece.title} />}
             </div>
           </div>
         )}
@@ -347,12 +306,8 @@ const Piece: NextPage<PieceProps> = ({ piece, composerInfo }) => {
 
 export const getServerSideProps: GetServerSideProps = async (context) => {
   const { id } = context.params || {};
-
-  // Convert id to an integer if it's a valid number
   const parsedId = id && !isNaN(Number(id)) ? Number(id) : null;
-  if (parsedId === null) {
-    return { notFound: true };
-  }
+  if (parsedId === null) return { notFound: true };
 
   const client = await clientPromise;
   const collection = client.db('cello_repertoire').collection('music_pieces');
@@ -376,29 +331,29 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
     props: {
       piece: piece
         ? {
-          id: piece.id,
-          title: piece.title || '',
-          composer_id: piece.composer_id || '',
-          composition_year: piece.composition_year || '',
-          level: piece.level || 'Unknown',
-          isArrangement: piece.isArrangement || false,
-          audio_link: piece.audio_link || [],
-          instrumentation: piece.instrumentation || [],
-          publisher_info: piece.publisher_info || '',
-          description: piece.description || '',
-          technical_overview: piece.technical_overview || '',
-          is_public_domain: piece.is_public_domain || false,
-          where_to_buy_or_download: piece.where_to_buy_or_download || [],
-          duration: piece.duration || '',
-          coverImage: piece.coverImage || '',
-        }
+            id: piece.id,
+            title: piece.title || '',
+            composer_id: piece.composer_id || '',
+            composition_year: piece.composition_year || '',
+            level: piece.level || 'Unknown',
+            isArrangement: piece.isArrangement || false,
+            audio_link: piece.audio_link || [],
+            instrumentation: piece.instrumentation || [],
+            publisher_info: piece.publisher_info || '',
+            description: piece.description || '',
+            technical_overview: piece.technical_overview || '',
+            is_public_domain: piece.is_public_domain || false,
+            where_to_buy_or_download: piece.where_to_buy_or_download || [],
+            duration: piece.duration || '',
+            coverImage: piece.coverImage || '',
+          }
         : null,
       composerInfo: piece?.composerDetails
         ? {
-          composer_full_name:
-            piece.composerDetails.composer_full_name || 'Unknown Composer',
-          bio_links: piece.composerDetails.bio_link || [],
-        }
+            composer_full_name:
+              piece.composerDetails.composer_full_name || 'Unknown Composer',
+            bio_links: piece.composerDetails.bio_link || [],
+          }
         : null,
     },
   };

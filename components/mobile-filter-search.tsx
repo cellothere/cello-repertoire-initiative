@@ -18,6 +18,7 @@ interface MobileFilterAccordionProps {
     maxYear: number;
     setMinYear: React.Dispatch<React.SetStateAction<number>>;
     setMaxYear: React.Dispatch<React.SetStateAction<number>>;
+    setCurrentPage: React.Dispatch<React.SetStateAction<number>>; // ✅ Add this
 }
 
 const MobileFilterAccordion: React.FC<MobileFilterAccordionProps> = ({
@@ -36,11 +37,12 @@ const MobileFilterAccordion: React.FC<MobileFilterAccordionProps> = ({
     maxYear,
     setMinYear,
     setMaxYear,
+    setCurrentPage, // ✅ Add this
 }) => {
     const [openAccordion, setOpenAccordion] = useState<number | null>(null);
     const [composerSearch, setComposerSearch] = useState<string>('');
     const [levelSearch, setLevelSearch] = useState<string>('');
-    const [countrySearch, setCountrySearch] = useState<string>(''); // Added state for country search
+    const [countrySearch, setCountrySearch] = useState<string>('');
     const [isFilterVisible, setIsFilterVisible] = useState<boolean>(false);
 
     const toggleAccordion = (index: number) => {
@@ -51,22 +53,15 @@ const MobileFilterAccordion: React.FC<MobileFilterAccordionProps> = ({
         setFilter('');
         setComposerSearch('');
         setLevelSearch('');
-        setCountrySearch(''); // Clear country search as well
+        setCountrySearch('');
         selectedComposers.forEach((composer) => toggleComposerSelection(composer));
         selectedLevels.forEach((level) => toggleLevelSelection(level));
         selectedInstruments.forEach((instrument) => toggleInstrumentSelection(instrument));
         selectedCountries.forEach((country) => toggleCountrySelection(country));
         setMinYear(1600);
         setMaxYear(2025);
+        setCurrentPage(1); // ✅ Reset pagination when filters are cleared
         setOpenAccordion(null);
-    };
-
-    const getSelectedCountForKey = (key: string) => {
-        if (key === 'Composer') return selectedComposers.length;
-        if (key === 'Level') return selectedLevels.length;
-        if (key === 'Instrumentation') return selectedInstruments.length;
-        if (key === 'Country') return selectedCountries.length;
-        return 0;
     };
 
     return (
@@ -93,13 +88,9 @@ const MobileFilterAccordion: React.FC<MobileFilterAccordionProps> = ({
                 {Object.entries(accordionContent).map(([key, content], index) => {
                     const filteredItems = content.filter((item) => {
                         const lowerItem = item.toLowerCase();
-                        if (key === 'Composer') {
-                            return lowerItem.includes(composerSearch.toLowerCase());
-                        } else if (key === 'Level') {
-                            return lowerItem.includes(levelSearch.toLowerCase());
-                        } else if (key === 'Country') {
-                            return lowerItem.includes(countrySearch.toLowerCase());
-                        }
+                        if (key === 'Composer') return lowerItem.includes(composerSearch.toLowerCase());
+                        if (key === 'Level') return lowerItem.includes(levelSearch.toLowerCase());
+                        if (key === 'Country') return lowerItem.includes(countrySearch.toLowerCase());
                         return true;
                     });
 
@@ -114,10 +105,7 @@ const MobileFilterAccordion: React.FC<MobileFilterAccordionProps> = ({
                                     aria-expanded={openAccordion === index}
                                     aria-controls={`accordion-body-${index}`}
                                 >
-                                    <span>
-                                        {key}
-                                        {getSelectedCountForKey(key) > 0 && ` (${getSelectedCountForKey(key)})`}
-                                    </span>
+                                    <span>{key}</span>
                                     <svg
                                         className={`w-4 h-4 transition-transform ${openAccordion === index ? 'rotate-180' : ''}`}
                                         aria-hidden="true"
