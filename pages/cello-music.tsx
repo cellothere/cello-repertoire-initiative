@@ -1,6 +1,7 @@
+// pages/music.tsx
 import { NextPage } from 'next';
 import Head from 'next/head';
-import { useRef, useEffect, useState, useMemo, useCallback } from 'react';
+import { useRef, useEffect, useState, useMemo } from 'react';
 import { useRouter } from 'next/router';
 import NavbarMain from '@/components/navbar-main';
 import FilterAside from '@/components/filter-search';
@@ -18,6 +19,7 @@ interface MusicPiece {
   instrumentation: string[];
   nationality: string[];
   duration: string;
+  composition_year?: string;
 }
 
 interface Composer {
@@ -27,10 +29,12 @@ interface Composer {
   bio_links: string[];
 }
 
+type SortConfig = { field: string; direction: 'asc' | 'desc' };
+
 const Music: NextPage = () => {
   const router = useRouter();
 
-  // States for data and filters
+  // Data and filter states
   const [pieces, setPieces] = useState<MusicPiece[]>([]);
   const [filteredPieces, setFilteredPieces] = useState<MusicPiece[]>([]);
   const [filter, setFilter] = useState<string>('');
@@ -42,14 +46,14 @@ const Music: NextPage = () => {
   const [maxYear, setMaxYear] = useState<number>(2025);
   const [currentPage, setCurrentPage] = useState(1);
   const [viewMode, setViewMode] = useState<'card' | 'list'>('card');
-  const [sortConfig, setSortConfig] = useState<{ field: string; direction: 'asc' | 'desc' } | null>(null);
+  const [sortConfig, setSortConfig] = useState<SortConfig>({ field: 'level', direction: 'asc' });
 
-  // UI controls
+  // UI control states
   const [isFilterVisible, setIsFilterVisible] = useState<boolean>(false);
   const [isSortMenuOpen, setIsSortMenuOpen] = useState(false);
   const [isMobile, setIsMobile] = useState<boolean>(false);
 
-  // Handle window resizing
+  // Handle window resize for mobile view
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth < 768);
     handleResize();
@@ -59,7 +63,7 @@ const Music: NextPage = () => {
 
   const itemsPerPage = isMobile ? 20 : 16;
 
-  // Wrap levelOrder in useMemo so its reference is stable
+  // Keep levelOrder stable across renders
   const levelOrder = useMemo(() => [
     'Early Beginner',
     'Beginner',
@@ -73,7 +77,7 @@ const Music: NextPage = () => {
     'Various',
   ], []);
 
-  // Accordion content for filtering
+  // Accordion content for filtering (initial content)
   const [accordionContent, setAccordionContent] = useState({
     Level: levelOrder,
     Instrumentation: [
@@ -175,25 +179,17 @@ const Music: NextPage = () => {
     router.pathname,
   ]);
 
-  // Fetch music pieces from API
+  // --- 3. Fetch Data ---
   useEffect(() => {
     const fetchPieces = async () => {
       const res = await fetch('/api/celloMusic');
       const data = await res.json();
+      // Flatten without sorting here
       const flattenedPieces = data.flatMap((group: { musicPieces: MusicPiece[] }) => group.musicPieces);
-      const sortedPieces = flattenedPieces.sort(
-        (a: MusicPiece, b: MusicPiece) => levelOrder.indexOf(a.level) - levelOrder.indexOf(b.level)
-      );
-      setPieces(sortedPieces);
-      setFilteredPieces(sortedPieces);
-      setSortConfig({ field: 'level', direction: 'asc' });
+      setPieces(flattenedPieces);
     };
     fetchPieces();
-  }, [levelOrder]);
-
-  // useEffect(() => {
-  //   setCurrentPage(1);
-  // }, [filteredPieces]);
+  }, []);
 
   useEffect(() => {
     const fetchNationalities = async () => {
@@ -219,47 +215,53 @@ const Music: NextPage = () => {
     fetchComposers();
   }, []);
 
+  // --- 4. Utility Functions ---
   const removeDiacritics = (str: string): string =>
     str.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
 
+  const convertDurationToSeconds = (duration: string): number | null => {
+    const parts = duration.split(':');
+    if (parts.length !== 3) return null;
+    const [hours, minutes, seconds] = parts.map(Number);
+    if (hours === 0 && minutes === 0 && seconds === 0) return null;
+    return hours * 3600 + minutes * 60 + seconds;
+  };
+
+  // For sorting durations, memoized compare function
+  const compareDurations = (aDuration: string | undefined, bDuration: string | undefined, direction: 'asc' | 'desc'): number => {
+    const isValid = (duration: string | undefined) =>
+      duration !== undefined && duration !== '00:00:00';
+    const aValid = isValid(aDuration);
+    const bValid = isValid(bDuration);
+    if (aValid && !bValid) return -1;
+    if (!aValid && bValid) return 1;
+    if (!aValid && !bValid) return 0;
+    const secondsA = convertDurationToSeconds(aDuration!);
+    const secondsB = convertDurationToSeconds(bDuration!);
+    if (secondsA === null || secondsB === null) return 0;
+    return direction === 'asc' ? secondsA - secondsB : secondsB - secondsA;
+  };
+
+  // --- 5. Pagination Calculation ---
   const totalPages = Math.ceil(filteredPieces.length / itemsPerPage);
   const paginatedPieces = filteredPieces.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
   );
 
-  const convertDurationToSeconds = (duration: string): number | null => {
-    const parts = duration.split(':');
-    if (parts.length !== 3) return null;
-    const [hours, minutes, seconds] = parts.map(Number); 
-    if (hours === 0 && minutes === 0 && seconds === 0) return null;
-    return hours * 3600 + minutes * 60 + seconds;
-  };
-
-  // Place this function (or useMemo) inside your component, before the return statement.
   const paginationItems = useMemo((): (number | string)[] => {
     const items: (number | string)[] = [];
     if (totalPages <= 5) {
-      // If there are 7 or fewer pages, show all of them.
-      for (let i = 1; i <= totalPages; i++) {
-        items.push(i);
-      }
+      for (let i = 1; i <= totalPages; i++) items.push(i);
     } else if (currentPage <= 4) {
-      // Near the beginning: show first 5 pages, ellipsis, then last page.
-      for (let i = 1; i <= 5; i++) {
-        items.push(i);
-      }
+      for (let i = 1; i <= 5; i++) items.push(i);
       items.push('...');
       items.push(totalPages);
     } else if (currentPage >= totalPages - 3) {
-      // Near the end: show first page, ellipsis, then the last 5 pages.
       items.push(1);
       items.push('...');
-      for (let i = totalPages - 4; i <= totalPages; i++) {
-        items.push(i);
-      }
+      for (let i = totalPages - 4; i <= totalPages; i++) items.push(i);
     } else {
-      // In the middle: show first page, ellipsis, current-1, current, current+1, ellipsis, last page.
       items.push(1);
       items.push('...');
       items.push(currentPage - 1);
@@ -271,26 +273,7 @@ const Music: NextPage = () => {
     return items;
   }, [totalPages, currentPage]);
 
-
-  // Memoize compareDurations so that its reference remains stable.
-  const compareDurations = useCallback(
-    (aDuration: string | undefined, bDuration: string | undefined, direction: 'asc' | 'desc'): number => {
-      const isValid = (duration: string | undefined) =>
-        duration !== undefined && duration !== '00:00:00';
-      const aValid = isValid(aDuration);
-      const bValid = isValid(bDuration);
-      if (aValid && !bValid) return -1;
-      if (!aValid && bValid) return 1;
-      if (!aValid && !bValid) return 0;
-      const secondsA = convertDurationToSeconds(aDuration!);
-      const secondsB = convertDurationToSeconds(bDuration!);
-      if (secondsA === null || secondsB === null) return 0;
-      return direction === 'asc' ? secondsA - secondsB : secondsB - secondsA;
-    },
-    []
-  );
-
-  // Filter and sort pieces based on filter state
+  // --- 6. Unified Filter and Sort Effect ---
   useEffect(() => {
     let filtered = pieces.filter((piece) => {
       const titleMatch = removeDiacritics(piece.title.toLowerCase()).includes(
@@ -305,7 +288,7 @@ const Music: NextPage = () => {
         selectedLevels.length === 0 || selectedLevels.includes(piece.level);
       const countryFilterMatch =
         selectedCountries.length === 0 || piece.nationality.some((nat) => selectedCountries.includes(nat));
-      const pieceYear = parseInt((piece as any).composition_year || '0', 10);
+      const pieceYear = parseInt(piece.composition_year || '0', 10);
       const validYear = !isNaN(pieceYear) && pieceYear > 0;
       const yearFilterMatch = validYear && pieceYear >= minYear && pieceYear <= maxYear;
       const instrumentationMatch =
@@ -343,6 +326,8 @@ const Music: NextPage = () => {
         yearFilterMatch
       );
     });
+
+    // Apply sorting based on sortConfig
     if (sortConfig) {
       filtered = filtered.sort((a, b) => {
         switch (sortConfig.field) {
@@ -360,15 +345,18 @@ const Music: NextPage = () => {
               : levelOrder.indexOf(b.level) - levelOrder.indexOf(a.level);
           case 'duration':
             return compareDurations(a.duration, b.duration, sortConfig.direction);
+          // You can add additional cases (e.g., instrumentation) if needed.
           default:
             return 0;
         }
       });
     }
     setFilteredPieces(filtered);
+    // Reset page to 1 when filters change
+    setCurrentPage(1);
   }, [
-    filter,
     pieces,
+    filter,
     selectedComposers,
     selectedLevels,
     selectedCountries,
@@ -377,77 +365,10 @@ const Music: NextPage = () => {
     maxYear,
     sortConfig,
     levelOrder,
-    compareDurations,
   ]);
 
-  // Toggle functions for checkboxes
-  const toggleComposerSelection = (composer: string) => {
-    setSelectedComposers((prev) =>
-      prev.includes(composer) ? prev.filter((c) => c !== composer) : [...prev, composer]
-    );
-  };
-
-  const toggleCountrySelection = (country: string) => {
-    setSelectedCountries((prev) =>
-      prev.includes(country) ? prev.filter((c) => c !== country) : [...prev, country]
-    );
-  };
-
-  const toggleLevelSelection = (level: string) => {
-    setSelectedLevels((prev) =>
-      prev.includes(level) ? prev.filter((l) => l !== level) : [...prev, level]
-    );
-  };
-
-  const toggleInstrumentSelection = (instrument: string) => {
-    const normalizedInstrument = instrument === 'Cello Solo' ? 'Cello' : instrument;
-    setSelectedInstruments((prev) =>
-      prev.includes(normalizedInstrument)
-        ? prev.filter((i) => i !== normalizedInstrument)
-        : [...prev, normalizedInstrument]
-    );
-  };
-
-  const onSort = (field: string) => {
-    let direction: 'asc' | 'desc' = 'asc';
-    if (sortConfig && sortConfig.field === field && sortConfig.direction === 'asc') {
-      direction = 'desc';
-    }
-    setSortConfig({ field, direction });
-    const sortedPieces = [...filteredPieces].sort((a, b) => {
-      switch (field) {
-        case 'title':
-          return direction === 'asc'
-            ? a.title.localeCompare(b.title)
-            : b.title.localeCompare(a.title);
-        case 'composer':
-          return direction === 'asc'
-            ? a.composer_last_name.localeCompare(b.composer_last_name)
-            : b.composer_last_name.localeCompare(a.composer_last_name);
-        case 'level':
-          return direction === 'asc'
-            ? levelOrder.indexOf(a.level) - levelOrder.indexOf(b.level)
-            : levelOrder.indexOf(b.level) - levelOrder.indexOf(a.level);
-        case 'instrumentation':
-          const lenDiff =
-            direction === 'asc'
-              ? a.instrumentation.length - b.instrumentation.length
-              : b.instrumentation.length - a.instrumentation.length;
-          if (lenDiff !== 0) return lenDiff;
-          const secondA = a.instrumentation[1] || '';
-          const secondB = b.instrumentation[1] || '';
-          return direction === 'asc'
-            ? secondA.localeCompare(secondB)
-            : secondB.localeCompare(secondA);
-        case 'duration':
-          return compareDurations(a.duration, b.duration, direction);
-        default:
-          return 0;
-      }
-    });
-    setFilteredPieces(sortedPieces);
-  };
-
+  // --- 7. Sort Handlers ---
+  // These functions now simply update sortConfig.
   const handleSort = (sortOption: string) => {
     let field = '';
     let direction: 'asc' | 'desc' = 'asc';
@@ -480,23 +401,43 @@ const Music: NextPage = () => {
         break;
     }
     setSortConfig({ field, direction });
-    const sortedPieces = [...filteredPieces].sort((a, b) => {
-      if (field === 'title') {
-        return direction === 'asc'
-          ? a.title.localeCompare(b.title)
-          : b.title.localeCompare(a.title);
-      } else if (field === 'composer') {
-        return direction === 'asc'
-          ? a.composer_last_name.localeCompare(b.composer_last_name)
-          : b.composer_last_name.localeCompare(a.composer_last_name);
-      } else if (field === 'level') {
-        return direction === 'asc'
-          ? levelOrder.indexOf(a.level) - levelOrder.indexOf(b.level)
-          : levelOrder.indexOf(b.level) - levelOrder.indexOf(a.level);
-      }
-      return 0;
-    });
-    setFilteredPieces(sortedPieces);
+  };
+
+  // If using table headers for sorting in list view:
+  const onSort = (field: string) => {
+    let direction: 'asc' | 'desc' = 'asc';
+    if (sortConfig && sortConfig.field === field && sortConfig.direction === 'asc') {
+      direction = 'desc';
+    }
+    setSortConfig({ field, direction });
+  };
+
+  // --- 8. Checkbox Toggle Handlers ---
+  const toggleComposerSelection = (composer: string) => {
+    setSelectedComposers((prev) =>
+      prev.includes(composer) ? prev.filter((c) => c !== composer) : [...prev, composer]
+    );
+  };
+
+  const toggleCountrySelection = (country: string) => {
+    setSelectedCountries((prev) =>
+      prev.includes(country) ? prev.filter((c) => c !== country) : [...prev, country]
+    );
+  };
+
+  const toggleLevelSelection = (level: string) => {
+    setSelectedLevels((prev) =>
+      prev.includes(level) ? prev.filter((l) => l !== level) : [...prev, level]
+    );
+  };
+
+  const toggleInstrumentSelection = (instrument: string) => {
+    const normalizedInstrument = instrument === 'Cello Solo' ? 'Cello' : instrument;
+    setSelectedInstruments((prev) =>
+      prev.includes(normalizedInstrument)
+        ? prev.filter((i) => i !== normalizedInstrument)
+        : [...prev, normalizedInstrument]
+    );
   };
 
   const mobileFilterRef = useRef<HTMLDivElement>(null);
@@ -644,46 +585,44 @@ const Music: NextPage = () => {
             <MusicListView pieces={paginatedPieces} sortConfig={sortConfig} onSort={onSort} />
           )}
           {totalPages > 1 && (
-  <div className="overflow-x-auto">
-    <div className="flex justify-center items-center mt-4">
-      <button
-        className="px-3 py-1 mx-1 border rounded disabled:opacity-50"
-        onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-        disabled={currentPage === 1}
-      >
-        Prev
-      </button>
-      {paginationItems.map((item, index) => {
-        if (item === '...') {
-          return (
-            <span key={`ellipsis-${index}`} className="px-3 py-1 mx-1">
-              {item}
-            </span>
-          );
-        }
-        return (
-          <button
-            key={item}
-            className={`px-3 py-1 mx-1 border rounded ${
-              currentPage === item ? 'bg-black text-white' : 'bg-white text-black'
-            }`}
-            onClick={() => setCurrentPage(item as number)}
-          >
-            {item}
-          </button>
-        );
-      })}
-      <button
-        className="px-3 py-1 mx-1 border rounded disabled:opacity-50"
-        onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
-        disabled={currentPage === totalPages}
-      >
-        Next
-      </button>
-    </div>
-  </div>
-)}
-
+            <div className="overflow-x-auto">
+              <div className="flex justify-center items-center mt-4">
+                <button
+                  className="px-3 py-1 mx-1 border rounded disabled:opacity-50"
+                  onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                  disabled={currentPage === 1}
+                >
+                  Prev
+                </button>
+                {paginationItems.map((item, index) => {
+                  if (item === '...') {
+                    return (
+                      <span key={`ellipsis-${index}`} className="px-3 py-1 mx-1">
+                        {item}
+                      </span>
+                    );
+                  }
+                  return (
+                    <button
+                      key={item}
+                      className={`px-3 py-1 mx-1 border rounded ${currentPage === item ? 'bg-black text-white' : 'bg-white text-black'
+                        }`}
+                      onClick={() => setCurrentPage(item as number)}
+                    >
+                      {item}
+                    </button>
+                  );
+                })}
+                <button
+                  className="px-3 py-1 mx-1 border rounded disabled:opacity-50"
+                  onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+                  disabled={currentPage === totalPages}
+                >
+                  Next
+                </button>
+              </div>
+            </div>
+          )}
         </main>
       </div>
     </div>

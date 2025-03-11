@@ -34,11 +34,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         },
         {
           $group: {
+            // Group by first letter of composer's last name
             _id: {
               $toLower: { $substrCP: ['$composerDetails.composer_last_name', 0, 1] },
             },
+            // Use $addToSet to ensure each piece only appears once
             musicPieces: {
-              $push: {
+              $addToSet: {
                 id: '$id',
                 title: '$title',
                 composer: '$composerDetails.composer_full_name',
@@ -46,9 +48,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 composer_first_name: '$composerDetails.composer_first_name',
                 composition_year: '$composition_year',
                 level: '$level',
-                instrumentation: '$instrumentation', 
-                nationality: '$composerDetails.nationality', 
-                duration: '$duration'
+                instrumentation: '$instrumentation',
+                nationality: '$composerDetails.nationality',
+                duration: '$duration',
               },
             },
             count: { $sum: 1 },

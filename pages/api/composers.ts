@@ -40,7 +40,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
               $toLower: { $substrCP: ['$composer_full_name', 0, 1] },
             },
             composers: {
-              $push: {
+              $addToSet: {
                 composer_full_name: '$composer_full_name',
                 composer_last_name: '$composer_last_name',
                 composer_first_name: '$composer_first_name',
