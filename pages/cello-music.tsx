@@ -231,7 +231,7 @@ const Music: NextPage = () => {
   const convertDurationToSeconds = (duration: string): number | null => {
     const parts = duration.split(':');
     if (parts.length !== 3) return null;
-    const [hours, minutes, seconds] = parts.map(Number);
+    const [hours, minutes, seconds] = parts.map(Number); 
     if (hours === 0 && minutes === 0 && seconds === 0) return null;
     return hours * 3600 + minutes * 60 + seconds;
   };
@@ -644,41 +644,46 @@ const Music: NextPage = () => {
             <MusicListView pieces={paginatedPieces} sortConfig={sortConfig} onSort={onSort} />
           )}
           {totalPages > 1 && (
-            <div className="flex justify-center items-center mt-4">
-              <button
-                className="px-3 py-1 mx-1 border rounded disabled:opacity-50"
-                onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-                disabled={currentPage === 1}
-              >
-                Prev
-              </button>
-              {paginationItems.map((item, index) => {
-                if (item === '...') {
-                  return (
-                    <span key={`ellipsis-${index}`} className="px-3 py-1 mx-1">
-                      {item}
-                    </span>
-                  );
-                }
-                return (
-                  <button
-                    key={item}
-                    className={`px-3 py-1 mx-1 border rounded ${currentPage === item ? 'bg-black text-white' : 'bg-white text-black'}`}
-                    onClick={() => setCurrentPage(item as number)}
-                  >
-                    {item}
-                  </button>
-                );
-              })}
-              <button
-                className="px-3 py-1 mx-1 border rounded disabled:opacity-50"
-                onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
-                disabled={currentPage === totalPages}
-              >
-                Next
-              </button>
-            </div>
-          )}
+  <div className="overflow-x-auto">
+    <div className="flex justify-center items-center mt-4">
+      <button
+        className="px-3 py-1 mx-1 border rounded disabled:opacity-50"
+        onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+        disabled={currentPage === 1}
+      >
+        Prev
+      </button>
+      {paginationItems.map((item, index) => {
+        if (item === '...') {
+          return (
+            <span key={`ellipsis-${index}`} className="px-3 py-1 mx-1">
+              {item}
+            </span>
+          );
+        }
+        return (
+          <button
+            key={item}
+            className={`px-3 py-1 mx-1 border rounded ${
+              currentPage === item ? 'bg-black text-white' : 'bg-white text-black'
+            }`}
+            onClick={() => setCurrentPage(item as number)}
+          >
+            {item}
+          </button>
+        );
+      })}
+      <button
+        className="px-3 py-1 mx-1 border rounded disabled:opacity-50"
+        onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+        disabled={currentPage === totalPages}
+      >
+        Next
+      </button>
+    </div>
+  </div>
+)}
+
         </main>
       </div>
     </div>
