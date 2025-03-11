@@ -196,21 +196,36 @@ const NavbarMain = () => {
         {isMenuOpen && (
           <div
             ref={menuRef}
-            className="z-50 mt-1 absolute top-16 items-center right-0 bg-white w-40 border border-gray-400 rounded shadow-lg flex flex-col"
+            className="z-50 mt-1 absolute top-16 items-center right-0 bg-white w-60 border border-gray-400 rounded shadow-lg flex flex-col"
           >
-            <Link href="/">
-              <button className="w-full py-2 px-4 text-left hover:bg-gray-200">
-                Home
-              </button>
-            </Link>
             <Link href="/cello-music">
               <button className="w-full py-2 px-4 text-left hover:bg-gray-200">
-                Music
+                Cello Music
+              </button>
+            </Link>
+            <Link href="/recently-added">
+              <button className="w-full py-2 px-4 text-left hover:bg-gray-200">
+                Recently Added
+              </button>
+            </Link>
+            <Link href="/featured-databases">
+              <button className="w-full py-2 px-4 text-left hover:bg-gray-200">
+                Featured Databases
+              </button>
+            </Link>
+            <Link href="/composers">
+              <button className="w-full py-2 px-4 text-left hover:bg-gray-200">
+                Composer List
               </button>
             </Link>
             <Link href="/contact">
               <button className="w-full py-2 px-4 text-left hover:bg-gray-200">
                 Contact
+              </button>
+            </Link>
+            <Link href="/about-us">
+              <button className="w-full py-2 px-4 text-left hover:bg-gray-200">
+                About
               </button>
             </Link>
           </div>
@@ -229,7 +244,7 @@ const NavbarMain = () => {
           onMouseEnter={() => setisMusicHovered(true)}
           onMouseLeave={() => setisMusicHovered(false)}
           isOpen={isMusicHovered}
-          className="bg-white font-sans w-40"
+          className="bg-white font-sans w-50"
         >
           <DropdownTrigger>
             <Button
@@ -249,11 +264,14 @@ const NavbarMain = () => {
             <DropdownItem key="CelloMusicSelection" className="custom-dropdown-item text-black p-2">
               <Link href="/cello-music">Cello Music</Link>
             </DropdownItem>
-            <DropdownItem key="ComposerSelection" className="custom-dropdown-item text-black p-2">
-              <Link href="/composers">Composer List</Link>
-            </DropdownItem>
             <DropdownItem key="RecentlyAdded" className="custom-dropdown-item text-black p-2">
               <Link href="/recently-added">Recently Added</Link>
+            </DropdownItem>
+            <DropdownItem key="FeaturedDatabases" className="custom-dropdown-item text-black p-2">
+              <Link href="/featured-databases">Featured Databases</Link>
+            </DropdownItem>
+            <DropdownItem key="ComposerSelection" className="custom-dropdown-item text-black p-2">
+              <Link href="/composers">Composer List</Link>
             </DropdownItem>
           </DropdownMenu>
         </Dropdown>
@@ -262,7 +280,7 @@ const NavbarMain = () => {
           onMouseEnter={() => setisAboutHovered(true)}
           onMouseLeave={() => setisAboutHovered(false)}
           isOpen={isAboutHovered}
-          className="bg-white font-sans w-40"
+          className="bg-white font-sans w-45"
         >
           <DropdownTrigger>
             <Button
@@ -289,7 +307,7 @@ const NavbarMain = () => {
               <Link href="/contribute">Contribute</Link>
             </DropdownItem>
             <DropdownItem key="OtherResources" className="custom-dropdown-item text-black p-2">
-              <Link href="/resources">Other Resources</Link>
+              <Link href="/resources">External Resources</Link>
             </DropdownItem>
           </DropdownMenu>
         </Dropdown>
