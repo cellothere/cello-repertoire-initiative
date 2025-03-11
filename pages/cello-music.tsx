@@ -8,6 +8,7 @@ import FilterAside from '@/components/filter-search';
 import MobileFilterAccordion from '@/components/mobile-filter-search';
 import MusicCard from '@/components/music-card';
 import MusicListView from '@/components/music-list-view';
+import { removeDiacritics, convertDurationToSeconds, compareDurations } from '@/utils/musicUtils';
 
 interface MusicPiece {
   id: number;
@@ -215,32 +216,7 @@ const Music: NextPage = () => {
     fetchComposers();
   }, []);
 
-  // --- 4. Utility Functions ---
-  const removeDiacritics = (str: string): string =>
-    str.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-
-  const convertDurationToSeconds = (duration: string): number | null => {
-    const parts = duration.split(':');
-    if (parts.length !== 3) return null;
-    const [hours, minutes, seconds] = parts.map(Number);
-    if (hours === 0 && minutes === 0 && seconds === 0) return null;
-    return hours * 3600 + minutes * 60 + seconds;
-  };
-
-  // For sorting durations, memoized compare function
-  const compareDurations = (aDuration: string | undefined, bDuration: string | undefined, direction: 'asc' | 'desc'): number => {
-    const isValid = (duration: string | undefined) =>
-      duration !== undefined && duration !== '00:00:00';
-    const aValid = isValid(aDuration);
-    const bValid = isValid(bDuration);
-    if (aValid && !bValid) return -1;
-    if (!aValid && bValid) return 1;
-    if (!aValid && !bValid) return 0;
-    const secondsA = convertDurationToSeconds(aDuration!);
-    const secondsB = convertDurationToSeconds(bDuration!);
-    if (secondsA === null || secondsB === null) return 0;
-    return direction === 'asc' ? secondsA - secondsB : secondsB - secondsA;
-  };
+  // --- 4. Utility Functions are imported from utils/musicUtils.ts ---
 
   // --- 5. Pagination Calculation ---
   const totalPages = Math.ceil(filteredPieces.length / itemsPerPage);
@@ -345,7 +321,6 @@ const Music: NextPage = () => {
               : levelOrder.indexOf(b.level) - levelOrder.indexOf(a.level);
           case 'duration':
             return compareDurations(a.duration, b.duration, sortConfig.direction);
-          // You can add additional cases (e.g., instrumentation) if needed.
           default:
             return 0;
         }
@@ -368,7 +343,6 @@ const Music: NextPage = () => {
   ]);
 
   // --- 7. Sort Handlers ---
-  // These functions now simply update sortConfig.
   const handleSort = (sortOption: string) => {
     let field = '';
     let direction: 'asc' | 'desc' = 'asc';
@@ -403,7 +377,6 @@ const Music: NextPage = () => {
     setSortConfig({ field, direction });
   };
 
-  // If using table headers for sorting in list view:
   const onSort = (field: string) => {
     let direction: 'asc' | 'desc' = 'asc';
     if (sortConfig && sortConfig.field === field && sortConfig.direction === 'asc') {
@@ -508,7 +481,9 @@ const Music: NextPage = () => {
           <div className="flex flex-col items-center justify-center mb-6 space-y-4 md:flex-row md:justify-between md:items-center">
             <h1 className="text-3xl font-bold text-white text-center">Cello Music</h1>
             <div className="hidden md:flex items-center space-x-2">
-              <label className="text-white font-medium text-sm" htmlFor="sort-by">Sort By:</label>
+              <label className="text-white font-medium text-sm" htmlFor="sort-by">
+                Sort By:
+              </label>
               <select
                 id="sort-by"
                 defaultValue="level-asc"
@@ -585,7 +560,7 @@ const Music: NextPage = () => {
             <MusicListView pieces={paginatedPieces} sortConfig={sortConfig} onSort={onSort} />
           )}
           {totalPages > 1 && (
-            <div className="overflow-x-auto">
+            <div className="overflow-x-auto px-4">
               <div className="flex justify-center items-center mt-4">
                 <button
                   className="px-3 py-1 mx-1 border rounded disabled:opacity-50"
