@@ -253,7 +253,7 @@ const NavbarMain = () => {
               <Link href="/composers">Composer List</Link>
             </DropdownItem>
             <DropdownItem key="RecentlyAdded" className="custom-dropdown-item text-black p-2">
-              <Link href="/cello-music">Recently Added</Link>
+              <Link href="/recently-added">Recently Added</Link>
             </DropdownItem>
           </DropdownMenu>
         </Dropdown>

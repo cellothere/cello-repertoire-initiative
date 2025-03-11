@@ -2,7 +2,6 @@ import { NextPage } from 'next';
 import Head from 'next/head';
 import { useRef, useEffect, useState, useMemo, useCallback } from 'react';
 import { useRouter } from 'next/router';
-import { IoFilter, IoSwapVertical, IoList, IoGrid } from 'react-icons/io5';
 import NavbarMain from '@/components/navbar-main';
 import FilterAside from '@/components/filter-search';
 import MobileFilterAccordion from '@/components/mobile-filter-search';
