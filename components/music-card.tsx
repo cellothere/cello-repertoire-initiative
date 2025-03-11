@@ -105,8 +105,6 @@ const MusicCard: React.FC<MusicCardProps> = ({
   return (
     <div className="bg-white shadow-md rounded-sm p-4 hover:scale-105 transition-transform duration-300">
       <Link href={`/piece/${id.toString()}`} onClick={() => setIsLoading(true)}>
-        {/* Attach the onClick handler to the button so that when clicked, 
-            we set the loading state to true */}
         <div className="flex flex-col h-full">
           {/* Image section */}
           <div className="relative w-full h-40 mb-4">

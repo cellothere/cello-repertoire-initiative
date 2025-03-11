@@ -237,6 +237,42 @@ const Music: NextPage = () => {
     return hours * 3600 + minutes * 60 + seconds;
   };
 
+  // Place this function (or useMemo) inside your component, before the return statement.
+  const paginationItems = useMemo((): (number | string)[] => {
+    const items: (number | string)[] = [];
+    if (totalPages <= 5) {
+      // If there are 7 or fewer pages, show all of them.
+      for (let i = 1; i <= totalPages; i++) {
+        items.push(i);
+      }
+    } else if (currentPage <= 4) {
+      // Near the beginning: show first 5 pages, ellipsis, then last page.
+      for (let i = 1; i <= 5; i++) {
+        items.push(i);
+      }
+      items.push('...');
+      items.push(totalPages);
+    } else if (currentPage >= totalPages - 3) {
+      // Near the end: show first page, ellipsis, then the last 5 pages.
+      items.push(1);
+      items.push('...');
+      for (let i = totalPages - 4; i <= totalPages; i++) {
+        items.push(i);
+      }
+    } else {
+      // In the middle: show first page, ellipsis, current-1, current, current+1, ellipsis, last page.
+      items.push(1);
+      items.push('...');
+      items.push(currentPage - 1);
+      items.push(currentPage);
+      items.push(currentPage + 1);
+      items.push('...');
+      items.push(totalPages);
+    }
+    return items;
+  }, [totalPages, currentPage]);
+
+
   // Memoize compareDurations so that its reference remains stable.
   const compareDurations = useCallback(
     (aDuration: string | undefined, bDuration: string | undefined, direction: 'asc' | 'desc'): number => {
@@ -482,24 +518,24 @@ const Music: NextPage = () => {
         />
       )}
       <div className="flex mt-4">
-      <FilterAside
-  filter={filter}
-  setFilter={setFilter}
-  minYear={minYear}
-  maxYear={maxYear}
-  setMinYear={setMinYear}
-  setMaxYear={setMaxYear}
-  accordionContent={accordionContent}
-  selectedComposers={selectedComposers}
-  toggleComposerSelection={toggleComposerSelection}
-  selectedLevels={selectedLevels}
-  toggleLevelSelection={toggleLevelSelection}
-  selectedInstruments={selectedInstruments}
-  toggleInstrumentSelection={toggleInstrumentSelection}
-  selectedCountries={selectedCountries}
-  toggleCountrySelection={toggleCountrySelection}
-  setCurrentPage={setCurrentPage} 
-/>
+        <FilterAside
+          filter={filter}
+          setFilter={setFilter}
+          minYear={minYear}
+          maxYear={maxYear}
+          setMinYear={setMinYear}
+          setMaxYear={setMaxYear}
+          accordionContent={accordionContent}
+          selectedComposers={selectedComposers}
+          toggleComposerSelection={toggleComposerSelection}
+          selectedLevels={selectedLevels}
+          toggleLevelSelection={toggleLevelSelection}
+          selectedInstruments={selectedInstruments}
+          toggleInstrumentSelection={toggleInstrumentSelection}
+          selectedCountries={selectedCountries}
+          toggleCountrySelection={toggleCountrySelection}
+          setCurrentPage={setCurrentPage}
+        />
 
         {isFilterVisible && (
           <div
@@ -522,7 +558,7 @@ const Music: NextPage = () => {
               toggleCountrySelection={toggleCountrySelection}
               minYear={minYear}
               maxYear={maxYear}
-              setCurrentPage={setCurrentPage} 
+              setCurrentPage={setCurrentPage}
               setMinYear={setMinYear}
               setMaxYear={setMaxYear}
             />
@@ -617,15 +653,24 @@ const Music: NextPage = () => {
               >
                 Prev
               </button>
-              {Array.from({ length: totalPages }, (_, index) => (
-                <button
-                  key={index}
-                  className={`px-3 py-1 mx-1 border rounded ${currentPage === index + 1 ? 'bg-black text-white' : 'bg-white text-black'}`}
-                  onClick={() => setCurrentPage(index + 1)}
-                >
-                  {index + 1}
-                </button>
-              ))}
+              {paginationItems.map((item, index) => {
+                if (item === '...') {
+                  return (
+                    <span key={`ellipsis-${index}`} className="px-3 py-1 mx-1">
+                      {item}
+                    </span>
+                  );
+                }
+                return (
+                  <button
+                    key={item}
+                    className={`px-3 py-1 mx-1 border rounded ${currentPage === item ? 'bg-black text-white' : 'bg-white text-black'}`}
+                    onClick={() => setCurrentPage(item as number)}
+                  >
+                    {item}
+                  </button>
+                );
+              })}
               <button
                 className="px-3 py-1 mx-1 border rounded disabled:opacity-50"
                 onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
