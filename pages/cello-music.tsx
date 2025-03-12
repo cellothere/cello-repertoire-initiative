@@ -602,8 +602,6 @@ const Music: NextPage = () => {
     </div>
   </div>
 )}
-
-
         </main>
       </div>
     </div>
