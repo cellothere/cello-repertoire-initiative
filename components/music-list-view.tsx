@@ -27,7 +27,6 @@ const formatDuration = (duration: string): string => {
   if (parts.length !== 3) return duration;
   
   const [hours, minutes, seconds] = parts.map(Number);
-  // If the duration is 00:00:00, we display as N/A.
   if (hours === 0 && minutes === 0 && seconds === 0) return 'N/A';
   if (hours > 0) {
     return seconds > 0
@@ -56,12 +55,10 @@ const compareDurations = (
   const aValid = isValid(aDuration);
   const bValid = isValid(bDuration);
 
-  // If one is valid and the other isn’t, valid ones come first.
   if (aValid && !bValid) return -1;
   if (!aValid && bValid) return 1;
   if (!aValid && !bValid) return 0;
 
-  // Both durations are valid; convert to seconds.
   const secondsA = convertDurationToSeconds(aDuration!);
   const secondsB = convertDurationToSeconds(bDuration!);
   if (secondsA === null || secondsB === null) return 0;
@@ -93,12 +90,12 @@ const MusicListView: React.FC<MusicListViewProps> = ({ pieces, sortConfig, onSor
   };
 
   return (
-    <div className="overflow-x-auto bg-white">
-      <table className="min-w-full border-collapse">
+    <div className="overflow-x-auto rounded-md">
+      <table className="min-w-full border-separate border-spacing-0 shadow-md rounded-md">
         <thead>
-          <tr className="bg-black">
+          <tr className="bg-gray-800">
             <th
-              className="px-4 py-2 border text-left text-white cursor-pointer"
+              className="w-[200px] rounded-md px-4 py-3 border text-left text-white cursor-pointer hover:bg-gray-700 transition-colors"
               onClick={() => onSort('title')}
             >
               <span className="flex items-center gap-x-1 whitespace-nowrap">
@@ -106,7 +103,7 @@ const MusicListView: React.FC<MusicListViewProps> = ({ pieces, sortConfig, onSor
               </span>
             </th>
             <th
-              className="px-4 py-2 border text-left text-white cursor-pointer"
+              className="w-[200px] px-4 py-3 border text-left text-white cursor-pointer hover:bg-gray-700 transition-colors"
               onClick={() => onSort('instrumentation')}
             >
               <span className="flex items-center gap-x-1 whitespace-nowrap">
@@ -114,7 +111,7 @@ const MusicListView: React.FC<MusicListViewProps> = ({ pieces, sortConfig, onSor
               </span>
             </th>
             <th
-              className="px-4 py-2 border text-left text-white cursor-pointer"
+              className="w-[200px] px-4 py-3 border text-left text-white cursor-pointer hover:bg-gray-700 transition-colors"
               onClick={() => onSort('composer')}
             >
               <span className="flex items-center gap-x-1 whitespace-nowrap">
@@ -122,7 +119,7 @@ const MusicListView: React.FC<MusicListViewProps> = ({ pieces, sortConfig, onSor
               </span>
             </th>
             <th
-              className="px-4 py-2 border text-left text-white cursor-pointer"
+              className="w-[200px] px-4 py-3 border text-left text-white cursor-pointer hover:bg-gray-700 transition-colors"
               onClick={() => onSort('level')}
             >
               <span className="flex items-center gap-x-1 whitespace-nowrap">
@@ -130,7 +127,7 @@ const MusicListView: React.FC<MusicListViewProps> = ({ pieces, sortConfig, onSor
               </span>
             </th>
             <th
-              className="px-4 py-2 border text-left text-white hidden md:table-cell cursor-pointer"
+              className="w-[200px] rounded-md px-4 py-3 border text-left text-white hidden md:table-cell cursor-pointer hover:bg-gray-700 transition-colors"
               onClick={() => onSort('duration')}
             >
               <span className="flex items-center gap-x-1 whitespace-nowrap">
@@ -140,9 +137,9 @@ const MusicListView: React.FC<MusicListViewProps> = ({ pieces, sortConfig, onSor
           </tr>
         </thead>
         <tbody>
-          {pieces.map((piece) => (
-            <tr key={piece.id} className="hover:bg-gray-50">
-              <td className="px-4 py-2 border">
+          {pieces.map((piece, index) => (
+            <tr key={piece.id} className={`hover:bg-gray-50 transition-colors ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}`}>
+              <td className="w-[200px] px-4 py-3 border">
                 <Link
                   href={`/piece/${piece.id}`}
                   className="text-black hover:underline"
@@ -150,14 +147,14 @@ const MusicListView: React.FC<MusicListViewProps> = ({ pieces, sortConfig, onSor
                   {piece.title}
                 </Link>
               </td>
-              <td className="px-4 py-2 border text-black">
+              <td className="w-[200px] px-4 py-3 border text-black">
                 {piece.instrumentation.join(', ')}
               </td>
-              <td className="px-4 py-2 border text-black">
+              <td className="w-[200px] px-4 py-3 border text-black">
                 {formatComposer(piece.composer_last_name, piece.composer_first_name)}
               </td>
-              <td className="px-4 py-2 border text-black">{piece.level}</td>
-              <td className="px-4 py-2 border text-black hidden md:table-cell">
+              <td className="w-[200px] px-4 py-3 border text-black">{piece.level}</td>
+              <td className="w-[200px] px-4 py-3 border text-black hidden md:table-cell">
                 {piece.duration ? formatDuration(piece.duration) : 'N/A'}
               </td>
             </tr>
