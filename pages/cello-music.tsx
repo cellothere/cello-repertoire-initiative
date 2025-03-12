@@ -560,10 +560,10 @@ const Music: NextPage = () => {
             <MusicListView pieces={paginatedPieces} sortConfig={sortConfig} onSort={onSort} />
           )}
 {totalPages > 1 && (
-  <div className="w-full overflow-x-auto px-4">
-    <div className="inline-flex items-center space-x-2 mt-4">
+  <div className="w-full overflow-x-auto px-2 pb-2">
+    <div className="inline-flex items-center space-x-1 mt-2">
       <button
-        className="px-3 py-1 border rounded disabled:opacity-50"
+        className="flex-shrink-0 px-2 py-1 border rounded text-xs md:text-sm disabled:opacity-50"
         onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
         disabled={currentPage === 1}
       >
@@ -572,7 +572,10 @@ const Music: NextPage = () => {
       {paginationItems.map((item, index) => {
         if (item === '...') {
           return (
-            <span key={`ellipsis-${index}`} className="px-3 py-1">
+            <span
+              key={`ellipsis-${index}`}
+              className="flex-shrink-0 px-2 py-1 text-xs md:text-sm"
+            >
               {item}
             </span>
           );
@@ -580,7 +583,7 @@ const Music: NextPage = () => {
         return (
           <button
             key={item}
-            className={`px-3 py-1 border rounded ${
+            className={`flex-shrink-0 px-2 py-1 border rounded text-xs md:text-sm ${
               currentPage === item ? 'bg-black text-white' : 'bg-white text-black'
             }`}
             onClick={() => setCurrentPage(item as number)}
@@ -590,7 +593,7 @@ const Music: NextPage = () => {
         );
       })}
       <button
-        className="px-3 py-1 border rounded disabled:opacity-50"
+        className="flex-shrink-0 px-2 py-1 border rounded text-xs md:text-sm disabled:opacity-50"
         onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
         disabled={currentPage === totalPages}
       >
@@ -599,6 +602,7 @@ const Music: NextPage = () => {
     </div>
   </div>
 )}
+
 
         </main>
       </div>
