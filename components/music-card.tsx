@@ -50,7 +50,8 @@ const MusicCard: React.FC<MusicCardProps> = ({
     lowerInstrumentation.includes('cello') && lowerInstrumentation.includes('orchestra');
 
   // Determine the level
-  const isAdvanced = lowerLevel === 'early advanced' || lowerLevel === 'advanced';
+  const isAdvanced = lowerLevel === 'advanced';
+  const isEarlyAdvanced = lowerLevel === 'early advanced' 
   const isBeginner = lowerLevel === 'beginner';
   const isLateBeginner = lowerLevel === 'late beginner';
   const isProfessional = lowerLevel === 'professional';
@@ -80,16 +81,24 @@ const MusicCard: React.FC<MusicCardProps> = ({
     ? '/assets/late_intermediate_solo.png'
     : isLateIntermediate && isCelloAndPiano
     ? '/assets/late_intermediate_cello_piano.png'
-    : isCelloDuet
-    ? '/assets/early_beginner_duet.png'
     : isIntermediate && isCelloAndPiano
     ? '/assets/intermediate_cello_piano.png'
     : isIntermediate && isCelloSolo
     ? '/assets/intermediate_solo.png'
+    : isEarlyAdvanced && isCelloDuet
+    ? '/assets/early_advanced_duet.png'
+    : isEarlyAdvanced && isCelloAndPiano
+    ? '/assets/early_advanced_cello_piano.png'
+    : isEarlyAdvanced
+    ? '/assets/early_advanced_cello.png'
     : isAdvanced && isCelloAndPiano
     ? '/assets/advanced_cello_piano.png'
+    : isAdvanced && isCelloDuet
+    ? '/assets/advanced_duet.png'
     : isAdvanced
     ? '/assets/advanced_cello_solo.png'
+    : isCelloDuet
+    ? '/assets/early_beginner_duet.png'
     : isLateBeginner && isCelloAndPiano
     ? '/assets/late_beginner_cello_piano.png'
     : isLateBeginner && isCelloSolo
