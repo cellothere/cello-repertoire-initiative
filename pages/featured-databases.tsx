@@ -176,7 +176,8 @@ const FeaturedDatabases: NextPage = () => {
       </header>
       <main className="container mx-auto px-4 pb-10">
         {/* Sort dropdown */}
-        <div className="mt-5 mb-5 flex items-center space-x-4">
+        <div className="mt-5 mb-5 flex flex-col md:flex-row space-y-4 md:space-y-0 md:space-x-4">
+
           {/* Sort dropdown */}
           <div className="flex items-center space-x-2">
             <label htmlFor="sort-select" className="mr-2 text-md">
