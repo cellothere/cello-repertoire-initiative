@@ -8,6 +8,7 @@ import FilterAside from '@/components/filter-search';
 import MobileFilterAccordion from '@/components/mobile-filter-search';
 import MusicCard from '@/components/music-card';
 import MusicListView from '@/components/music-list-view';
+import LoadingAnimation from '@/components/loading-animation';
 import { removeDiacritics, convertDurationToSeconds, compareDurations } from '@/utils/musicUtils';
 
 interface MusicPiece {
@@ -48,6 +49,9 @@ const Music: NextPage = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [viewMode, setViewMode] = useState<'card' | 'list'>('card');
   const [sortConfig, setSortConfig] = useState<SortConfig>({ field: 'level', direction: 'asc' });
+  
+  // Loading state
+  const [isLoading, setIsLoading] = useState<boolean>(true);
 
   // UI control states
   const [isFilterVisible, setIsFilterVisible] = useState<boolean>(false);
@@ -182,38 +186,43 @@ const Music: NextPage = () => {
 
   // --- 3. Fetch Data ---
   useEffect(() => {
-    const fetchPieces = async () => {
-      const res = await fetch('/api/celloMusic');
-      const data = await res.json();
-      // Flatten without sorting here
-      const flattenedPieces = data.flatMap((group: { musicPieces: MusicPiece[] }) => group.musicPieces);
-      setPieces(flattenedPieces);
-    };
-    fetchPieces();
-  }, []);
+    const fetchData = async () => {
+      try {
+        const [piecesRes, nationalitiesRes, composersRes] = await Promise.all([
+          fetch('/api/celloMusic'),
+          fetch('/api/nationalities'),
+          fetch('/api/composers'),
+        ]);
 
-  useEffect(() => {
-    const fetchNationalities = async () => {
-      const res = await fetch('/api/nationalities');
-      const data: { nationality: string }[] = await res.json();
-      const countries = data.map((item) => item.nationality);
-      setAccordionContent((prev) => ({ ...prev, Country: countries }));
-    };
-    fetchNationalities();
-  }, []);
+        const piecesData = await piecesRes.json();
+        const nationalitiesData: { nationality: string }[] = await nationalitiesRes.json();
+        const composersData = await composersRes.json();
 
-  useEffect(() => {
-    const fetchComposers = async () => {
-      const res = await fetch('/api/composers');
-      const data = await res.json();
-      const composers = data
-        .map((group: { composers: Composer[] }) =>
-          group.composers.map((composer) => composer.composer_full_name)
-        )
-        .flat();
-      setAccordionContent((prev) => ({ ...prev, Composer: composers }));
+        // Flatten pieces data
+        const flattenedPieces = piecesData.flatMap((group: { musicPieces: MusicPiece[] }) => group.musicPieces);
+        setPieces(flattenedPieces);
+
+        // Update accordion content for nationalities
+        const countries = nationalitiesData.map((item) => item.nationality);
+        setAccordionContent((prev) => ({ ...prev, Country: countries }));
+
+        // Update accordion content for composers
+        const composers = composersData
+          .map((group: { composers: Composer[] }) =>
+            group.composers.map((composer) => composer.composer_full_name)
+          )
+          .flat();
+        setAccordionContent((prev) => ({ ...prev, Composer: composers }));
+
+      } catch (error) {
+        console.error('Error fetching data:', error);
+      } finally {
+        // All fetches are done
+        setIsLoading(false);
+      }
     };
-    fetchComposers();
+
+    fetchData();
   }, []);
 
   // --- 4. Utility Functions are imported from utils/musicUtils.ts ---
@@ -415,6 +424,11 @@ const Music: NextPage = () => {
 
   const mobileFilterRef = useRef<HTMLDivElement>(null);
 
+  // If data is still loading, show the loading animation
+  if (isLoading) {
+    return <LoadingAnimation />;
+  }
+
   return (
     <div>
       <Head>
@@ -559,49 +573,49 @@ const Music: NextPage = () => {
           ) : (
             <MusicListView pieces={paginatedPieces} sortConfig={sortConfig} onSort={onSort} />
           )}
-{totalPages > 1 && (
-  <div className="w-full mt-5 overflow-x-auto px-2 pb-2 md:px-4 md:pb-4">
-    <div className="inline-flex items-center justify-center w-full space-x-1 md:space-x-2 mt-2">
-      <button
-        className="flex-shrink-0 px-2 py-1 md:px-3 md:py-2 border rounded text-xs md:text-sm disabled:opacity-50"
-        onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-        disabled={currentPage === 1}
-      >
-        Prev
-      </button>
-      {paginationItems.map((item, index) => {
-        if (item === '...') {
-          return (
-            <span
-              key={`ellipsis-${index}`}
-              className="flex-shrink-0 px-2 py-1 md:px-3 md:py-2 text-xs md:text-sm"
-            >
-              {item}
-            </span>
-          );
-        }
-        return (
-          <button
-            key={item}
-            className={`flex-shrink-0 px-2 py-1 md:px-3 md:py-2 border rounded text-xs md:text-sm ${
-              currentPage === item ? 'bg-black text-white' : 'bg-white text-black'
-            }`}
-            onClick={() => setCurrentPage(item as number)}
-          >
-            {item}
-          </button>
-        );
-      })}
-      <button
-        className="flex-shrink-0 px-2 py-1 md:px-3 md:py-2 border rounded text-xs md:text-sm disabled:opacity-50"
-        onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
-        disabled={currentPage === totalPages}
-      >
-        Next
-      </button>
-    </div>
-  </div>
-)}
+          {totalPages > 1 && (
+            <div className="w-full mt-5 overflow-x-auto px-2 pb-2 md:px-4 md:pb-4">
+              <div className="inline-flex items-center justify-center w-full space-x-1 md:space-x-2 mt-2">
+                <button
+                  className="flex-shrink-0 px-2 py-1 md:px-3 md:py-2 border rounded text-xs md:text-sm disabled:opacity-50"
+                  onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                  disabled={currentPage === 1}
+                >
+                  Prev
+                </button>
+                {paginationItems.map((item, index) => {
+                  if (item === '...') {
+                    return (
+                      <span
+                        key={`ellipsis-${index}`}
+                        className="flex-shrink-0 px-2 py-1 md:px-3 md:py-2 text-xs md:text-sm"
+                      >
+                        {item}
+                      </span>
+                    );
+                  }
+                  return (
+                    <button
+                      key={item}
+                      className={`flex-shrink-0 px-2 py-1 md:px-3 md:py-2 border rounded text-xs md:text-sm ${
+                        currentPage === item ? 'bg-black text-white' : 'bg-white text-black'
+                      }`}
+                      onClick={() => setCurrentPage(item as number)}
+                    >
+                      {item}
+                    </button>
+                  );
+                })}
+                <button
+                  className="flex-shrink-0 px-2 py-1 md:px-3 md:py-2 border rounded text-xs md:text-sm disabled:opacity-50"
+                  onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+                  disabled={currentPage === totalPages}
+                >
+                  Next
+                </button>
+              </div>
+            </div>
+          )}
         </main>
       </div>
     </div>

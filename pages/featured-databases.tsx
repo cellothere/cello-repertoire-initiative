@@ -117,16 +117,7 @@ const FeaturedDatabases: NextPage = () => {
       </Head>
       <NavbarMain />
       <header className="py-10 bg-gradient-to-r from-purple-600 to-pink-600 text-center text-white">
-        <h1 className="text-4xl font-bold">Featured Databases</h1>
-        <p className="mt-2 text-lg">
-          {selectedCategory === 'LGBTQIA+'
-            ? 'Non-Binary Composers'
-            : selectedCategory === 'Black'
-              ? 'Black Composers'
-              : selectedCategory === 'Woman'
-                ? 'Women Composers'
-                : ''}
-        </p>
+        <h1 className="text-4xl mb-6 font-bold">Featured Databases</h1>
         <div className="mt-4 flex flex-col items-center space-y-4 md:flex-row md:justify-center md:space-y-0 md:space-x-4">
           {/* Category selection */}
           <div>
