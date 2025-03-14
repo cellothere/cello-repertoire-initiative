@@ -12,9 +12,14 @@ import Accordion from '@mui/material/Accordion';
 import AccordionSummary from '@mui/material/AccordionSummary';
 import AccordionDetails from '@mui/material/AccordionDetails';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import Tooltip from '@mui/material/Tooltip';
+import Dialog from '@mui/material/Dialog';
+import DialogTitle from '@mui/material/DialogTitle';
+import DialogContent from '@mui/material/DialogContent';
+import DialogActions from '@mui/material/DialogActions';
+import Button from '@mui/material/Button';
 import { AiFillQuestionCircle } from 'react-icons/ai';
 import VideoIframe from '@/components/youtube-iframe';
+import { tooltipTexts } from '@/public/assets/tooltipTexts';
 
 interface PieceProps {
   piece: {
@@ -76,7 +81,9 @@ const formatDuration = (duration: string): string => {
   const [hours, minutes, seconds] = parts.map(Number);
   if (hours === 0 && minutes === 0 && seconds === 0) return 'N/A';
   if (hours > 0) {
-    return seconds > 0 ? `${hours}hr ${minutes}'${seconds}''` : `${hours}hr ${minutes}'`;
+    return seconds > 0
+      ? `${hours}hr ${minutes}'${seconds}''`
+      : `${hours}hr ${minutes}'`;
   }
   return seconds > 0 ? `${minutes}'${seconds}''` : `${minutes}'`;
 };
@@ -85,8 +92,10 @@ const Piece: NextPage<PieceProps> = ({ piece, composerInfo }) => {
   // State for video and accordion expansion
   const [videoId1, setVideoId1] = useState<string | null>(null);
   const [hasVideo, setHasVideo] = useState<boolean>(false);
-  // Manage which panel is open; default open panel1
   const [expanded, setExpanded] = useState<string | false>('panel1');
+
+  // State for modal
+  const [modalOpen, setModalOpen] = useState(false);
 
   useEffect(() => {
     if (piece && piece.audio_link.length > 0) {
@@ -108,6 +117,11 @@ const Piece: NextPage<PieceProps> = ({ piece, composerInfo }) => {
     }
   }, [piece]);
 
+  const tooltipContent =
+    piece?.level === 'Early Beginner'
+      ? tooltipTexts.earlyBeginner
+      : tooltipTexts.default;
+
   const handleChange =
     (panel: string) => (_event: React.SyntheticEvent, isExpanded: boolean) => {
       setExpanded(isExpanded ? panel : false);
@@ -125,18 +139,8 @@ const Piece: NextPage<PieceProps> = ({ piece, composerInfo }) => {
         <h1 className="ml-[11px] sm:ml-0 text-2xl sm:text-3xl text-white font-bold">
           {piece.title}
         </h1>
-        {/*
-          Uncomment the button below if you want a back button
-          <button className="hidden sm:block bg-black text-white px-3 py-2 rounded-lg hover:scale-105 transition-transform mt-3 sm:mt-0">
-            <Link href="../cello-music">
-              Back to Music <FaArrowRight className="inline-block ml-2" />
-            </Link>
-          </button>
-        */}
       </div>
-      <main
-        className={`grid grid-cols-1 gap-6 p-4 ${hasVideo ? 'md:grid-cols-2' : 'md:grid-cols-1'}`}
-      >
+      <main className={`grid grid-cols-1 gap-6 p-4 ${hasVideo ? 'md:grid-cols-2' : 'md:grid-cols-1'}`}>
         <div className="container flex flex-col items-start">
           <div className="mb-4">
             <p className="text-md sm:text-lg mb-1 text-white">
@@ -155,12 +159,16 @@ const Piece: NextPage<PieceProps> = ({ piece, composerInfo }) => {
               )}
             </p>
             <div className="flex items-center">
-              <p className="text-sm text-white sm:text-md italic mr-1">{piece.level}</p>
-              <Tooltip title="Levels are approximate.">
-                <span className="cursor-pointer text-gray-500">
-                  <AiFillQuestionCircle className="inline-block" />
-                </span>
-              </Tooltip>
+              <p className="text-sm text-white sm:text-md italic mr-1">
+                {piece.level}
+              </p>
+              {/* Clicking the question icon opens the modal */}
+              <span
+                className="cursor-pointer text-gray-500"
+                onClick={() => setModalOpen(true)}
+              >
+                <AiFillQuestionCircle className="inline-block" />
+              </span>
             </div>
           </div>
 
@@ -338,6 +346,24 @@ const Piece: NextPage<PieceProps> = ({ piece, composerInfo }) => {
           </div>
         )}
       </main>
+
+      {/* Modal Dialog for displaying detailed information */}
+      <Dialog
+        open={modalOpen}
+        onClose={() => setModalOpen(false)}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle>{piece.level} Information</DialogTitle>
+        <DialogContent>
+          <div style={{ whiteSpace: 'pre-line', fontSize: '1.2rem' }}>
+            {tooltipContent}
+          </div>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setModalOpen(false)}>Close</Button>
+        </DialogActions>
+      </Dialog>
     </div>
   );
 };
