@@ -158,6 +158,8 @@ export const tooltipTexts = {
   • Mature tone and phrasing for solo and ensemble settings.
   • Demonstrate advanced ensemble leadership with visual cues.`,
   
+  "Various": `• Contains multiple levels`,
+
     "Advanced": `Left Hand:
   • Unrestricted fingerboard operation.
   • Effortless high‑register passages with thumb position.
