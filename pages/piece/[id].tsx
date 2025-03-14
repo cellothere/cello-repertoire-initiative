@@ -60,7 +60,13 @@ const isValidUrl = (url: string) => {
 const linkify = (text: string): React.ReactNode => {
   const urlRegex = /(https?:\/\/[^\s]+)/g;
   return text.split(urlRegex).map((part, index) => {
-    if (/(https?:\/\/[^\s]+)/.test(part)) {
+    if (urlRegex.test(part)) {
+      let displayText = part;
+      try {
+        displayText = new URL(part).hostname.replace(/^www\./, '');
+      } catch (error) {
+        console.error('Invalid URL:', part, error);
+      }
       return (
         <Link
           key={index}
@@ -69,13 +75,14 @@ const linkify = (text: string): React.ReactNode => {
           rel="noopener noreferrer"
           className="underline text-blue-500"
         >
-          {part}
+          {displayText}
         </Link>
       );
     }
     return part;
   });
 };
+
 
 const formatDuration = (duration: string): string => {
   const parts = duration.split(':');

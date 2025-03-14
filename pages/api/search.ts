@@ -1,5 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import clientPromise from '../../lib/mongodb';
+import Fuse from 'fuse.js';
 
 type MusicPiece = {
   id: number;
@@ -9,6 +10,9 @@ type MusicPiece = {
   composer_first_name: string;
   level: string;
   instrumentation: string[];
+  nationality: string;
+  composition_year: string;
+  duration: string;
 };
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
