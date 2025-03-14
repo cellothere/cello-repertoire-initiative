@@ -114,6 +114,40 @@ const FeaturedDatabases: NextPage = () => {
     <div className="min-h-screen bg-gray-100 text-gray-900">
       <Head>
         <title>Featured Databases - Cello Music</title>
+        <meta
+          name="description"
+          content="Explore our featured databases showcasing diverse composers, including women, non-binary, and Black composers, and discover unique cello music pieces."
+        />
+        <meta
+          name="keywords"
+          content="Cello, Music, Featured Databases, Women Composers, Non-Binary Composers, Black Composers, Cello Music"
+        />
+        <link rel="canonical" href="https://www.cellorepertoire.com/featured-databases" />
+
+        {/* Open Graph tags */}
+        <meta property="og:title" content="Featured Databases - Cello Music" />
+        <meta
+          property="og:description"
+          content="Explore our featured databases showcasing diverse composers, including women, non-binary, and Black composers, and discover unique cello music pieces."
+        />
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content="https://www.cellorepertoire.com/featured-databases" />
+        <meta
+          property="og:image"
+          content="https://www.cellorepertoire.com/images/featured-databases-banner.jpg"
+        />
+
+        {/* Twitter Card tags */}
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="Featured Databases - Cello Music" />
+        <meta
+          name="twitter:description"
+          content="Explore our featured databases showcasing diverse composers, including women, non-binary, and Black composers, and discover unique cello music pieces."
+        />
+        <meta
+          name="twitter:image"
+          content="https://www.cellorepertoire.com/images/featured-databases-banner.jpg"
+        />
       </Head>
       <NavbarMain />
       <header className="py-10 bg-gradient-to-r from-purple-600 to-pink-600 text-center text-white">
@@ -135,41 +169,41 @@ const FeaturedDatabases: NextPage = () => {
             <div className="hidden md:flex justify-center space-x-4">
               <button
                 onClick={() => setSelectedCategory('Woman')}
-                className={`px-4 py-2 rounded ${selectedCategory === 'Woman'
+                className={`px-4 py-2 rounded ${
+                  selectedCategory === 'Woman'
                     ? 'bg-purple-700 text-white'
                     : 'bg-gray-200 text-gray-800'
-                  }`}
+                }`}
               >
                 Women Composers
               </button>
               <button
                 onClick={() => setSelectedCategory('LGBTQIA+')}
-                className={`px-4 py-2 rounded ${selectedCategory === 'LGBTQIA+'
+                className={`px-4 py-2 rounded ${
+                  selectedCategory === 'LGBTQIA+'
                     ? 'bg-purple-700 text-white'
                     : 'bg-gray-200 text-gray-800'
-                  }`}
+                }`}
               >
                 Non-Binary Composers
               </button>
               <button
                 onClick={() => setSelectedCategory('Black')}
-                className={`px-4 py-2 rounded ${selectedCategory === 'Black'
+                className={`px-4 py-2 rounded ${
+                  selectedCategory === 'Black'
                     ? 'bg-purple-700 text-white'
                     : 'bg-gray-200 text-gray-800'
-                  }`}
+                }`}
               >
                 Black Composers
               </button>
             </div>
           </div>
-
         </div>
       </header>
       <main className="container mx-auto px-4 pb-10">
         {/* Sort dropdown */}
         <div className="mt-5 mb-5 flex flex-col md:flex-row space-y-4 md:space-y-0 md:space-x-4">
-
-          {/* Sort dropdown */}
           <div className="flex items-center space-x-2">
             <label htmlFor="sort-select" className="mr-2 text-md">
               Sort by:
@@ -191,7 +225,6 @@ const FeaturedDatabases: NextPage = () => {
               <option value="composer-desc">Composer (Z-A)</option>
             </select>
           </div>
-          {/* View Mode toggle */}
           <div className="flex items-center space-x-2">
             <label htmlFor="view-mode" className="text-md text-black">
               View Mode:
@@ -207,13 +240,11 @@ const FeaturedDatabases: NextPage = () => {
             </select>
           </div>
         </div>
-
         {loading ? (
           <LoadingAnimation />
         ) : featuredPieces.length === 0 ? (
           <div className="text-center mt-10">No featured pieces found.</div>
         ) : viewMode === 'card' ? (
-          // Grid view: two cards per row on mobile; more on larger screens.
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8 mt-8">
             {featuredPieces.map((piece) => (
               <MusicCard
@@ -228,7 +259,6 @@ const FeaturedDatabases: NextPage = () => {
             ))}
           </div>
         ) : (
-          // List view using the MusicListView component.
           <MusicListView pieces={featuredPieces} sortConfig={sortConfig} onSort={onSort} />
         )}
       </main>

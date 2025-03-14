@@ -433,6 +433,31 @@ const Music: NextPage = () => {
     <div>
       <Head>
         <title>Cello Music</title>
+        <meta
+          name="description"
+          content="Discover and explore a curated collection of cello music pieces, composers, and arrangements designed for music enthusiasts."
+        />
+        <meta name="keywords" content="Cello, Music, Composers, Music Pieces, Classical, Cello Music" />
+        <link rel="canonical" href="https://www.cellorepertoire.com/" />
+
+        {/* Open Graph tags */}
+        <meta property="og:title" content="Cello Music" />
+        <meta
+          property="og:description"
+          content="Discover and explore a curated collection of cello music pieces, composers, and arrangements designed for music enthusiasts."
+        />
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content="http://localhost:3000/cello-music?filter=&minYear=1600&maxYear=2025&page=1&viewMode=card&sortField=level&sortDirection=asc" />
+        <meta property="og:image" content="https://www.cellorepertoire.com/_next/image?url=%2Fassets%2FaltLogo.png&w=256&q=75" />
+
+        {/* Twitter Card tags */}
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="Cello Music" />
+        <meta
+          name="twitter:description"
+          content="Discover and explore a curated collection of cello music pieces, composers, and arrangements designed for music enthusiasts."
+        />
+        <meta name="twitter:image" content="https://www.cellorepertoire.com/_next/image?url=%2Fassets%2FaltLogo.png&w=256&q=75" />
       </Head>
       <NavbarMain />
       {(isFilterVisible || isSortMenuOpen) && (
