@@ -5,15 +5,15 @@ import Head from 'next/head';
 import clientPromise from '@/lib/mongodb';
 import NavbarMain from '@/components/navbar-main';
 import LoadingAnimation from '@/components/loading-animation';
-import { HiMusicNote } from "react-icons/hi";
-import { BsFileEarmarkMusicFill } from "react-icons/bs";
+import { HiMusicNote } from 'react-icons/hi';
+import { BsFileEarmarkMusicFill } from 'react-icons/bs';
 import { FaArrowRight } from 'react-icons/fa';
 import Accordion from '@mui/material/Accordion';
 import AccordionSummary from '@mui/material/AccordionSummary';
 import AccordionDetails from '@mui/material/AccordionDetails';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import Tooltip from '@mui/material/Tooltip';
-import { AiFillQuestionCircle } from "react-icons/ai";
+import { AiFillQuestionCircle } from 'react-icons/ai';
 import VideoIframe from '@/components/youtube-iframe';
 
 interface PieceProps {
@@ -36,7 +36,7 @@ interface PieceProps {
   } | null;
   composerInfo: {
     composer_full_name: string;
-    composer_last_name: string;
+    composer_last_name?: string;
     bio_links: string[];
   } | null;
 }
@@ -82,8 +82,11 @@ const formatDuration = (duration: string): string => {
 };
 
 const Piece: NextPage<PieceProps> = ({ piece, composerInfo }) => {
+  // State for video and accordion expansion
   const [videoId1, setVideoId1] = useState<string | null>(null);
   const [hasVideo, setHasVideo] = useState<boolean>(false);
+  // Manage which panel is open; default open panel1
+  const [expanded, setExpanded] = useState<string | false>('panel1');
 
   useEffect(() => {
     if (piece && piece.audio_link.length > 0) {
@@ -105,6 +108,11 @@ const Piece: NextPage<PieceProps> = ({ piece, composerInfo }) => {
     }
   }, [piece]);
 
+  const handleChange =
+    (panel: string) => (_event: React.SyntheticEvent, isExpanded: boolean) => {
+      setExpanded(isExpanded ? panel : false);
+    };
+
   if (!piece) return <LoadingAnimation />;
 
   return (
@@ -113,15 +121,18 @@ const Piece: NextPage<PieceProps> = ({ piece, composerInfo }) => {
         <title>{piece.title}</title>
       </Head>
       <NavbarMain />
-      <div className='flex flex-col sm:flex-row justify-between mt-5 mx-auto w-[98%]'>
+      <div className="flex flex-col sm:flex-row justify-between mt-5 mx-auto w-[98%]">
         <h1 className="ml-[11px] sm:ml-0 text-2xl sm:text-3xl text-white font-bold">
           {piece.title}
         </h1>
-        {/* <button className="hidden sm:block bg-black text-white px-3 py-2 rounded-lg hover:scale-105 transition-transform mt-3 sm:mt-0">
-          <Link href="../cello-music">
-            Back to Music <FaArrowRight className="inline-block ml-2" />
-          </Link>
-        </button> */}
+        {/*
+          Uncomment the button below if you want a back button
+          <button className="hidden sm:block bg-black text-white px-3 py-2 rounded-lg hover:scale-105 transition-transform mt-3 sm:mt-0">
+            <Link href="../cello-music">
+              Back to Music <FaArrowRight className="inline-block ml-2" />
+            </Link>
+          </button>
+        */}
       </div>
       <main
         className={`grid grid-cols-1 gap-6 p-4 ${hasVideo ? 'md:grid-cols-2' : 'md:grid-cols-1'}`}
@@ -152,7 +163,13 @@ const Piece: NextPage<PieceProps> = ({ piece, composerInfo }) => {
               </Tooltip>
             </div>
           </div>
-          <Accordion className="w-full max-w-full md:max-w-2xl" defaultExpanded>
+
+          {/* Accordion for Info */}
+          <Accordion
+            className="w-full max-w-full md:max-w-2xl"
+            expanded={expanded === 'panel1'}
+            onChange={handleChange('panel1')}
+          >
             <AccordionSummary
               expandIcon={<ExpandMoreIcon />}
               aria-controls="panel1-content"
@@ -170,7 +187,7 @@ const Piece: NextPage<PieceProps> = ({ piece, composerInfo }) => {
               {piece.composition_year && (
                 <p className="text-sm sm:text-md mb-4">
                   <strong>Composition Year: </strong>
-                  {piece.composition_year === "0000" ? "N/A" : piece.composition_year}
+                  {piece.composition_year === '0000' ? 'N/A' : piece.composition_year}
                 </p>
               )}
               {piece.instrumentation?.length > 0 && (
@@ -193,7 +210,13 @@ const Piece: NextPage<PieceProps> = ({ piece, composerInfo }) => {
               )}
             </AccordionDetails>
           </Accordion>
-          <Accordion className="w-full max-w-full md:max-w-2xl">
+
+          {/* Accordion for Purchase or Download */}
+          <Accordion
+            className="w-full max-w-full md:max-w-2xl"
+            expanded={expanded === 'panel3'}
+            onChange={handleChange('panel3')}
+          >
             <AccordionSummary
               expandIcon={<ExpandMoreIcon />}
               aria-controls="panel3-content"
@@ -238,7 +261,13 @@ const Piece: NextPage<PieceProps> = ({ piece, composerInfo }) => {
               )}
             </AccordionDetails>
           </Accordion>
-          <Accordion className="w-full max-w-full md:max-w-2xl">
+
+          {/* Accordion for Technical Overview */}
+          <Accordion
+            className="w-full max-w-full md:max-w-2xl"
+            expanded={expanded === 'panel2'}
+            onChange={handleChange('panel2')}
+          >
             <AccordionSummary
               expandIcon={<ExpandMoreIcon />}
               aria-controls="panel2-content"
@@ -250,11 +279,19 @@ const Piece: NextPage<PieceProps> = ({ piece, composerInfo }) => {
             <div className="border-b border-gray-300 my-1"></div>
             <AccordionDetails>
               <p className="text-sm sm:text-md break-words">
-                {piece.technical_overview ? linkify(piece.technical_overview) : 'No technical overview available.'}
+                {piece.technical_overview
+                  ? linkify(piece.technical_overview)
+                  : 'No technical overview available.'}
               </p>
             </AccordionDetails>
           </Accordion>
-          <Accordion className="w-full max-w-full md:max-w-2xl">
+
+          {/* Accordion for Audio and Recordings */}
+          <Accordion
+            className="w-full max-w-full md:max-w-2xl"
+            expanded={expanded === 'panel4'}
+            onChange={handleChange('panel4')}
+          >
             <AccordionSummary
               expandIcon={<ExpandMoreIcon />}
               aria-controls="panel4-content"
@@ -291,6 +328,7 @@ const Piece: NextPage<PieceProps> = ({ piece, composerInfo }) => {
             </AccordionDetails>
           </Accordion>
         </div>
+
         {hasVideo && (
           <div className="container mx-auto flex flex-col">
             <div className="w-full flex justify-center md:justify-end"></div>
