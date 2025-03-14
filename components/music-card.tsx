@@ -57,6 +57,7 @@ const MusicCard: React.FC<MusicCardProps> = ({
   const isProfessional = lowerLevel === 'professional';
   const isIntermediate = lowerLevel === 'intermediate';
   const isLateIntermediate = lowerLevel === 'late intermediate';
+  const isVarious = lowerLevel === 'various';
 
   // Select the image based on conditions
   const imageSrc = isOther
@@ -107,6 +108,10 @@ const MusicCard: React.FC<MusicCardProps> = ({
     ? '/assets/beginner_solo.png'
     : lowerLevel === 'early beginner' && isCelloSolo
     ? '/assets/early_beginner_cello_solo.png'
+    : isVarious && isCelloAndPiano
+    ? '/assets/various_cello_piano.png'
+    : isVarious && isCelloSolo
+    ? '/assets/various_cello.png'
     : isCelloAndPiano
     ? '/assets/early_beginner_cello_piano.png'
     : '/assets/default_cello_and_piano.png'; // Default fallback

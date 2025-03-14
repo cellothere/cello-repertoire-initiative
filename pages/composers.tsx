@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import NavbarMain from '@/components/navbar-main';
+import { FaSpinner } from 'react-icons/fa';
 
 interface Composer {
   id: string;
@@ -16,6 +17,7 @@ const ComposersPage: React.FC = () => {
   const [composers, setComposers] = useState<Composer[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [sortConfig, setSortConfig] = useState<{ field: string; direction: 'asc' | 'desc' } | null>(null);
+  const [loadingComposerId, setLoadingComposerId] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchComposers = async () => {
@@ -109,32 +111,32 @@ const ComposersPage: React.FC = () => {
   // Sort filtered composers based on the current sort configuration
   const sortedComposers = sortConfig
     ? [...filteredComposers].sort((a, b) => {
-      if (sortConfig.field === 'lastname') {
-        return sortConfig.direction === 'asc'
-          ? a.lastName.localeCompare(b.lastName)
-          : b.lastName.localeCompare(a.lastName);
-      } else if (sortConfig.field === 'nationality') {
-        // Sort by the first nationality available (or empty string if none)
-        const aNationality = a.nationalities && a.nationalities.length > 0 ? a.nationalities[0] : '';
-        const bNationality = b.nationalities && b.nationalities.length > 0 ? b.nationalities[0] : '';
-        return sortConfig.direction === 'asc'
-          ? aNationality.localeCompare(bNationality)
-          : bNationality.localeCompare(aNationality);
-      } else if (sortConfig.field === 'born') {
-        // Convert birth years to numbers. If missing, treat as null.
-        const aBorn = a.born ? parseInt(a.born) : null;
-        const bBorn = b.born ? parseInt(b.born) : null;
-        // If both composers have a birth year, sort numerically.
-        if (aBorn !== null && bBorn !== null) {
-          return sortConfig.direction === 'asc' ? aBorn - bBorn : bBorn - aBorn;
+        if (sortConfig.field === 'lastname') {
+          return sortConfig.direction === 'asc'
+            ? a.lastName.localeCompare(b.lastName)
+            : b.lastName.localeCompare(a.lastName);
+        } else if (sortConfig.field === 'nationality') {
+          // Sort by the first nationality available (or empty string if none)
+          const aNationality = a.nationalities && a.nationalities.length > 0 ? a.nationalities[0] : '';
+          const bNationality = b.nationalities && b.nationalities.length > 0 ? b.nationalities[0] : '';
+          return sortConfig.direction === 'asc'
+            ? aNationality.localeCompare(bNationality)
+            : bNationality.localeCompare(aNationality);
+        } else if (sortConfig.field === 'born') {
+          // Convert birth years to numbers. If missing, treat as null.
+          const aBorn = a.born ? parseInt(a.born) : null;
+          const bBorn = b.born ? parseInt(b.born) : null;
+          // If both composers have a birth year, sort numerically.
+          if (aBorn !== null && bBorn !== null) {
+            return sortConfig.direction === 'asc' ? aBorn - bBorn : bBorn - aBorn;
+          }
+          // If one is missing, it should be sorted at the bottom.
+          if (aBorn === null && bBorn === null) return 0;
+          if (aBorn === null) return 1;
+          if (bBorn === null) return -1;
         }
-        // If one is missing, it should be sorted at the bottom.
-        if (aBorn === null && bBorn === null) return 0;
-        if (aBorn === null) return 1;
-        if (bBorn === null) return -1;
-      }
-      return 0;
-    })
+        return 0;
+      })
     : filteredComposers;
 
   return (
@@ -164,7 +166,7 @@ const ComposersPage: React.FC = () => {
           </select>
         </div>
         {sortedComposers.length > 0 ? (
-          <ul className="space-y-4">
+          <ul className="space-y-2">
             {sortedComposers.map((composer) => (
               <li
                 key={composer.id}
@@ -187,13 +189,21 @@ const ComposersPage: React.FC = () => {
                     </span>
                   ) : null}
                 </span>
-                <Link
-                  href={`/search-results?query=${encodeURIComponent(`${composer.firstName} ${composer.lastName}`)}`}
-                  className="text-blue-500 hover:underline"
-                >
-                  View Works
+                <Link href={`/search-results?query=${encodeURIComponent(`${composer.firstName} ${composer.lastName}`)}`}>
+                  <button
+                    className="px-4 py-2 bg-black text-white rounded transition duration-300 ease-in-out hover:bg-gradient-to-br hover:from-[#623d88] hover:to-[#36c190]"
+                    disabled={loadingComposerId === composer.id}
+                    onClick={() => {
+                      setLoadingComposerId(composer.id);
+                    }}
+                  >
+                    {loadingComposerId === composer.id ? (
+                      <FaSpinner className="animate-spin inline-block" />
+                    ) : (
+                      'See more'
+                    )}
+                  </button>
                 </Link>
-
               </li>
             ))}
           </ul>
