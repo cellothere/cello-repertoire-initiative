@@ -81,9 +81,7 @@ const formatDuration = (duration: string): string => {
   const [hours, minutes, seconds] = parts.map(Number);
   if (hours === 0 && minutes === 0 && seconds === 0) return 'N/A';
   if (hours > 0) {
-    return seconds > 0
-      ? `${hours}hr ${minutes}'${seconds}''`
-      : `${hours}hr ${minutes}'`;
+    return seconds > 0 ? `${hours}hr ${minutes}'${seconds}''` : `${hours}hr ${minutes}'`;
   }
   return seconds > 0 ? `${minutes}'${seconds}''` : `${minutes}'`;
 };
@@ -94,7 +92,7 @@ const Piece: NextPage<PieceProps> = ({ piece, composerInfo }) => {
   const [hasVideo, setHasVideo] = useState<boolean>(false);
   const [expanded, setExpanded] = useState<string | false>('panel1');
 
-  // State for modal
+  // State for modal dialog
   const [modalOpen, setModalOpen] = useState(false);
 
   useEffect(() => {
@@ -117,10 +115,10 @@ const Piece: NextPage<PieceProps> = ({ piece, composerInfo }) => {
     }
   }, [piece]);
 
-  const tooltipContent =
-    piece?.level === 'Early Beginner'
-      ? tooltipTexts.earlyBeginner
-      : tooltipTexts.default;
+// Remove any "(Book ...)" text from the level
+const levelKey = piece?.level.replace(/\s*\(.*\)/, '') || '';
+const tooltipContent = tooltipTexts[levelKey as keyof typeof tooltipTexts] || tooltipTexts.default;
+
 
   const handleChange =
     (panel: string) => (_event: React.SyntheticEvent, isExpanded: boolean) => {
@@ -347,16 +345,16 @@ const Piece: NextPage<PieceProps> = ({ piece, composerInfo }) => {
         )}
       </main>
 
-      {/* Modal Dialog for displaying detailed information */}
+      {/* Modal Dialog for displaying detailed level information */}
       <Dialog
         open={modalOpen}
         onClose={() => setModalOpen(false)}
         maxWidth="sm"
         fullWidth
       >
-        <DialogTitle>{piece.level} Information</DialogTitle>
+        <DialogTitle>"{piece.level.replace(/\s*\(.*\)/, '')}" Rubric</DialogTitle>
         <DialogContent>
-          <div style={{ whiteSpace: 'pre-line', fontSize: '1.2rem' }}>
+          <div style={{ whiteSpace: 'pre-line', fontSize: '1rem' }}>
             {tooltipContent}
           </div>
         </DialogContent>

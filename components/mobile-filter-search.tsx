@@ -58,9 +58,9 @@ const MobileFilterAccordion: React.FC<MobileFilterAccordionProps> = ({
         selectedLevels.forEach((level) => toggleLevelSelection(level));
         selectedInstruments.forEach((instrument) => toggleInstrumentSelection(instrument));
         selectedCountries.forEach((country) => toggleCountrySelection(country));
-        setMinYear(1600);
+        setMinYear(1500);
         setMaxYear(2025);
-        setCurrentPage(1); // ✅ Reset pagination when filters are cleared
+        setCurrentPage(1); 
         setOpenAccordion(null);
     };
 
