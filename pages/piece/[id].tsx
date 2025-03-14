@@ -352,7 +352,7 @@ const tooltipContent = tooltipTexts[levelKey as keyof typeof tooltipTexts] || to
         maxWidth="sm"
         fullWidth
       >
-        <DialogTitle>"{piece.level.replace(/\s*\(.*\)/, '')}" Rubric</DialogTitle>
+        <DialogTitle>{`"${piece.level.replace(/\s*\(.*\)/, '')}" Rubric`}</DialogTitle>
         <DialogContent>
           <div style={{ whiteSpace: 'pre-line', fontSize: '1rem' }}>
             {tooltipContent}
