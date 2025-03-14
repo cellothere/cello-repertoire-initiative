@@ -1,4 +1,4 @@
-export const tooltipTexts = {
+export const modalLevelText = {
     "Early Beginner": `Left Hand:
   • Basic setup: open strings & 1st-finger in 1st position.
   • No shifting or extensions.

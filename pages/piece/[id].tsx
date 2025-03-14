@@ -19,7 +19,9 @@ import DialogActions from '@mui/material/DialogActions';
 import Button from '@mui/material/Button';
 import { AiFillQuestionCircle } from 'react-icons/ai';
 import VideoIframe from '@/components/youtube-iframe';
-import { tooltipTexts } from '@/public/assets/tooltipTexts';
+import { modalLevelText } from '@/public/assets/modalLevelTexts';
+import { Box } from '@mui/material';
+
 
 interface PieceProps {
   piece: {
@@ -117,7 +119,7 @@ const Piece: NextPage<PieceProps> = ({ piece, composerInfo }) => {
 
 // Remove any "(Book ...)" text from the level
 const levelKey = piece?.level.replace(/\s*\(.*\)/, '') || '';
-const tooltipContent = tooltipTexts[levelKey as keyof typeof tooltipTexts] || tooltipTexts.default;
+const tooltipContent = modalLevelText[levelKey as keyof typeof modalLevelText] || modalLevelText.default;
 
 
   const handleChange =
@@ -352,7 +354,9 @@ const tooltipContent = tooltipTexts[levelKey as keyof typeof tooltipTexts] || to
         maxWidth="sm"
         fullWidth
       >
-        <DialogTitle>{`"${piece.level.replace(/\s*\(.*\)/, '')}" Rubric`}</DialogTitle>
+        <DialogTitle sx={{ fontWeight: 'bold' }}>{`"${piece.level.replace(/\s*\(.*\)/, '')}" Rubric`}</DialogTitle>
+        <Box sx={{ borderTop: '2px solid lightgray', mx: 3 }} />
+
         <DialogContent>
           <div style={{ whiteSpace: 'pre-line', fontSize: '1rem' }}>
             {tooltipContent}
