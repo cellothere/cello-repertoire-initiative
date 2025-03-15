@@ -73,7 +73,7 @@ const Home: NextPage = () => {
               ))
             ) : (
               [
-                { href: '/resources', src: '/assets/whatsNew.png', label: "Other Resources", subLabel: '' },
+                { href: '/featured-databases', src: '/assets/whatsNew.png', label: "Featured Databases", subLabel: '' },
                 { href: '/cello-music', src: '/assets/cellist3.png', label: 'Cello Music' },
                 { href: '/contribute', src: '/assets/contribute.png', label: 'Contribute', subLabel: 'Suggest an addition to our catalog' }
               ].map(({ href, src, label, subLabel }, index) => (
