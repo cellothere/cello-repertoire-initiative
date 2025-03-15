@@ -288,7 +288,7 @@ const NavbarMain = () => {
               onMouseEnter={() => setisAboutHovered(true)}
               onMouseLeave={() => setisAboutHovered(false)}
             >
-              About
+              More
             </Button>
           </DropdownTrigger>
           <DropdownMenu
