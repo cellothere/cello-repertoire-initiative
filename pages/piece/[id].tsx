@@ -19,7 +19,7 @@ import DialogActions from '@mui/material/DialogActions';
 import Button from '@mui/material/Button';
 import { AiFillQuestionCircle } from 'react-icons/ai';
 import VideoIframe from '@/components/youtube-iframe';
-import { modalLevelText } from '@/utils/modalLevelTexts
+import { modalLevelText } from '@/utils/modalLevelTexts'
 import { Box } from '@mui/material';
 
 
