@@ -600,7 +600,7 @@ const Music: NextPage = () => {
           )}
           {totalPages > 1 && (
             <div className="w-full mt-5 overflow-x-auto px-2 pb-2 md:px-4 md:pb-4">
-              <div className="inline-flex items-center justify-center w-full space-x-4 md:space-x-2 mt-2">
+              <div className="inline-flex items-center justify-center w-full space-x-2 md:space-x-2 mt-2">
                 <button
                   className="flex-shrink-0 px-2 py-1 md:px-3 md:py-2 border rounded text-xs md:text-sm disabled:opacity-50"
                   onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
