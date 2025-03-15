@@ -37,7 +37,7 @@ const MobileFilterAccordion: React.FC<MobileFilterAccordionProps> = ({
     maxYear,
     setMinYear,
     setMaxYear,
-    setCurrentPage, // ✅ Add this
+    setCurrentPage, 
 }) => {
     const [openAccordion, setOpenAccordion] = useState<number | null>(null);
     const [composerSearch, setComposerSearch] = useState<string>('');
