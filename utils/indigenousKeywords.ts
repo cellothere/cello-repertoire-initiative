@@ -1,0 +1,42 @@
+// utils/indigenousKeywords.ts
+
+export const indigenousKeywords = [
+    "navajo",
+    "diné",
+    "cherokee",
+    "stockbridge",
+    "yorta yorta",
+    "munsee",
+    "sioux",
+    "apache",
+    "comanche",
+    "hopi",
+    "pueblo",
+    "iroquois",
+    "haudenosaunee",
+    "cree",
+    "ojibwe",
+    "chippewa",
+    "blackfoot",
+    "lakota",
+    "dakota",
+    "inuit",
+    "tlingit",
+    "haida",
+    "mi'kmaq",
+    "seminole",
+    "potawatomi",
+    "mohawk",
+    "chickasaw",
+    "choctaw",
+    // Additional Australian Indigenous communities:
+    "aboriginal",
+    "indigenous australian",
+    "arrernte",
+    "noongar",
+    "pitjantjatjara",
+    "wiradjuri",
+    "koori",
+    "murri"
+  ];
+  

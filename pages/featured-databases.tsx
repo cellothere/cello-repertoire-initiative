@@ -7,6 +7,7 @@ import MusicCard from '@/components/music-card';
 import MusicListView from '@/components/music-list-view';
 import LoadingAnimation from '@/components/loading-animation';
 import { sortPieces, SortConfig } from '@/utils/sortUtils';
+import { indigenousKeywords } from '@/utils/indigenousKeywords';
 
 interface MusicPiece {
   _id?: string;
@@ -30,7 +31,7 @@ interface Composer {
   died?: string;
   composer_bio?: string;
   bio_link: string[];
-  nationality: string[];
+  nationality: string | string[];
   tags: string[];
   id: number;
 }
@@ -84,12 +85,32 @@ const FeaturedDatabases: NextPage = () => {
   // Filter and sort music pieces based on the selected category.
   useEffect(() => {
     if (composers.length && allPieces.length) {
-      const filteredComposers = composers.filter((composer) =>
-        composer.tags && composer.tags.includes(selectedCategory)
-      );
+      let filteredComposers;
+      if (selectedCategory === 'Indigenous') {
+        filteredComposers = composers.filter((composer) => {
+          if (composer.nationality) {
+            const nationalities = Array.isArray(composer.nationality)
+              ? composer.nationality
+              : [composer.nationality];
+            return nationalities.some((nat) =>
+              indigenousKeywords.some((keyword) =>
+                nat.toLowerCase().includes(keyword)
+              )
+            );
+          }
+          return false;
+        });
+      } else {
+        // Existing filtering based on tags for other categories.
+        filteredComposers = composers.filter((composer) =>
+          composer.tags && composer.tags.includes(selectedCategory)
+        );
+      }
+      // Extract the full names of the filtered composers.
       const composerNames = new Set(
         filteredComposers.map((composer) => composer.composer_full_name)
       );
+      // Filter music pieces by matching composer names.
       const filteredPieces = allPieces.filter((piece) =>
         composerNames.has(piece.composer)
       );
@@ -116,19 +137,18 @@ const FeaturedDatabases: NextPage = () => {
         <title>Featured Databases - Cello Music</title>
         <meta
           name="description"
-          content="Explore our featured databases showcasing diverse composers, including women, non-binary, and Black composers, and discover unique cello music pieces."
+          content="Explore our featured databases showcasing diverse composers, including women, non-binary, Black, and Indigenous American composers, and discover unique cello music pieces."
         />
         <meta
           name="keywords"
-          content="Cello, Music, Featured Databases, Women Composers, Non-Binary Composers, Black Composers, Cello Music"
+          content="Cello, Music, Featured Databases, Women Composers, Non-Binary Composers, Black Composers, Indigenous Composers, Cello Music"
         />
         <link rel="canonical" href="https://www.cellorepertoire.com/featured-databases" />
-
         {/* Open Graph tags */}
         <meta property="og:title" content="Featured Databases - Cello Music" />
         <meta
           property="og:description"
-          content="Explore our featured databases showcasing diverse composers, including women, non-binary, and Black composers, and discover unique cello music pieces."
+          content="Explore our featured databases showcasing diverse composers, including women, non-binary, Black, and Indigenous American composers, and discover unique cello music pieces."
         />
         <meta property="og:type" content="website" />
         <meta property="og:url" content="https://www.cellorepertoire.com/featured-databases" />
@@ -136,13 +156,12 @@ const FeaturedDatabases: NextPage = () => {
           property="og:image"
           content="https://www.cellorepertoire.com/images/featured-databases-banner.jpg"
         />
-
         {/* Twitter Card tags */}
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content="Featured Databases - Cello Music" />
         <meta
           name="twitter:description"
-          content="Explore our featured databases showcasing diverse composers, including women, non-binary, and Black composers, and discover unique cello music pieces."
+          content="Explore our featured databases showcasing diverse composers, including women, non-binary, Black, and Indigenous American composers, and discover unique cello music pieces."
         />
         <meta
           name="twitter:image"
@@ -164,6 +183,7 @@ const FeaturedDatabases: NextPage = () => {
                 <option value="Woman">Women Composers</option>
                 <option value="LGBTQIA+">Non-Binary Composers</option>
                 <option value="Black">Black Composers</option>
+                <option value="Indigenous">Indigenous Composers</option>
               </select>
             </div>
             <div className="hidden md:flex justify-center space-x-4">
@@ -197,12 +217,22 @@ const FeaturedDatabases: NextPage = () => {
               >
                 Black Composers
               </button>
+              <button
+                onClick={() => setSelectedCategory('Indigenous')}
+                className={`px-4 py-2 rounded ${
+                  selectedCategory === 'Indigenous'
+                    ? 'bg-purple-700 text-white'
+                    : 'bg-gray-200 text-gray-800'
+                }`}
+              >
+                Indigenous Composers
+              </button>
             </div>
           </div>
         </div>
       </header>
       <main className="container mx-auto px-4 pb-10">
-        {/* Sort dropdown */}
+        {/* Sort dropdown and view mode selector */}
         <div className="mt-5 mb-5 flex flex-col md:flex-row space-y-4 md:space-y-0 md:space-x-4">
           <div className="flex items-center space-x-2">
             <label htmlFor="sort-select" className="mr-2 text-md">
