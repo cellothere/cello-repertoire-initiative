@@ -48,7 +48,8 @@ const MusicCard: React.FC<MusicCardProps> = ({
     lowerInstrumentation.length === 2 && lowerInstrumentation.every((inst) => inst === 'cello');
   const isCelloWithOrchestra =
     lowerInstrumentation.includes('cello') && lowerInstrumentation.includes('orchestra');
-
+    const isCelloSaxophone =
+    lowerInstrumentation.includes('cello') && lowerInstrumentation.includes('saxophone');
   // Determine the level
   const isAdvanced = lowerLevel === 'advanced';
   const isEarlyAdvanced = lowerLevel === 'early advanced' 
@@ -61,60 +62,63 @@ const MusicCard: React.FC<MusicCardProps> = ({
 
   // Select the image based on conditions
   const imageSrc = isOther
-    ? '/assets/Other.png'
-    : isProfessional && isCelloDuet
-    ? '/assets/professional_duet.png'
-    : isProfessional && isCelloSolo
-    ? '/assets/professional_cello_solo.png'
-    : isProfessional && isCelloWithOrchestra
-    ? '/assets/professional_cello_orchestra.png'
-    : isProfessional
-    ? '/assets/professional_cello_piano.png'
-    : isBeginner && isCelloAndPiano
-    ? '/assets/beginner_cello_and_piano.png'
-    : isBeginner && isCelloDuet
-    ? '/assets/beginner_duet.png'
-    : isLateBeginner && isCelloDuet
-    ? '/assets/late_beginner_duet.png'
-    : isIntermediate && isCelloDuet
-    ? '/assets/intermediate_duet.png'
-    : isLateIntermediate && isCelloSolo
-    ? '/assets/late_intermediate_solo.png'
-    : isLateIntermediate && isCelloAndPiano
-    ? '/assets/late_intermediate_cello_piano.png'
-    : isIntermediate && isCelloAndPiano
-    ? '/assets/intermediate_cello_piano.png'
-    : isIntermediate && isCelloSolo
-    ? '/assets/intermediate_solo.png'
-    : isEarlyAdvanced && isCelloDuet
-    ? '/assets/early_advanced_duet.png'
-    : isEarlyAdvanced && isCelloAndPiano
-    ? '/assets/early_advanced_cello_piano.png'
-    : isEarlyAdvanced
-    ? '/assets/early_advanced_cello.png'
-    : isAdvanced && isCelloAndPiano
-    ? '/assets/advanced_cello_piano.png'
-    : isAdvanced && isCelloDuet
-    ? '/assets/advanced_duet.png'
-    : isAdvanced
-    ? '/assets/advanced_cello_solo.png'
-    : isCelloDuet
-    ? '/assets/early_beginner_duet.png'
-    : isLateBeginner && isCelloAndPiano
-    ? '/assets/late_beginner_cello_piano.png'
-    : isLateBeginner && isCelloSolo
-    ? '/assets/late_beginner_solo.png'
-    : isBeginner && isCelloSolo
-    ? '/assets/beginner_solo.png'
-    : lowerLevel === 'early beginner' && isCelloSolo
-    ? '/assets/early_beginner_cello_solo.png'
-    : isVarious && isCelloAndPiano
-    ? '/assets/various_cello_piano.png'
-    : isVarious && isCelloSolo
-    ? '/assets/various_cello.png'
-    : isCelloAndPiano
-    ? '/assets/early_beginner_cello_piano.png'
-    : '/assets/default_cello_and_piano.png'; // Default fallback
+  ? '/assets/Other.png'
+  : isCelloSaxophone
+  ? '/assets/cello_saxophone.png'
+  : isProfessional && isCelloDuet
+  ? '/assets/professional_duet.png'
+  : isProfessional && isCelloSolo
+  ? '/assets/professional_cello_solo.png'
+  : isProfessional && isCelloWithOrchestra
+  ? '/assets/professional_cello_orchestra.png'
+  : isProfessional
+  ? '/assets/professional_cello_piano.png'
+  : isBeginner && isCelloAndPiano
+  ? '/assets/beginner_cello_and_piano.png'
+  : isBeginner && isCelloDuet
+  ? '/assets/beginner_duet.png'
+  : isLateBeginner && isCelloDuet
+  ? '/assets/late_beginner_duet.png'
+  : isIntermediate && isCelloDuet
+  ? '/assets/intermediate_duet.png'
+  : isLateIntermediate && isCelloSolo
+  ? '/assets/late_intermediate_solo.png'
+  : isLateIntermediate && isCelloAndPiano
+  ? '/assets/late_intermediate_cello_piano.png'
+  : isIntermediate && isCelloAndPiano
+  ? '/assets/intermediate_cello_piano.png'
+  : isIntermediate && isCelloSolo
+  ? '/assets/intermediate_solo.png'
+  : isEarlyAdvanced && isCelloDuet
+  ? '/assets/early_advanced_duet.png'
+  : isEarlyAdvanced && isCelloAndPiano
+  ? '/assets/early_advanced_cello_piano.png'
+  : isEarlyAdvanced
+  ? '/assets/early_advanced_cello.png'
+  : isAdvanced && isCelloAndPiano
+  ? '/assets/advanced_cello_piano.png'
+  : isAdvanced && isCelloDuet
+  ? '/assets/advanced_duet.png'
+  : isAdvanced
+  ? '/assets/advanced_cello_solo.png'
+  : isCelloDuet
+  ? '/assets/early_beginner_duet.png'
+  : isLateBeginner && isCelloAndPiano
+  ? '/assets/late_beginner_cello_piano.png'
+  : isLateBeginner && isCelloSolo
+  ? '/assets/late_beginner_solo.png'
+  : isBeginner && isCelloSolo
+  ? '/assets/beginner_solo.png'
+  : lowerLevel === 'early beginner' && isCelloSolo
+  ? '/assets/early_beginner_cello_solo.png'
+  : isVarious && isCelloAndPiano
+  ? '/assets/various_cello_piano.png'
+  : isVarious && isCelloSolo
+  ? '/assets/various_cello.png'
+  : isCelloAndPiano
+  ? '/assets/early_beginner_cello_piano.png'
+  : '/assets/default_cello_and_piano.png'; // Default fallback
+
 
   return (
     <div className="bg-white shadow-md rounded-sm p-4 hover:scale-105 transition-transform duration-300">
