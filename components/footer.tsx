@@ -1,10 +1,14 @@
 import Link from 'next/link';
+import { useRouter } from 'next/router';
 import { FaUsers, FaBookOpen } from 'react-icons/fa';
 import { MdLibraryMusic } from "react-icons/md";
 
 const Footer = () => {
+  const router = useRouter();
+  const isFeaturedPage = router.pathname === '/featured-databases';
+
   return (
-    <footer className="footer w-full text-white relative">
+    <footer className={`footer w-full text-white relative ${isFeaturedPage ? 'bg-black' : ''}`}>
       {/* Navigation Buttons */}
       <div className="flex flex-row items-center justify-center p-4">
         <Link href="/composers">

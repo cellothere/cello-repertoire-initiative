@@ -9,7 +9,7 @@ import MobileFilterAccordion from '@/components/mobile-filter-search';
 import MusicCard from '@/components/music-card';
 import MusicListView from '@/components/music-list-view';
 import LoadingAnimation from '@/components/loading-animation';
-import { removeDiacritics, convertDurationToSeconds, compareDurations } from '@/utils/musicUtils';
+import { removeDiacritics, compareDurations } from '@/utils/musicUtils';
 
 interface MusicPiece {
   id: number;

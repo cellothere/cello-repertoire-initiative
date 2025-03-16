@@ -26,7 +26,6 @@ const Contribute: NextPage<ContributeProps> = () => {
         }
     };
 
-    // Handler to remove a link field
     const removeLinkField = (index: number) => {
         const updatedLinks = whereToBuyOrDownload.filter((_, i) => i !== index);
         setWhereToBuyOrDownload(updatedLinks);
