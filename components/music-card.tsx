@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { CiHeart } from 'react-icons/ci';
 import { FaInfoCircle, FaSpinner } from 'react-icons/fa';
 
 interface MusicCardProps {
