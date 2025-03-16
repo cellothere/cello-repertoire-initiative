@@ -174,9 +174,9 @@ const ComposersPage: React.FC = () => {
                   </div>
                   {(composer.nationalities?.length || composer.born || composer.died) && (
                     <div className="text-sm text-gray-600">
-                      {composer.nationalities?.length > 0 && (
-                        <>{composer.nationalities.join(', ')}</>
-                      )}
+                    {composer.nationalities && composer.nationalities.length > 0 && (
+                      <>{composer.nationalities.join(', ')}</>
+                    )}
                       {composer.born && (
                         <span>
                           {' '}({composer.born}
