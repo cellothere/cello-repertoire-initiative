@@ -307,7 +307,7 @@ const NavbarMain = () => {
               <Link href="/contribute">Contribute</Link>
             </DropdownItem>
             <DropdownItem key="OtherResources" className="custom-dropdown-item text-black p-2">
-              <Link href="/resources">External Resources</Link>
+              <Link href="/resources">Resource Catalog</Link>
             </DropdownItem>
           </DropdownMenu>
         </Dropdown>
