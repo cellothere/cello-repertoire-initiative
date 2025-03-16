@@ -18,7 +18,7 @@ interface MobileFilterAccordionProps {
     maxYear: number;
     setMinYear: React.Dispatch<React.SetStateAction<number>>;
     setMaxYear: React.Dispatch<React.SetStateAction<number>>;
-    setCurrentPage: React.Dispatch<React.SetStateAction<number>>; // ✅ Add this
+    setCurrentPage: React.Dispatch<React.SetStateAction<number>>; 
 }
 
 const MobileFilterAccordion: React.FC<MobileFilterAccordionProps> = ({

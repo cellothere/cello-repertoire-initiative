@@ -13,14 +13,13 @@ const Contribute: NextPage<ContributeProps> = () => {
     const [description, setDescription] = useState('');
     const [formSubmitted, setFormSubmitted] = useState(false);
 
-    // Handler to update a specific link
+
     const handleLinkChange = (index: number, value: string) => {
         const updatedLinks = [...whereToBuyOrDownload];
         updatedLinks[index] = value;
         setWhereToBuyOrDownload(updatedLinks);
     };
 
-    // Handler to add a new link field
     const addLinkField = () => {
         if (whereToBuyOrDownload.length < 5) {
             setWhereToBuyOrDownload([...whereToBuyOrDownload, '']);
