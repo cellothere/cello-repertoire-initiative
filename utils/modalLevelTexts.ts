@@ -2,7 +2,6 @@ export const modalLevelText = {
     "Early Beginner": `Left Hand:
   • Basic setup: open strings & 1st-finger in 1st position.
   • No shifting or extensions.
-  • Thumb supports from behind neck.
   • No vibrato; harmonics only as open-string effects.
   
   Right Hand:
@@ -12,22 +11,21 @@ export const modalLevelText = {
   • Simple adjacent string crossings.
   
   Bow Strokes:
-  • Primarily détaché.
-  • Introduce on‑string staccato (stopped bows).
+  • Détaché.
+  • Stopped notes 
   • Continuous string contact.
   
   Rhythm & Musicality:
-  • Simple rhythms (quarters, halves, repeated patterns).
+  • Simple rhythms (quarters, 8ths, repeated patterns).
   • Short pieces in 2/4 or 4/4.
   • Minimal phrasing (1–2 bars).
   • Steady dynamics for clear tone.`,
   
     "Beginner": `Left Hand:
   • 1st position on all strings with fingers 1–4.
-  • Understand whole/half steps; slight extensions for accidentals.
+  • Understand whole/half steps
   • No shifting; notes stay in 1st position.
-  • Thumb relaxed behind neck.
-  • Focus on accurate finger placement (no vibrato).
+  • Focus on accurate finger placement.
   
   Right Hand:
   • Consistent détaché for simple melodies.
@@ -40,26 +38,24 @@ export const modalLevelText = {
   • Introduce simple legato (short slurs) and bow retakes.
   
   Rhythm & Musicality:
-  • Simple rhythms with basic subdivisions (e.g., groups of four sixteenths).
-  • Short phrases; limited dynamic contrasts.
+  • Simple rhythms with basic subdivisions.
+  • Short phrases; limited dynamic contrasts; echo dynamics.
   • Develop a singing, accurate tone.`,
   
     "Late Beginner": `Left Hand:
   • Mostly 1st position with small extensions.
   • Early shifting to 2nd/3rd positions.
-  • Introduce a "half‑position" feel (lower hand for accidentals).
-  • Begin slow, controlled vibrato on sustained notes.
+  • Controlled vibrato on sustained notes.
   
   Right Hand:
-  • Expand bow technique for faster passages & wider dynamics.
-  • Use longer slurs (3–4 notes).
-  • Introduce hooked bowing for dotted rhythms/portato effects.
+  • Expanded bow technique for faster passages & wider dynamics.
+  • Longer slurs (3–4 notes).
+  • Hooked bowing for dotted rhythms.
   • Practice basic martelé accents.
   • Increase speed in string crossings with minimal arm movement.
-  • Occasional gentle spiccato in lower bow.
   
   Bow Strokes:
-  • Standard détaché; add staccato, martelé, short slurs, hooked strokes & basic spiccato.
+  • Standard détaché; add staccato, martelé, short slurs, hooked strokes.
   
   Rhythm & Musicality:
   • Incorporate dotted figures, compound meters (6/8), triplets & syncopation.
@@ -77,7 +73,7 @@ export const modalLevelText = {
   
   Right Hand:
   • Bow arm gains finesse and speed.
-  • Introduce and refine controlled spiccato.
+  • Introduce controlled spiccato.
   • Sautillé appears in rapid passages.
   • Expand legato into longer, sustained lines.
   • Practice advanced articulations (martelé, refined string crossings).
