@@ -21,10 +21,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     const composers = await collection
       .aggregate([
-        // Match only documents where composer_full_name exists and is non-empty
+        // Match only documents where composer_full_name exists and is non-empty,
+        // and that are not disabled
         {
           $match: {
             composer_full_name: { $exists: true, $ne: null },
+            disabled: false,
           },
         },
         // Sort composers by full name

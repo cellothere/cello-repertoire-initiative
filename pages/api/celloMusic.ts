@@ -21,6 +21,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     const musicPieces = await collection
       .aggregate<MusicPiece>([
+        // Only include music pieces that are not disabled
+        { $match: { disabled: false } },
         {
           $lookup: {
             from: 'composers',
@@ -29,16 +31,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             as: 'composerDetails',
           },
         },
-        {
-          $unwind: '$composerDetails',
-        },
+        { $unwind: '$composerDetails' },
+        // Filter out pieces where the composer is disabled
+        { $match: { "composerDetails.disabled": false } },
         {
           $group: {
             // Group by first letter of composer's last name
             _id: {
               $toLower: { $substrCP: ['$composerDetails.composer_last_name', 0, 1] },
             },
-            // Use $addToSet to ensure each piece only appears once
+            // Ensure each piece appears only once
             musicPieces: {
               $addToSet: {
                 id: '$id',
@@ -57,9 +59,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           },
         },
         {
-          $sort: {
-            _id: 1,
-          },
+          $sort: { _id: 1 },
         },
       ])
       .toArray();

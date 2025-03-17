@@ -80,7 +80,7 @@ const Music: NextPage<MusicPageProps> = ({ initialPieces, initialAccordionConten
         sortField,
         sortDirection,
       } = router.query;
-  
+
       if (qFilter) setFilter(qFilter as string);
       if (qSelectedComposers) {
         setSelectedComposers(
@@ -111,7 +111,7 @@ const Music: NextPage<MusicPageProps> = ({ initialPieces, initialAccordionConten
       }
     }
   }, [router.isReady]);
-  
+
 
   // Handle window resize for mobile view
   useEffect(() => {
@@ -416,18 +416,18 @@ const Music: NextPage<MusicPageProps> = ({ initialPieces, initialAccordionConten
                 Sort By:
               </label>
               <select
-  id="sort-by"
-  value={`${sortConfig.field}-${sortConfig.direction}`}
-  className="border border-gray-300 rounded-md p-1 text-black font-medium text-sm bg-white focus:outline-none"
-  onChange={(e) => handleSort(e.target.value)}
->
-  <option value="title-asc">Title (A-Z)</option>
-  <option value="title-desc">Title (Z-A)</option>
-  <option value="level-asc">Level (Low to High)</option>
-  <option value="level-desc">Level (High to Low)</option>
-  <option value="composer-asc">Composer (A-Z)</option>
-  <option value="composer-desc">Composer (Z-A)</option>
-</select>
+                id="sort-by"
+                value={`${sortConfig.field}-${sortConfig.direction}`}
+                className="border border-gray-300 rounded-md p-1 text-black font-medium text-sm bg-white focus:outline-none"
+                onChange={(e) => handleSort(e.target.value)}
+              >
+                <option value="title-asc">Title (A-Z)</option>
+                <option value="title-desc">Title (Z-A)</option>
+                <option value="level-asc">Level (Low to High)</option>
+                <option value="level-desc">Level (High to Low)</option>
+                <option value="composer-asc">Composer (A-Z)</option>
+                <option value="composer-desc">Composer (Z-A)</option>
+              </select>
 
               <select
                 value={viewMode}
@@ -579,8 +579,8 @@ export const getStaticProps: GetStaticProps = async () => {
     ],
     Composer: composersData
       ? composersData.map((group: { composers: any[] }) =>
-          group.composers.map((composer) => composer.composer_full_name)
-        ).flat()
+        group.composers.map((composer) => composer.composer_full_name)
+      ).flat()
       : [],
     Country: nationalitiesData ? nationalitiesData.map((item) => item.nationality) : [],
     Year: [],
