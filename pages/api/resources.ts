@@ -14,9 +14,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const client = await clientPromise;
     const collection = client.db('cello_repertoire').collection('Resources');
 
-    // Fetch all resources sorted alphabetically by title
+    // Fetch all non-disabled resources sorted alphabetically by title
     const resources = await collection
-      .find({})
+      .find({ disabled: false })
       .sort({ title: 1 }) // Sort by title in ascending order
       .toArray();
 
