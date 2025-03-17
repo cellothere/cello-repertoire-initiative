@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { GetServerSideProps, NextPage } from 'next';
+import { GetStaticProps, GetStaticPaths, NextPage } from 'next';
 import Link from 'next/link';
 import Head from 'next/head';
 import clientPromise from '@/lib/mongodb';
@@ -7,7 +7,6 @@ import NavbarMain from '@/components/navbar-main';
 import LoadingAnimation from '@/components/loading-animation';
 import { HiMusicNote } from 'react-icons/hi';
 import { BsFileEarmarkMusicFill } from 'react-icons/bs';
-import { FaArrowRight } from 'react-icons/fa';
 import Accordion from '@mui/material/Accordion';
 import AccordionSummary from '@mui/material/AccordionSummary';
 import AccordionDetails from '@mui/material/AccordionDetails';
@@ -18,10 +17,12 @@ import DialogContent from '@mui/material/DialogContent';
 import DialogActions from '@mui/material/DialogActions';
 import Button from '@mui/material/Button';
 import { AiFillQuestionCircle } from 'react-icons/ai';
-import VideoIframe from '@/components/youtube-iframe';
-import { modalLevelText } from '@/utils/modalLevelTexts'
+import dynamic from 'next/dynamic';
+import { modalLevelText } from '@/utils/modalLevelTexts';
 import { Box } from '@mui/material';
 
+// Dynamically import VideoIframe (client-side only)
+const VideoIframe = dynamic(() => import('@/components/youtube-iframe'), { ssr: false });
 
 interface PieceProps {
   piece: {
@@ -83,7 +84,6 @@ const linkify = (text: string): React.ReactNode => {
   });
 };
 
-
 const formatDuration = (duration: string): string => {
   const parts = duration.split(':');
   if (parts.length !== 3) return duration;
@@ -100,7 +100,6 @@ const Piece: NextPage<PieceProps> = ({ piece, composerInfo }) => {
   const [videoId1, setVideoId1] = useState<string | null>(null);
   const [hasVideo, setHasVideo] = useState<boolean>(false);
   const [expanded, setExpanded] = useState<string | false>('panel1');
-
   // State for modal dialog
   const [modalOpen, setModalOpen] = useState(false);
 
@@ -109,8 +108,7 @@ const Piece: NextPage<PieceProps> = ({ piece, composerInfo }) => {
       const audioLink1 = piece.audio_link[0];
       try {
         const url = new URL(audioLink1);
-        const isYouTube =
-          url.hostname.includes('youtube.com') || url.hostname.includes('youtu.be');
+        const isYouTube = url.hostname.includes('youtube.com') || url.hostname.includes('youtu.be');
         if (isYouTube) {
           const videoId = url.searchParams.get('v') || url.pathname.slice(1);
           if (videoId) {
@@ -124,15 +122,13 @@ const Piece: NextPage<PieceProps> = ({ piece, composerInfo }) => {
     }
   }, [piece]);
 
-// Remove any "(Book ...)" text from the level
-const levelKey = piece?.level.replace(/\s*\(.*\)/, '') || '';
-const tooltipContent = modalLevelText[levelKey as keyof typeof modalLevelText] || modalLevelText.default;
+  // Remove any "(Book ...)" text from the level
+  const levelKey = piece?.level.replace(/\s*\(.*\)/, '') || '';
+  const tooltipContent = modalLevelText[levelKey as keyof typeof modalLevelText] || modalLevelText.default;
 
-
-  const handleChange =
-    (panel: string) => (_event: React.SyntheticEvent, isExpanded: boolean) => {
-      setExpanded(isExpanded ? panel : false);
-    };
+  const handleChange = (panel: string) => (_event: React.SyntheticEvent, isExpanded: boolean) => {
+    setExpanded(isExpanded ? panel : false);
+  };
 
   if (!piece) return <LoadingAnimation />;
 
@@ -303,7 +299,7 @@ const tooltipContent = modalLevelText[levelKey as keyof typeof modalLevelText] |
 
           {/* Accordion for Audio and Recordings */}
           <Accordion
-            className="w-full max-w-full md:max-w-2xl"
+            className="w-full max-w-full mb-10 md:max-w-2xl"
             expanded={expanded === 'panel4'}
             onChange={handleChange('panel4')}
           >
@@ -361,9 +357,10 @@ const tooltipContent = modalLevelText[levelKey as keyof typeof modalLevelText] |
         maxWidth="sm"
         fullWidth
       >
-        <DialogTitle sx={{ fontWeight: 'bold' }}>{`"${piece.level.replace(/\s*\(.*\)/, '')}" Rubric`}</DialogTitle>
+        <DialogTitle sx={{ fontWeight: 'bold' }}>
+          {`"${piece.level.replace(/\s*\(.*\)/, '')}" Rubric`}
+        </DialogTitle>
         <Box sx={{ borderTop: '2px solid lightgray', mx: 3 }} />
-
         <DialogContent>
           <div style={{ whiteSpace: 'pre-line', fontSize: '1rem' }}>
             {tooltipContent}
@@ -377,59 +374,80 @@ const tooltipContent = modalLevelText[levelKey as keyof typeof modalLevelText] |
   );
 };
 
-export const getServerSideProps: GetServerSideProps = async (context) => {
+export const getStaticPaths: GetStaticPaths = async () => {
+  try {
+    const client = await clientPromise;
+    const collection = client.db('cello_repertoire').collection('music_pieces');
+    // Pre-generate paths for up to 100 pieces; adjust limit as needed
+    const pieces = await collection.find({}, { projection: { id: 1 } }).limit(100).toArray();
+    const paths = pieces.map(piece => ({
+      params: { id: piece.id.toString() },
+    }));
+    return { paths, fallback: 'blocking' };
+  } catch (error) {
+    console.error('Error generating paths:', error);
+    return { paths: [], fallback: 'blocking' };
+  }
+};
+
+export const getStaticProps: GetStaticProps = async (context) => {
   const { id } = context.params || {};
   const parsedId = id && !isNaN(Number(id)) ? Number(id) : null;
   if (parsedId === null) return { notFound: true };
 
-  const client = await clientPromise;
-  const collection = client.db('cello_repertoire').collection('music_pieces');
+  try {
+    const client = await clientPromise;
+    const collection = client.db('cello_repertoire').collection('music_pieces');
 
-  const piece = await collection
-    .aggregate([
-      { $match: { id: parsedId } },
-      {
-        $lookup: {
-          from: 'composers',
-          localField: 'composer_id',
-          foreignField: 'id',
-          as: 'composerDetails',
+    const piece = await collection
+      .aggregate([
+        { $match: { id: parsedId } },
+        {
+          $lookup: {
+            from: 'composers',
+            localField: 'composer_id',
+            foreignField: 'id',
+            as: 'composerDetails',
+          },
         },
-      },
-      { $unwind: '$composerDetails' },
-    ])
-    .next();
+        { $unwind: '$composerDetails' },
+      ])
+      .next();
 
-  return {
-    props: {
-      piece: piece
-        ? {
-            id: piece.id,
-            title: piece.title || '',
-            composer_id: piece.composer_id || '',
-            composition_year: piece.composition_year || '',
-            level: piece.level || 'Unknown',
-            isArrangement: piece.isArrangement || false,
-            audio_link: piece.audio_link || [],
-            instrumentation: piece.instrumentation || [],
-            publisher_info: piece.publisher_info || '',
-            description: piece.description || '',
-            technical_overview: piece.technical_overview || '',
-            is_public_domain: piece.is_public_domain || false,
-            where_to_buy_or_download: piece.where_to_buy_or_download || [],
-            duration: piece.duration || '',
-            coverImage: piece.coverImage || '',
-          }
-        : null,
-      composerInfo: piece?.composerDetails
-        ? {
-            composer_full_name:
-              piece.composerDetails.composer_full_name || 'Unknown Composer',
-            bio_links: piece.composerDetails.bio_link || [],
-          }
-        : null,
-    },
-  };
+    return {
+      props: {
+        piece: piece
+          ? {
+              id: piece.id,
+              title: piece.title || '',
+              composer_id: piece.composer_id || '',
+              composition_year: piece.composition_year || '',
+              level: piece.level || 'Unknown',
+              isArrangement: piece.isArrangement || false,
+              audio_link: piece.audio_link || [],
+              instrumentation: piece.instrumentation || [],
+              publisher_info: piece.publisher_info || '',
+              description: piece.description || '',
+              technical_overview: piece.technical_overview || '',
+              is_public_domain: piece.is_public_domain || false,
+              where_to_buy_or_download: piece.where_to_buy_or_download || [],
+              duration: piece.duration || '',
+              coverImage: piece.coverImage || '',
+            }
+          : null,
+        composerInfo: piece?.composerDetails
+          ? {
+              composer_full_name: piece.composerDetails.composer_full_name || 'Unknown Composer',
+              bio_links: piece.composerDetails.bio_link || [],
+            }
+          : null,
+      },
+      revalidate: 60, // Revalidate this page every 60 seconds
+    };
+  } catch (error) {
+    console.error('Error fetching piece data:', error);
+    return { notFound: true };
+  }
 };
 
 export default Piece;

@@ -129,7 +129,7 @@ const MusicCard: React.FC<MusicCardProps> = ({
               src={imageSrc}
               alt="Cellist"
               fill
-              objectFit="contain" // Ensures the entire image is visible
+              style={{ objectFit: 'contain' }}// Ensures the entire image is visible
               className="rounded-md bg-white" // bg-white prevents transparency gaps
             />
           </div>

@@ -3,22 +3,42 @@ import Head from 'next/head';
 import NavbarMain from '@/components/navbar-main';
 import { FaArrowRight } from 'react-icons/fa';
 import { useEffect, useState } from 'react';
-import { Link } from '@heroui/react';
+import Link from 'next/link';
 import Image from 'next/image';
 import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 
+// Define static image data outside the component
+const mobileImages = [
+  { href: '/cello-music', src: '/assets/cellist3.png', label: 'Cello Music' },
+  { href: '/resources', src: '/assets/whatsNew.png', label: "Resources", subLabel: 'Find Useful Web Resources' },
+  { href: '/contribute', src: '/assets/contribute.png', label: 'Contribute', subLabel: 'Suggest an addition to our catalog' }
+];
+
+const desktopImages = [
+  { href: '/featured-databases', src: '/assets/whatsNew.png', label: "Featured Databases", subLabel: '' },
+  { href: '/cello-music', src: '/assets/cellist3.png', label: 'Cello Music' },
+  { href: '/contribute', src: '/assets/contribute.png', label: 'Contribute', subLabel: 'Suggest an addition to our catalog' }
+];
+
+// Custom hook for detecting mobile view
+function useIsMobile() {
+  const [isMobile, setIsMobile] = useState(false);
+  useEffect(() => {
+    const mql = window.matchMedia('(max-width: 768px)');
+    setIsMobile(mql.matches);
+    const handleChange = (e: MediaQueryListEvent) => setIsMobile(e.matches);
+    mql.addEventListener('change', handleChange);
+    return () => mql.removeEventListener('change', handleChange);
+  }, []);
+  return isMobile;
+}
+
 const Home: NextPage = () => {
-  const [isMobileView, setIsMobileView] = useState(false);
+  const isMobileView = useIsMobile();
   const [contentVisible, setContentVisible] = useState(false);
 
-  useEffect(() => {
-    const handleResize = () => setIsMobileView(window.innerWidth <= 768);
-    handleResize();
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
-
+  // Use a short timeout for a potential animation effect (adjust if needed)
   useEffect(() => {
     const timer = setTimeout(() => setContentVisible(true), 0);
     return () => clearTimeout(timer);
@@ -49,51 +69,23 @@ const Home: NextPage = () => {
 
         {contentVisible && (
           <div id="images-container" className={`flex ${isMobileView ? 'flex-col space-y-6' : 'space-x-6 flex-row justify-center'}`}>
-            {isMobileView ? (
-              [
-                { href: '/cello-music', src: '/assets/cellist3.png', label: 'Cello Music' },
-                { href: '/resources', src: '/assets/whatsNew.png', label: "Resources", subLabel: 'Find Useful Web Resources' },
-                { href: '/contribute', src: '/assets/contribute.png', label: 'Contribute', subLabel: 'Suggest an addition to our catalog' }
-              ].map(({ href, src, label, subLabel }, index) => (
-                <Link key={index} href={href}>
-                  <div className={`relative ${isMobileView ? '' : 'hover:scale-105'} duration-300`}>
-                    <Image 
-                      src={src}
-                      alt={label}
-                      width={320}  // Adjust width as needed
-                      height={480} // Adjust height as needed
-                      className={`w-80 h-120 rounded-lg transition-opacity duration-300 ${isMobileView ? '' : 'hover:opacity-75'}`}
-                    />
-                    <div className={`absolute inset-0 flex flex-col items-center justify-center bg-black ${isMobileView ? 'bg-opacity-20' : 'bg-opacity-50 opacity-0 hover:opacity-100'} transition-opacity duration-300`}>
-                      <p className="text-white text-lg font-bold">{label}</p>
-                      {subLabel && <p className="text-sm font-bold text-white">{subLabel}</p>}
-                    </div>
+            {(isMobileView ? mobileImages : desktopImages).map(({ href, src, label, subLabel }, index) => (
+              <Link key={index} href={href}>
+                <div className={`relative ${isMobileView ? '' : 'hover:scale-105'} duration-300`}>
+                  <Image 
+                    src={src}
+                    alt={label}
+                    width={320}  // Adjust width as needed
+                    height={480} // Adjust height as needed
+                    className={`w-80 h-120 rounded-lg transition-opacity duration-300 ${isMobileView ? '' : 'hover:opacity-75'}`}
+                  />
+                  <div className={`absolute inset-0 flex flex-col items-center justify-center bg-black ${isMobileView ? 'bg-opacity-20' : 'bg-opacity-50 opacity-0 hover:opacity-100'} transition-opacity duration-300`}>
+                    <p className="text-white text-lg font-bold">{label}</p>
+                    {subLabel && <p className="text-sm font-bold text-white">{subLabel}</p>}
                   </div>
-                </Link>
-              ))
-            ) : (
-              [
-                { href: '/featured-databases', src: '/assets/whatsNew.png', label: "Featured Databases", subLabel: '' },
-                { href: '/cello-music', src: '/assets/cellist3.png', label: 'Cello Music' },
-                { href: '/contribute', src: '/assets/contribute.png', label: 'Contribute', subLabel: 'Suggest an addition to our catalog' }
-              ].map(({ href, src, label, subLabel }, index) => (
-                <Link key={index} href={href}>
-                  <div className="relative hover:scale-105 duration-300">
-                    <Image 
-                      src={src}
-                      alt={label}
-                      width={320}  // Adjust width as needed
-                      height={480} // Adjust height as needed
-                      className="w-80 h-120 rounded-lg transition-opacity duration-300 hover:opacity-75"
-                    />
-                    <div className="absolute inset-0 flex flex-col items-center justify-center bg-black bg-opacity-50 opacity-0 hover:opacity-100 transition-opacity duration-300">
-                      <p className="text-white text-lg font-bold">{label}</p>
-                      {subLabel && <p className="text-sm font-bold text-white">{subLabel}</p>}
-                    </div>
-                  </div>
-                </Link>
-              ))
-            )}
+                </div>
+              </Link>
+            ))}
           </div>
         )}
 

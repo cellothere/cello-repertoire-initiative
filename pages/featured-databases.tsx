@@ -1,7 +1,6 @@
-// pages/featuredDatabases.tsx
 import { NextPage } from 'next';
 import Head from 'next/head';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import NavbarMain from '@/components/navbar-main';
 import MusicCard from '@/components/music-card';
 import MusicListView from '@/components/music-list-view';
@@ -36,8 +35,20 @@ interface Composer {
   id: number;
 }
 
+const LEVEL_ORDER = [
+  'Early Beginner',
+  'Beginner',
+  'Late Beginner',
+  'Early Intermediate',
+  'Intermediate',
+  'Late Intermediate',
+  'Early Advanced',
+  'Advanced',
+  'Professional',
+  'Various',
+];
+
 const FeaturedDatabases: NextPage = () => {
-  const [featuredPieces, setFeaturedPieces] = useState<MusicPiece[]>([]);
   const [composers, setComposers] = useState<Composer[]>([]);
   const [allPieces, setAllPieces] = useState<MusicPiece[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
@@ -45,7 +56,7 @@ const FeaturedDatabases: NextPage = () => {
   const [sortConfig, setSortConfig] = useState<SortConfig>({ field: 'level', direction: 'asc' });
   const [viewMode, setViewMode] = useState<'card' | 'list'>('card');
 
-  // onSort callback for MusicListView
+  // onSort callback for MusicListView.
   const onSort = (field: string) => {
     let direction: 'asc' | 'desc' = 'asc';
     if (sortConfig.field === field && sortConfig.direction === 'asc') {
@@ -54,7 +65,7 @@ const FeaturedDatabases: NextPage = () => {
     setSortConfig({ field, direction });
   };
 
-  // Fetch data from APIs.
+  // Fetch data once on mount.
   const fetchData = async () => {
     try {
       setLoading(true);
@@ -80,55 +91,39 @@ const FeaturedDatabases: NextPage = () => {
 
   useEffect(() => {
     fetchData();
-  }, [selectedCategory]);
+  }, []); // Run only once on mount.
 
-  // Filter and sort music pieces based on the selected category.
-  useEffect(() => {
-    if (composers.length && allPieces.length) {
-      let filteredComposers;
-      if (selectedCategory === 'Indigenous') {
-        filteredComposers = composers.filter((composer) => {
-          if (composer.nationality) {
-            const nationalities = Array.isArray(composer.nationality)
-              ? composer.nationality
-              : [composer.nationality];
-            return nationalities.some((nat) =>
-              indigenousKeywords.some((keyword) =>
-                nat.toLowerCase().includes(keyword)
-              )
-            );
-          }
-          return false;
-        });
-      } else {
-        // Existing filtering based on tags for other categories.
-        filteredComposers = composers.filter((composer) =>
-          composer.tags && composer.tags.includes(selectedCategory)
-        );
-      }
-      // Extract the full names of the filtered composers.
-      const composerNames = new Set(
-        filteredComposers.map((composer) => composer.composer_full_name)
+  // Compute featured pieces using memoization.
+  const featuredPieces = useMemo(() => {
+    if (composers.length === 0 || allPieces.length === 0) return [];
+
+    let filteredComposers: Composer[] = [];
+    if (selectedCategory === 'Indigenous') {
+      filteredComposers = composers.filter((composer) => {
+        if (composer.nationality) {
+          const nationalities = Array.isArray(composer.nationality)
+            ? composer.nationality
+            : [composer.nationality];
+          return nationalities.some((nat) =>
+            indigenousKeywords.some((keyword) => nat.toLowerCase().includes(keyword))
+          );
+        }
+        return false;
+      });
+    } else {
+      filteredComposers = composers.filter((composer) =>
+        composer.tags && composer.tags.includes(selectedCategory)
       );
-      // Filter music pieces by matching composer names.
-      const filteredPieces = allPieces.filter((piece) =>
-        composerNames.has(piece.composer)
-      );
-      const levelOrder = [
-        'Early Beginner',
-        'Beginner',
-        'Late Beginner',
-        'Early Intermediate',
-        'Intermediate',
-        'Late Intermediate',
-        'Early Advanced',
-        'Advanced',
-        'Professional',
-        'Various',
-      ];
-      const sortedPieces = sortPieces(filteredPieces, sortConfig, levelOrder);
-      setFeaturedPieces(sortedPieces);
     }
+
+    // Build a set of composer names.
+    const composerNames = new Set(filteredComposers.map((composer) => composer.composer_full_name));
+
+    // Filter music pieces based on the selected composers.
+    const filteredPieces = allPieces.filter((piece) => composerNames.has(piece.composer));
+
+    // Sort the filtered pieces.
+    return sortPieces(filteredPieces, sortConfig, LEVEL_ORDER);
   }, [composers, allPieces, selectedCategory, sortConfig]);
 
   return (
@@ -190,9 +185,7 @@ const FeaturedDatabases: NextPage = () => {
               <button
                 onClick={() => setSelectedCategory('Woman')}
                 className={`px-4 py-2 rounded ${
-                  selectedCategory === 'Woman'
-                    ? 'bg-purple-700 text-white'
-                    : 'bg-gray-200 text-gray-800'
+                  selectedCategory === 'Woman' ? 'bg-purple-700 text-white' : 'bg-gray-200 text-gray-800'
                 }`}
               >
                 Women Composers
@@ -200,9 +193,7 @@ const FeaturedDatabases: NextPage = () => {
               <button
                 onClick={() => setSelectedCategory('LGBTQIA+')}
                 className={`px-4 py-2 rounded ${
-                  selectedCategory === 'LGBTQIA+'
-                    ? 'bg-purple-700 text-white'
-                    : 'bg-gray-200 text-gray-800'
+                  selectedCategory === 'LGBTQIA+' ? 'bg-purple-700 text-white' : 'bg-gray-200 text-gray-800'
                 }`}
               >
                 Non-Binary Composers
@@ -210,9 +201,7 @@ const FeaturedDatabases: NextPage = () => {
               <button
                 onClick={() => setSelectedCategory('Black')}
                 className={`px-4 py-2 rounded ${
-                  selectedCategory === 'Black'
-                    ? 'bg-purple-700 text-white'
-                    : 'bg-gray-200 text-gray-800'
+                  selectedCategory === 'Black' ? 'bg-purple-700 text-white' : 'bg-gray-200 text-gray-800'
                 }`}
               >
                 Black Composers
@@ -220,9 +209,7 @@ const FeaturedDatabases: NextPage = () => {
               <button
                 onClick={() => setSelectedCategory('Indigenous')}
                 className={`px-4 py-2 rounded ${
-                  selectedCategory === 'Indigenous'
-                    ? 'bg-purple-700 text-white'
-                    : 'bg-gray-200 text-gray-800'
+                  selectedCategory === 'Indigenous' ? 'bg-purple-700 text-white' : 'bg-gray-200 text-gray-800'
                 }`}
               >
                 Indigenous Composers

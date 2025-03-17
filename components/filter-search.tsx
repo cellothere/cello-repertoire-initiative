@@ -1,6 +1,4 @@
-// components/filter-search.tsx
-
-import { useState } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import Slider from 'rc-slider';
 import 'rc-slider/assets/index.css';
 
@@ -20,10 +18,12 @@ interface FilterAsideProps {
   maxYear: number;
   setMinYear: React.Dispatch<React.SetStateAction<number>>;
   setMaxYear: React.Dispatch<React.SetStateAction<number>>;
-  setCurrentPage: React.Dispatch<React.SetStateAction<number>>; 
+  setCurrentPage: React.Dispatch<React.SetStateAction<number>>;
 }
 
-
+// Utility function defined outside to avoid redefinition on each render.
+const removeDiacritics = (str: string): string =>
+  str.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
 
 const FilterAside: React.FC<FilterAsideProps> = ({
   filter,
@@ -41,47 +41,70 @@ const FilterAside: React.FC<FilterAsideProps> = ({
   maxYear,
   setMinYear,
   setMaxYear,
-  setCurrentPage 
+  setCurrentPage
 }) => {
-
   const [openAccordion, setOpenAccordion] = useState<number | null>(null);
   const [composerSearch, setComposerSearch] = useState<string>('');
   const [levelSearch, setLevelSearch] = useState<string>('');
-  // New state for country search
   const [countrySearch, setCountrySearch] = useState<string>('');
 
-  const toggleAccordion = (index: number) => {
-    setOpenAccordion(openAccordion === index ? null : index);
-  };
+  // Precompute normalized search terms to avoid re-computation in each filter callback.
+  const normalizedComposerSearch = useMemo(
+    () => removeDiacritics(composerSearch.toLowerCase()),
+    [composerSearch]
+  );
+  const normalizedLevelSearch = useMemo(
+    () => removeDiacritics(levelSearch.toLowerCase()),
+    [levelSearch]
+  );
+  const normalizedCountrySearch = useMemo(
+    () => removeDiacritics(countrySearch.toLowerCase()),
+    [countrySearch]
+  );
 
-  const clearFilters = () => {
+  const toggleAccordion = useCallback((index: number) => {
+    setOpenAccordion((prev) => (prev === index ? null : index));
+  }, []);
+
+  const clearFilters = useCallback(() => {
     setFilter('');
     setComposerSearch('');
     setLevelSearch('');
-    // Clear the country search when filters are cleared
     setCountrySearch('');
+    // Reset selections by toggling each selected value.
     selectedComposers.forEach((composer) => toggleComposerSelection(composer));
     selectedLevels.forEach((level) => toggleLevelSelection(level));
     selectedInstruments.forEach((instrument) => toggleInstrumentSelection(instrument));
     selectedCountries.forEach((country) => toggleCountrySelection(country));
     setMinYear(1600);
     setMaxYear(2025);
-    setCurrentPage(1); 
+    setCurrentPage(1);
     setOpenAccordion(null);
-    
-  };
+  }, [
+    setFilter,
+    selectedComposers,
+    toggleComposerSelection,
+    selectedLevels,
+    toggleLevelSelection,
+    selectedInstruments,
+    toggleInstrumentSelection,
+    selectedCountries,
+    toggleCountrySelection,
+    setMinYear,
+    setMaxYear,
+    setCurrentPage
+  ]);
 
-  // Utility to get selected count
-  const getSelectedCountForKey = (key: string) => {
+  const getSelectedCountForKey = useCallback((key: string): number => {
     if (key === 'Composer') return selectedComposers.length;
     if (key === 'Level') return selectedLevels.length;
     if (key === 'Instrumentation') return selectedInstruments.length;
     if (key === 'Country') return selectedCountries.length;
     return 0;
-  };
+  }, [selectedComposers, selectedLevels, selectedInstruments, selectedCountries]);
 
   return (
-<aside className="hidden md:block relative w-64 p-5 border-gray-300" aria-label="Filter Panel">
+    <aside className="hidden md:block relative w-64 p-5 border-gray-300" aria-label="Filter Panel">
       <h2 className="text-2xl font-bold text-white mb-4">Filter</h2>
       {/* Global Search */}
       <div className="mb-4">
@@ -101,24 +124,20 @@ const FilterAside: React.FC<FilterAsideProps> = ({
       {/* Clear Filters Button */}
       <button
         onClick={clearFilters}
-        className="w-full mb-4 p-3 bg-black hover:bg-red-700 text-white rounded-lg font-bold">
+        className="w-full mb-4 p-3 bg-black hover:bg-red-700 text-white rounded-lg font-bold"
+      >
         Clear All Filters
       </button>
       <div id="accordion" className="space-y-2">
         {Object.entries(accordionContent).map(([key, content], index) => {
-          // Update filtering logic to include country search
-          // Utility function to remove diacritics
-          const removeDiacritics = (str: string): string =>
-            str.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-
           const filteredItems = content.filter((item) => {
             const normalizedItem = removeDiacritics(item.toLowerCase());
             if (key === 'Composer') {
-              return normalizedItem.includes(removeDiacritics(composerSearch.toLowerCase()));
+              return normalizedItem.includes(normalizedComposerSearch);
             } else if (key === 'Level') {
-              return normalizedItem.includes(removeDiacritics(levelSearch.toLowerCase()));
+              return normalizedItem.includes(normalizedLevelSearch);
             } else if (key === 'Country') {
-              return normalizedItem.includes(removeDiacritics(countrySearch.toLowerCase()));
+              return normalizedItem.includes(normalizedCountrySearch);
             }
             return true;
           });
@@ -128,11 +147,13 @@ const FilterAside: React.FC<FilterAsideProps> = ({
               <h2 id={`accordion-heading-${index}`}>
                 <button
                   type="button"
-                  className={`flex items-center justify-between w-full px-4 py-3 font-medium text-left 
-                          text-gray-700 focus:outline-none ${openAccordion === index ? 'bg-gray-200' : 'bg-gray-100'}`}
+                  className={`flex items-center justify-between w-full px-4 py-3 font-medium text-left text-gray-700 focus:outline-none ${
+                    openAccordion === index ? 'bg-gray-200' : 'bg-gray-100'
+                  }`}
                   onClick={() => toggleAccordion(index)}
                   aria-expanded={openAccordion === index}
-                  aria-controls={`accordion-body-${index}`}>
+                  aria-controls={`accordion-body-${index}`}
+                >
                   <span>
                     {key}
                     {getSelectedCountForKey(key) > 0 && ` (${getSelectedCountForKey(key)})`}
@@ -140,7 +161,8 @@ const FilterAside: React.FC<FilterAsideProps> = ({
                   <svg
                     className={`w-4 h-4 transition-transform ${openAccordion === index ? 'rotate-180' : ''}`}
                     aria-hidden="true"
-                    viewBox="0 0 10 6">
+                    viewBox="0 0 10 6"
+                  >
                     <path
                       fill="none"
                       stroke="currentColor"
@@ -152,10 +174,10 @@ const FilterAside: React.FC<FilterAsideProps> = ({
                   </svg>
                 </button>
               </h2>
-
               <div
                 id={`accordion-body-${index}`}
-                className={`transition-[max-height] overflow-hidden ${openAccordion === index ? 'max-h-96' : 'max-h-0'}`}>
+                className={`transition-[max-height] overflow-hidden ${openAccordion === index ? 'max-h-96' : 'max-h-0'}`}
+              >
                 <div className="p-4 border-t border-gray-300" style={{ maxHeight: '300px', overflowY: 'auto' }}>
                   {/* YEAR ACCORDION SPECIAL CASE */}
                   {key === 'Year' && (
@@ -186,7 +208,8 @@ const FilterAside: React.FC<FilterAsideProps> = ({
                     <div className="mb-2">
                       <label
                         htmlFor="composer-search"
-                        className="block mb-1 text-sm font-medium text-gray-700">
+                        className="block mb-1 text-sm font-medium text-gray-700"
+                      >
                         Search Composers
                       </label>
                       <input
@@ -206,7 +229,8 @@ const FilterAside: React.FC<FilterAsideProps> = ({
                     <div className="mb-2">
                       <label
                         htmlFor="country-search"
-                        className="block mb-1 text-sm font-medium text-gray-700">
+                        className="block mb-1 text-sm font-medium text-gray-700"
+                      >
                         Search Countries
                       </label>
                       <input
