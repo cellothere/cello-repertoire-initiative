@@ -38,7 +38,6 @@ const Music: NextPage = () => {
 
   // Data and filter states
   const [pieces, setPieces] = useState<MusicPiece[]>([]);
-  const [filteredPieces, setFilteredPieces] = useState<MusicPiece[]>([]);
   const [filter, setFilter] = useState<string>('');
   const [selectedComposers, setSelectedComposers] = useState<string[]>([]);
   const [selectedLevels, setSelectedLevels] = useState<string[]>([]);
@@ -225,14 +224,109 @@ const Music: NextPage = () => {
     fetchData();
   }, []);
 
-  // --- 4. Utility Functions are imported from utils/musicUtils.ts ---
+  // --- 4. Optimized Filtering and Sorting ---
+  // Precompute the normalized filter string so we do not re-run removeDiacritics on every iteration.
+  const normalizedFilter = useMemo(() => removeDiacritics(filter.toLowerCase()), [filter]);
+
+  const filteredPieces = useMemo(() => {
+    return pieces
+      .filter((piece) => {
+        const titleNormalized = removeDiacritics(piece.title.toLowerCase());
+        const composerNormalized = removeDiacritics(piece.composer.toLowerCase());
+        const titleMatch = titleNormalized.includes(normalizedFilter);
+        const composerMatch = composerNormalized.includes(normalizedFilter);
+        const composerFilterMatch = selectedComposers.length === 0 || selectedComposers.includes(piece.composer);
+        const levelFilterMatch = selectedLevels.length === 0 || selectedLevels.includes(piece.level);
+        const countryFilterMatch =
+          selectedCountries.length === 0 || piece.nationality.some((nat) => selectedCountries.includes(nat));
+
+        const pieceYear = parseInt(piece.composition_year || '0', 10);
+        const validYear = !isNaN(pieceYear) && pieceYear > 0;
+        const yearFilterMatch = validYear && pieceYear >= minYear && pieceYear <= maxYear;
+
+        // Compute normalized instrumentation once per piece
+        const normalizedInstrumentation = Array.isArray(piece.instrumentation)
+          ? piece.instrumentation.map((instr) =>
+              instr.toLowerCase() === 'cello solo' ? 'cello' : instr.toLowerCase()
+            )
+          : [];
+        const instrumentationMatch =
+          selectedInstruments.length === 0 ||
+          selectedInstruments.some((selectedInstrument) => {
+            const normalizedSelected = selectedInstrument === 'Cello Solo' ? 'cello' : selectedInstrument.toLowerCase();
+            if (normalizedSelected === 'cello duet') {
+              return (
+                normalizedInstrumentation.length === 2 &&
+                normalizedInstrumentation.every((instr) => instr === 'cello')
+              );
+            }
+            const selectedParts = normalizedSelected.split(' and ');
+            if (selectedParts.length === 1) {
+              return (
+                normalizedInstrumentation.length === 1 &&
+                normalizedInstrumentation.includes(selectedParts[0])
+              );
+            }
+            return selectedParts.every((part) => normalizedInstrumentation.includes(part));
+          });
+
+        return (
+          (titleMatch || composerMatch) &&
+          composerFilterMatch &&
+          levelFilterMatch &&
+          countryFilterMatch &&
+          instrumentationMatch &&
+          yearFilterMatch
+        );
+      })
+      // Use a new array copy for sorting so as not to mutate the original.
+      .sort((a, b) => {
+        switch (sortConfig.field) {
+          case 'title':
+            return sortConfig.direction === 'asc'
+              ? a.title.localeCompare(b.title)
+              : b.title.localeCompare(a.title);
+          case 'composer':
+            return sortConfig.direction === 'asc'
+              ? a.composer_last_name.localeCompare(b.composer_last_name)
+              : b.composer_last_name.localeCompare(a.composer_last_name);
+          case 'level':
+            return sortConfig.direction === 'asc'
+              ? levelOrder.indexOf(a.level) - levelOrder.indexOf(b.level)
+              : levelOrder.indexOf(b.level) - levelOrder.indexOf(a.level);
+          case 'duration':
+            return compareDurations(a.duration, b.duration, sortConfig.direction);
+          default:
+            return 0;
+        }
+      });
+  }, [
+    pieces,
+    normalizedFilter,
+    selectedComposers,
+    selectedLevels,
+    selectedCountries,
+    selectedInstruments,
+    minYear,
+    maxYear,
+    sortConfig,
+    levelOrder,
+  ]);
+
+  // Reset current page to 1 whenever any filter criteria change.
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [filter, selectedComposers, selectedLevels, selectedCountries, selectedInstruments, minYear, maxYear]);
 
   // --- 5. Pagination Calculation ---
   const totalPages = Math.ceil(filteredPieces.length / itemsPerPage);
-  const paginatedPieces = filteredPieces.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
-  );
+
+  const paginatedPieces = useMemo(() => {
+    return filteredPieces.slice(
+      (currentPage - 1) * itemsPerPage,
+      currentPage * itemsPerPage
+    );
+  }, [filteredPieces, currentPage, itemsPerPage]);
 
   const paginationItems = useMemo((): (number | string)[] => {
     const items: (number | string)[] = [];
@@ -258,100 +352,7 @@ const Music: NextPage = () => {
     return items;
   }, [totalPages, currentPage]);
 
-  // --- 6. Unified Filter and Sort Effect ---
-  useEffect(() => {
-    let filtered = pieces.filter((piece) => {
-      const titleMatch = removeDiacritics(piece.title.toLowerCase()).includes(
-        removeDiacritics(filter.toLowerCase())
-      );
-      const composerMatch = removeDiacritics(piece.composer.toLowerCase()).includes(
-        removeDiacritics(filter.toLowerCase())
-      );
-      const composerFilterMatch =
-        selectedComposers.length === 0 || selectedComposers.includes(piece.composer);
-      const levelFilterMatch =
-        selectedLevels.length === 0 || selectedLevels.includes(piece.level);
-      const countryFilterMatch =
-        selectedCountries.length === 0 || piece.nationality.some((nat) => selectedCountries.includes(nat));
-      const pieceYear = parseInt(piece.composition_year || '0', 10);
-      const validYear = !isNaN(pieceYear) && pieceYear > 0;
-      const yearFilterMatch = validYear && pieceYear >= minYear && pieceYear <= maxYear;
-      const instrumentationMatch =
-        selectedInstruments.length === 0 ||
-        selectedInstruments.some((selectedInstrument) => {
-          const normalizedSelectedInstrument =
-            selectedInstrument === 'Cello Solo' ? 'Cello' : selectedInstrument;
-          if (Array.isArray(piece.instrumentation)) {
-            const normalizedInstrumentation = piece.instrumentation.map((instr) =>
-              instr.toLowerCase() === 'cello solo' ? 'cello' : instr.toLowerCase()
-            );
-            if (normalizedSelectedInstrument.toLowerCase() === 'cello duet') {
-              return (
-                normalizedInstrumentation.length === 2 &&
-                normalizedInstrumentation.every((instr) => instr === 'cello')
-              );
-            }
-            const selectedParts = normalizedSelectedInstrument.toLowerCase().split(' and ');
-            if (selectedParts.length === 1) {
-              return (
-                normalizedInstrumentation.length === 1 &&
-                normalizedInstrumentation.includes(selectedParts[0])
-              );
-            }
-            return selectedParts.every((part) => normalizedInstrumentation.includes(part));
-          }
-          return false;
-        });
-      return (
-        (titleMatch || composerMatch) &&
-        composerFilterMatch &&
-        levelFilterMatch &&
-        countryFilterMatch &&
-        instrumentationMatch &&
-        yearFilterMatch
-      );
-    });
-
-    // Apply sorting based on sortConfig
-    if (sortConfig) {
-      filtered = filtered.sort((a, b) => {
-        switch (sortConfig.field) {
-          case 'title':
-            return sortConfig.direction === 'asc'
-              ? a.title.localeCompare(b.title)
-              : b.title.localeCompare(a.title);
-          case 'composer':
-            return sortConfig.direction === 'asc'
-              ? a.composer_last_name.localeCompare(b.composer_last_name)
-              : b.composer_last_name.localeCompare(a.composer_last_name);
-          case 'level':
-            return sortConfig.direction === 'asc'
-              ? levelOrder.indexOf(a.level) - levelOrder.indexOf(b.level)
-              : levelOrder.indexOf(b.level) - levelOrder.indexOf(a.level);
-          case 'duration':
-            return compareDurations(a.duration, b.duration, sortConfig.direction);
-          default:
-            return 0;
-        }
-      });
-    }
-    setFilteredPieces(filtered);
-    // Reset page to 1 when filters change
-    setCurrentPage(1);
-  }, [
-    pieces,
-    filter,
-    selectedComposers,
-    selectedLevels,
-    selectedCountries,
-    selectedInstruments,
-    minYear,
-    maxYear,
-    sortConfig,
-    levelOrder,
-  ]);
-
-  // --- 7. Sort Handlers ---
+  // --- 6. Sort Handlers ---
   const handleSort = (sortOption: string) => {
     let field = '';
     let direction: 'asc' | 'desc' = 'asc';
@@ -394,7 +395,7 @@ const Music: NextPage = () => {
     setSortConfig({ field, direction });
   };
 
-  // --- 8. Checkbox Toggle Handlers ---
+  // --- 7. Checkbox Toggle Handlers ---
   const toggleComposerSelection = (composer: string) => {
     setSelectedComposers((prev) =>
       prev.includes(composer) ? prev.filter((c) => c !== composer) : [...prev, composer]
@@ -447,7 +448,7 @@ const Music: NextPage = () => {
           content="Discover and explore a curated collection of cello music pieces, composers, and arrangements designed for music enthusiasts."
         />
         <meta property="og:type" content="website" />
-        <meta property="og:url" content="http://localhost:3000/cello-music?filter=&minYear=1600&maxYear=2025&page=1&viewMode=card&sortField=level&sortDirection=asc" />
+        <meta property="og:url" content="http://https://www.cellorepertoire.com/cello-music?filter=&minYear=1600&maxYear=2025&page=1&viewMode=card&sortField=level&sortDirection=asc" />
         <meta property="og:image" content="https://www.cellorepertoire.com/_next/image?url=%2Fassets%2FaltLogo.png&w=256&q=75" />
 
         {/* Twitter Card tags */}
