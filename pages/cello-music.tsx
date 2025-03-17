@@ -545,16 +545,18 @@ const Music: NextPage<MusicPageProps> = ({ initialPieces, initialAccordionConten
 };
 
 export const getStaticProps: GetStaticProps = async () => {
-  // Replace 'http://localhost:3000' with your actual domain or use environment variables in production
-  const piecesRes = await fetch('http://localhost:3000/api/celloMusic');
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
+
+  const piecesRes = await fetch(`${baseUrl}/api/celloMusic`);
   const piecesData = await piecesRes.json();
   const pieces = piecesData.flatMap((group: { musicPieces: MusicPiece[] }) => group.musicPieces);
-
-  const nationalitiesRes = await fetch('http://localhost:3000/api/nationalities');
+  
+  const nationalitiesRes = await fetch(`${baseUrl}/api/nationalities`);
   const nationalitiesData: { nationality: string }[] = await nationalitiesRes.json();
-
-  const composersRes = await fetch('http://localhost:3000/api/composers');
+  
+  const composersRes = await fetch(`${baseUrl}/api/composers`);
   const composersData = await composersRes.json();
+  
 
   const accordionContent: AccordionContent = {
     Level: [
