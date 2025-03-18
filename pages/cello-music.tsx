@@ -517,7 +517,7 @@ const Music: NextPage = () => {
             />
           </div>
         )}
-        <main className="md:ml-4 w-full container mx-auto p-4">
+        <main className="md:ml-1 w-full container mx-auto p-4">
           <div className="flex flex-col items-center justify-center mb-6 space-y-4 md:flex-row md:justify-between md:items-center">
             <h1 className="text-3xl font-bold text-white text-center">Cello Music</h1>
             <div className="hidden md:flex items-center space-x-2">
@@ -583,7 +583,7 @@ const Music: NextPage = () => {
             </div>
           </div>
           {viewMode === 'card' ? (
-            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-4 gap-5">
+            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-5">
               {paginatedPieces.map((piece) => (
                 <MusicCard
                   key={piece.id}

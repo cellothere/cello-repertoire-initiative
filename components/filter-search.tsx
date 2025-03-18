@@ -1,6 +1,13 @@
 import { useState, useMemo, useCallback } from 'react';
 import Slider from 'rc-slider';
 import 'rc-slider/assets/index.css';
+import { AiFillQuestionCircle } from 'react-icons/ai';
+import Dialog from '@mui/material/Dialog';
+import DialogTitle from '@mui/material/DialogTitle';
+import DialogContent from '@mui/material/DialogContent';
+import DialogActions from '@mui/material/DialogActions';
+import Button from '@mui/material/Button';
+import { modalLevelText } from '@/utils/modalLevelTexts';
 
 interface FilterAsideProps {
   filter: string;
@@ -47,6 +54,10 @@ const FilterAside: React.FC<FilterAsideProps> = ({
   const [composerSearch, setComposerSearch] = useState<string>('');
   const [levelSearch, setLevelSearch] = useState<string>('');
   const [countrySearch, setCountrySearch] = useState<string>('');
+
+  // State for the tooltip modal for levels
+  const [modalOpen, setModalOpen] = useState(false);
+  const [modalLevel, setModalLevel] = useState<string | null>(null);
 
   // Precompute normalized search terms to avoid re-computation in each filter callback.
   const normalizedComposerSearch = useMemo(
@@ -104,7 +115,7 @@ const FilterAside: React.FC<FilterAsideProps> = ({
   }, [selectedComposers, selectedLevels, selectedInstruments, selectedCountries]);
 
   return (
-    <aside className="hidden md:block relative w-64 p-5 border-gray-300" aria-label="Filter Panel">
+    <aside className="hidden md:block relative w-66 p-5 border-gray-300" aria-label="Filter Panel">
       <h2 className="text-2xl font-bold text-white mb-4">Filter</h2>
       {/* Global Search */}
       <div className="mb-4">
@@ -247,8 +258,11 @@ const FilterAside: React.FC<FilterAsideProps> = ({
 
                   <ul className="space-y-1">
                     {filteredItems.map((item) => (
-                      <li key={item} className="border-b border-gray-300 last:border-none py-1">
-                        <label className="inline-flex items-center text-gray-700">
+                      <li
+                        key={item}
+                        className="border-b border-gray-300 last:border-none py-1 flex items-center"
+                      >
+                        <label className="inline-flex items-center text-gray-700 flex-grow">
                           <input
                             type="checkbox"
                             className="mr-2"
@@ -277,6 +291,18 @@ const FilterAside: React.FC<FilterAsideProps> = ({
                           />
                           {item}
                         </label>
+                        {/* Only add tooltip icon for Level items */}
+                        {key === 'Level' && (
+                          <AiFillQuestionCircle
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setModalLevel(item);
+                              setModalOpen(true);
+                            }}
+                            className="ml-2 cursor-pointer text-gray-500"
+                            title="More info"
+                          />
+                        )}
                       </li>
                     ))}
                   </ul>
@@ -286,6 +312,26 @@ const FilterAside: React.FC<FilterAsideProps> = ({
           );
         })}
       </div>
+
+      {/* Tooltip Modal for Level Info */}
+      <Dialog open={modalOpen} onClose={() => setModalOpen(false)} maxWidth="sm" fullWidth>
+        <DialogTitle sx={{ fontWeight: 'bold' }}>
+          {`"${modalLevel?.replace(/\s*\(.*\)/, '')}" Rubric`}
+        </DialogTitle>
+        <div style={{ borderTop: '2px solid lightgray', margin: '0 24px' }} />
+        <DialogContent>
+          <div style={{ whiteSpace: 'pre-line', fontSize: '1rem' }}>
+            {modalLevel
+              ? (modalLevelText[
+                  modalLevel.replace(/\s*\(.*\)/, '') as keyof typeof modalLevelText
+                ] || modalLevelText.default)
+              : ''}
+          </div>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setModalOpen(false)}>Close</Button>
+        </DialogActions>
+      </Dialog>
     </aside>
   );
 };
