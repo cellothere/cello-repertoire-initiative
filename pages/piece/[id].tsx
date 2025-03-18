@@ -11,15 +11,10 @@ import Accordion from '@mui/material/Accordion';
 import AccordionSummary from '@mui/material/AccordionSummary';
 import AccordionDetails from '@mui/material/AccordionDetails';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import Dialog from '@mui/material/Dialog';
-import DialogTitle from '@mui/material/DialogTitle';
-import DialogContent from '@mui/material/DialogContent';
-import DialogActions from '@mui/material/DialogActions';
-import Button from '@mui/material/Button';
 import { AiFillQuestionCircle } from 'react-icons/ai';
 import dynamic from 'next/dynamic';
 import { modalLevelText } from '@/utils/modalLevelTexts';
-import { Box } from '@mui/material';
+import LevelModal from '@/components/level-modal';
 
 // Dynamically import VideoIframe (client-side only)
 const VideoIframe = dynamic(() => import('@/components/youtube-iframe'), { ssr: false });
@@ -350,26 +345,13 @@ const Piece: NextPage<PieceProps> = ({ piece, composerInfo }) => {
         )}
       </main>
 
-      {/* Modal Dialog for displaying detailed level information */}
-      <Dialog
-        open={modalOpen}
-        onClose={() => setModalOpen(false)}
-        maxWidth="sm"
-        fullWidth
-      >
-        <DialogTitle sx={{ fontWeight: 'bold' }}>
-          {`"${piece.level.replace(/\s*\(.*\)/, '')}" Rubric`}
-        </DialogTitle>
-        <Box sx={{ borderTop: '2px solid lightgray', mx: 3 }} />
-        <DialogContent>
-          <div style={{ whiteSpace: 'pre-line', fontSize: '1rem' }}>
-            {tooltipContent}
-          </div>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setModalOpen(false)}>Close</Button>
-        </DialogActions>
-      </Dialog>
+    {/* Modal Dialog for displaying detailed level information */}
+    <LevelModal
+      open={modalOpen}
+      onClose={() => setModalOpen(false)}
+      level={piece.level}
+      tooltipContent={tooltipContent}
+    />
     </div>
   );
 };

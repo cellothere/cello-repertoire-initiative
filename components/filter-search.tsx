@@ -2,12 +2,8 @@ import { useState, useMemo, useCallback } from 'react';
 import Slider from 'rc-slider';
 import 'rc-slider/assets/index.css';
 import { AiFillQuestionCircle } from 'react-icons/ai';
-import Dialog from '@mui/material/Dialog';
-import DialogTitle from '@mui/material/DialogTitle';
-import DialogContent from '@mui/material/DialogContent';
-import DialogActions from '@mui/material/DialogActions';
-import Button from '@mui/material/Button';
 import { modalLevelText } from '@/utils/modalLevelTexts';
+import LevelModal from './level-modal';
 
 interface FilterAsideProps {
   filter: string;
@@ -242,7 +238,7 @@ const FilterAside: React.FC<FilterAsideProps> = ({
                         htmlFor="country-search"
                         className="block mb-1 text-sm font-medium text-gray-700"
                       >
-                        Search Countries
+                        Search countries
                       </label>
                       <input
                         id="country-search"
@@ -313,25 +309,18 @@ const FilterAside: React.FC<FilterAsideProps> = ({
         })}
       </div>
 
-      {/* Tooltip Modal for Level Info */}
-      <Dialog open={modalOpen} onClose={() => setModalOpen(false)} maxWidth="sm" fullWidth>
-        <DialogTitle sx={{ fontWeight: 'bold' }}>
-          {`"${modalLevel?.replace(/\s*\(.*\)/, '')}" Rubric`}
-        </DialogTitle>
-        <div style={{ borderTop: '2px solid lightgray', margin: '0 24px' }} />
-        <DialogContent>
-          <div style={{ whiteSpace: 'pre-line', fontSize: '1rem' }}>
-            {modalLevel
-              ? (modalLevelText[
-                  modalLevel.replace(/\s*\(.*\)/, '') as keyof typeof modalLevelText
-                ] || modalLevelText.default)
-              : ''}
-          </div>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setModalOpen(false)}>Close</Button>
-        </DialogActions>
-      </Dialog>
+      {/* Tooltip Modal for Level Info using LevelModal component */}
+      <LevelModal
+        open={modalOpen}
+        onClose={() => setModalOpen(false)}
+        level={modalLevel || ''}
+        tooltipContent={
+          modalLevel
+            ? modalLevelText[modalLevel.replace(/\s*\(.*\)/, '') as keyof typeof modalLevelText] ||
+              modalLevelText.default
+            : ''
+        }
+      />
     </aside>
   );
 };
