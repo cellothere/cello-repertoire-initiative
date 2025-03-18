@@ -128,9 +128,9 @@ export const modalLevelText = {
   • Execute multiple stops/chord rolls rapidly.
   
   Rhythm & Musicality:
-  • Increased complexity: fast passages, intricate syncopation & contrasting note groupings.
+  • Increased complexity: fast passages, intricate syncopation.
   • Detailed phrasing & structure; shape long phrases with rubato.
-  • Combine expressive dynamics, vibrato & precise bowing.
+  • Combine expressive dynamics, vibrato & precise bowing techniques.
   • Further refine ensemble sensitivity & leadership.`,
   
     "Early Advanced": `Left Hand:
