@@ -181,7 +181,7 @@ export const modalLevelText = {
   • Complete command of the fingerboard.
   • Seamless thumb position across all strings; rapid leaps over 3+ octaves & impeccable shifting with guide notes.
   • Execute complex double stops and rapid trills precisely.
-  • Fast scales and leaps with near‑flawless intonation and speed.
+  • Fast scales and leaps with compoftable intonation and speed.
   • Apply expressive techniques (portamenti, micro‑adjusted intonation) tastefully.
   
   Right Hand:
