@@ -11,6 +11,7 @@ import MusicListView from '@/components/music-list-view';
 import LoadingAnimation from '@/components/loading-animation';
 import { removeDiacritics, compareDurations } from '@/utils/musicUtils';
 
+
 interface MusicPiece {
   id: number;
   title: string;

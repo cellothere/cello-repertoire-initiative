@@ -7,6 +7,7 @@ import MusicListView from '@/components/music-list-view';
 import LoadingAnimation from '@/components/loading-animation';
 import { sortPieces, SortConfig } from '@/utils/sortUtils';
 import { indigenousKeywords } from '@/utils/indigenousKeywords';
+import { compareDurations } from '@/utils/musicUtils';
 
 interface MusicPiece {
   _id?: string;
@@ -93,10 +94,9 @@ const FeaturedDatabases: NextPage = () => {
     fetchData();
   }, []); // Run only once on mount.
 
-  // Compute featured pieces using memoization.
   const featuredPieces = useMemo(() => {
     if (composers.length === 0 || allPieces.length === 0) return [];
-
+  
     let filteredComposers: Composer[] = [];
     if (selectedCategory === 'Indigenous') {
       filteredComposers = composers.filter((composer) => {
@@ -111,20 +111,36 @@ const FeaturedDatabases: NextPage = () => {
         return false;
       });
     } else {
-      filteredComposers = composers.filter((composer) =>
-        composer.tags && composer.tags.includes(selectedCategory)
+      filteredComposers = composers.filter(
+        (composer) => composer.tags && composer.tags.includes(selectedCategory)
       );
     }
-
-    // Build a set of composer names.
+  
     const composerNames = new Set(filteredComposers.map((composer) => composer.composer_full_name));
-
-    // Filter music pieces based on the selected composers.
     const filteredPieces = allPieces.filter((piece) => composerNames.has(piece.composer));
-
-    // Sort the filtered pieces.
-    return sortPieces(filteredPieces, sortConfig, LEVEL_ORDER);
+  
+    return [...filteredPieces].sort((a, b) => {
+      switch (sortConfig.field) {
+        case 'title':
+          return sortConfig.direction === 'asc'
+            ? a.title.localeCompare(b.title)
+            : b.title.localeCompare(a.title);
+        case 'composer':
+          return sortConfig.direction === 'asc'
+            ? a.composer_last_name.localeCompare(b.composer_last_name)
+            : b.composer_last_name.localeCompare(a.composer_last_name);
+        case 'level':
+          return sortConfig.direction === 'asc'
+            ? LEVEL_ORDER.indexOf(a.level) - LEVEL_ORDER.indexOf(b.level)
+            : LEVEL_ORDER.indexOf(b.level) - LEVEL_ORDER.indexOf(a.level);
+        case 'duration':
+          return compareDurations(a.duration, b.duration, sortConfig.direction);
+        default:
+          return 0;
+      }
+    });
   }, [composers, allPieces, selectedCategory, sortConfig]);
+  
 
   return (
     <div className="min-h-screen bg-gray-100 text-gray-900">
