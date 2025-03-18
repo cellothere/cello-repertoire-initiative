@@ -60,7 +60,7 @@ export const modalLevelText = {
   Rhythm & Musicality:
   • Incorporate dotted figures, compound meters (6/8), triplets & syncopation.
   • Develop subdivision sense; introduce rubato in small measures.
-  • Slightly longer phrases; begin echo effects.
+  • Slightly longer phrases.
   • Introduce basic dynamic shading.`,
   
     "Early Intermediate": `Left Hand:

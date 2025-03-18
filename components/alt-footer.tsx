@@ -1,6 +1,3 @@
-import { FaUsers, FaBookOpen } from 'react-icons/fa';
-import { MdLibraryMusic } from "react-icons/md";
-
 const AltFooter = () => {
   return (
     <footer className="w-full text-white mt-10 mb-3 border-white/50 shadow-sm">
