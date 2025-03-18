@@ -140,7 +140,8 @@ export const modalLevelText = {
   • Accurate ornamentation (trills, turns, grace notes), even in double stops.
   • Expressively adjust intonation for chord balance.
   • Handle fast runs and large leaps precisely.
-  
+  • Introduction to false harmonics.
+
   Right Hand:
   • Virtuoso bow strokes: controlled up/down‑bow staccato, deliberate ricochet & well‑shaped sautillé.
   • Wide tone palette via precise bow adjustments.
@@ -159,15 +160,16 @@ export const modalLevelText = {
     "Advanced": `Left Hand:
   • Unrestricted fingerboard operation.
   • Effortless high‑register passages with thumb position.
-  • Execute large leaps, rapid shifts & fast runs with near‑flawless intonation.
+  • Execute large leaps, rapid shifts & fast runs with precise intonation.
   • Render double stops with clarity and even vibrato.
   • Crisp, stylistically appropriate ornamentation (trills, turns, mordents).
   • Instinctive micro‑adjustments in intonation for expressiveness.
-  
+  • False harmonics in low positions
+
   Right Hand:
   • Complete command of all bow strokes at any tempo/dynamic.
-  • Seamless execution of virtuoso passages (sautillé, intricate ricochet).
-  • Tone projection from whisper‑quiet to commanding fortissimo.
+  • Comfortable execution of virtuoso passages (sautillé, intricate ricochet).
+  • Tone projection from whisper‑quiet to fortissimo.
   • Integrate advanced bow patterns with expressive phrasing.
   • Demonstrate technical precision with a broad dynamic range.
   
@@ -179,17 +181,18 @@ export const modalLevelText = {
   
     "Professional": `Left Hand:
   • Complete command of the fingerboard.
-  • Comfortable thumb position across all strings; rapid leaps over 3+ octaves & accurate shifting with guide notes.
+  • Proficient thumb position across all strings.
   • Execute complex double stops and rapid trills precisely.
-  • Fast scales and leaps with compoftable intonation and speed.
+  • Fast scales and leaps with precise intonation and speed.
   • Apply expressive techniques (portamenti, micro‑adjusted intonation) tastefully.
+  • Easily execute false harmonics.
   
   Right Hand:
-  • Bow arm produces any sound; seamlessly blends martelé, spiccato, sautillé, legato & ricochet.
+  • Seamlessly blends martelé, spiccato, sautillé, legato & ricochet.
   • Meticulous bow distribution for sustained lines or rapid passages.
-  • Extreme dynamic contrasts: clear pianissimo to controlled fortissimo.
+  • Clear pianissimo to controlled fortissimo.
   • Economical, efficient bow movement with smooth transitions.
-  • Employ advanced effects (sforzando, tone color shifts) artistically.
+  • Employ advanced effects (ponticello, bow effects) artistically.
   
   Musicality:
   • Focus on a deeply personal, communicative performance.
