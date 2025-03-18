@@ -122,7 +122,7 @@ export const modalLevelText = {
   
   Right Hand:
   • Develop advanced bow strokes: deliberate ricochet & controlled up‑bow staccato.
-  • Execute quick string crossings, rapid spiccato bursts & precise chord articulations.
+  • Execute quick string crossings & precise chord articulations.
   • Achieve wide dynamic range while maintaining tone.
   • Seamless transitions between spiccato and legato.
   • Execute multiple stops/chord rolls rapidly.
