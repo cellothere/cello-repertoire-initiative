@@ -115,7 +115,7 @@ export const modalLevelText = {
     "Late Intermediate": `Left Hand:
   • Master positions up to 7th.
   • Use 5th–7th positions for high notes; early thumb position basics.
-  • Learn treble clef for highest registers.
+  • Learn treble clef for 4th, 5th, 6th registers.
   • Practice complex shifting with guide‑finger techniques.
   • Manage upper extensions; play double stops (thirds, fourths, sixths) with consistency.
   • Use continuous, selectively applied vibrato.
@@ -137,7 +137,7 @@ export const modalLevelText = {
   • Fully integrated thumb position; scales/arpeggios on A & D strings.
   • Smooth shifts into/out of thumb position for sustained high notes.
   • Frequent advanced double stops with rapid, coordinated shifts.
-  • Rapid, accurate ornamentation (trills, turns, grace notes), even in double stops.
+  • Accurate ornamentation (trills, turns, grace notes), even in double stops.
   • Expressively adjust intonation for chord balance.
   • Handle fast runs and large leaps precisely.
   
@@ -179,7 +179,7 @@ export const modalLevelText = {
   
     "Professional": `Left Hand:
   • Complete command of the fingerboard.
-  • Seamless thumb position across all strings; rapid leaps over 3+ octaves & impeccable shifting with guide notes.
+  • Comfortable thumb position across all strings; rapid leaps over 3+ octaves & accurate shifting with guide notes.
   • Execute complex double stops and rapid trills precisely.
   • Fast scales and leaps with compoftable intonation and speed.
   • Apply expressive techniques (portamenti, micro‑adjusted intonation) tastefully.
