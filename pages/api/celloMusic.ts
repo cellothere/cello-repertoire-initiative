@@ -53,6 +53,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 instrumentation: '$instrumentation',
                 nationality: '$composerDetails.nationality',
                 duration: '$duration',
+                tags: '$tags'
               },
             },
             count: { $sum: 1 },

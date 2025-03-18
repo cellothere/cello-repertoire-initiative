@@ -21,7 +21,9 @@ interface MusicPiece {
   instrumentation: string[];
   nationality?: string | string[];
   duration: string;
+  tags?: string[]; 
 }
+
 
 interface Composer {
   composer_full_name: string;
@@ -117,7 +119,22 @@ const FeaturedDatabases: NextPage = () => {
     }
   
     const composerNames = new Set(filteredComposers.map((composer) => composer.composer_full_name));
-    const filteredPieces = allPieces.filter((piece) => composerNames.has(piece.composer));
+    const filteredPieces = allPieces.filter((piece) => {
+      // Check if piece's composer is already part of the filtered composers.
+      if (composerNames.has(piece.composer)) return true;
+  
+      // Additional condition for pieces with 'Traditional' composer
+      // and tags that match "Black Spiritual" or "Black Sprituals".
+      if (
+        selectedCategory === 'Black' &&
+        piece.composer === 'Traditional' &&
+        piece.tags &&
+        (piece.tags.includes("Black Spiritual") || piece.tags.includes("Black Spirtuals"))
+      ) {
+        return true;
+      }
+      return false;
+    });
   
     return [...filteredPieces].sort((a, b) => {
       switch (sortConfig.field) {
@@ -140,6 +157,7 @@ const FeaturedDatabases: NextPage = () => {
       }
     });
   }, [composers, allPieces, selectedCategory, sortConfig]);
+  
   
 
   return (
