@@ -115,7 +115,7 @@ export const modalLevelText = {
     "Late Intermediate": `Left Hand:
   • Master positions up to 7th.
   • Use 5th–7th positions for high notes; early thumb position basics.
-  • Learn treble clef for 4th, 5th, 6th registers.
+  • Learn treble clef for 4th, 5th, 6th positions.
   • Practice complex shifting with guide‑finger techniques.
   • Manage upper extensions; play double stops (thirds, fourths, sixths) with consistency.
   • Use continuous, selectively applied vibrato.
