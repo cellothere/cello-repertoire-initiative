@@ -11,7 +11,7 @@ import { SpeedInsights } from "@vercel/speed-insights/next";
 // Define static image data outside the component
 const mobileImages = [
   { href: '/cello-music', src: '/assets/cellist3.png', label: 'Cello Music' },
-  { href: '/resources', src: '/assets/whatsNew.png', label: "Resources", subLabel: 'Find Useful Web Resources' },
+  { href: '/featured-databases', src: '/assets/whatsNew.png', label: "Featured Databases", subLabel: '' },
   { href: '/contribute', src: '/assets/contribute.png', label: 'Contribute', subLabel: 'Suggest an addition to our catalog' }
 ];
 
