@@ -296,7 +296,7 @@ const FeaturedDatabases: NextPage = () => {
         ) : featuredPieces.length === 0 ? (
           <div className="text-center mt-10">No featured pieces found.</div>
         ) : viewMode === 'card' ? (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8 mt-8">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-8 mt-8">
             {featuredPieces.map((piece) => (
               <MusicCard
                 key={piece.id}
