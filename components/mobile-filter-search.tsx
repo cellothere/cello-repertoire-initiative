@@ -18,10 +18,9 @@ interface MobileFilterAccordionProps {
   maxYear: number;
   setMinYear: React.Dispatch<React.SetStateAction<number>>;
   setMaxYear: React.Dispatch<React.SetStateAction<number>>;
-  setCurrentPage: React.Dispatch<React.SetStateAction<number>>; 
+  setCurrentPage: React.Dispatch<React.SetStateAction<number>>;
 }
 
-// Utility function defined outside the component.
 const removeDiacritics = (str: string): string =>
   str.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
 
@@ -41,14 +40,12 @@ const MobileFilterAccordion: React.FC<MobileFilterAccordionProps> = ({
   maxYear,
   setMinYear,
   setMaxYear,
-  setCurrentPage, 
+  setCurrentPage,
 }) => {
   const [openAccordion, setOpenAccordion] = useState<number | null>(null);
   const [composerSearch, setComposerSearch] = useState<string>('');
   const [levelSearch, setLevelSearch] = useState<string>('');
   const [countrySearch, setCountrySearch] = useState<string>('');
-  // This state can be removed if not used elsewhere.
-  const [isFilterVisible, setIsFilterVisible] = useState<boolean>(false);
 
   const toggleAccordion = useCallback((index: number) => {
     setOpenAccordion((prev) => (prev === index ? null : index));
@@ -59,13 +56,15 @@ const MobileFilterAccordion: React.FC<MobileFilterAccordionProps> = ({
     setComposerSearch('');
     setLevelSearch('');
     setCountrySearch('');
+    // Remove all selected items by toggling them off.
     selectedComposers.forEach((composer) => toggleComposerSelection(composer));
     selectedLevels.forEach((level) => toggleLevelSelection(level));
     selectedInstruments.forEach((instrument) => toggleInstrumentSelection(instrument));
     selectedCountries.forEach((country) => toggleCountrySelection(country));
-    setMinYear(1500);
+    // Reset the year range to the default values (matching the parent defaults)
+    setMinYear(1600);
     setMaxYear(2025);
-    setCurrentPage(1); 
+    setCurrentPage(1);
     setOpenAccordion(null);
   }, [
     setFilter,
@@ -82,7 +81,7 @@ const MobileFilterAccordion: React.FC<MobileFilterAccordionProps> = ({
     setCurrentPage,
   ]);
 
-  // Precompute normalized search terms to avoid re-computation in the filtering loop.
+  // Precompute normalized search terms.
   const normalizedComposerSearch = useMemo(
     () => removeDiacritics(composerSearch.toLowerCase()),
     [composerSearch]
@@ -107,7 +106,6 @@ const MobileFilterAccordion: React.FC<MobileFilterAccordionProps> = ({
         aria-label="Filter by title or composer"
       />
 
-      {/* Clear Filters Button */}
       <button
         onClick={clearFilters}
         className="w-full mb-4 p-3 bg-black hover:bg-black text-white rounded-lg font-bold"
@@ -115,9 +113,23 @@ const MobileFilterAccordion: React.FC<MobileFilterAccordionProps> = ({
         Clear All Filters
       </button>
 
-      {/* Accordion */}
       <div id="accordion" className="space-y-2">
         {Object.entries(accordionContent).map(([key, content], index) => {
+          // Compute the number of checked items for each accordion key.
+          const count =
+            key === 'Composer'
+              ? selectedComposers.length
+              : key === 'Level'
+              ? selectedLevels.length
+              : key === 'Instrumentation'
+              ? selectedInstruments.length
+              : key === 'Country'
+              ? selectedCountries.length
+              : 0;
+
+          // Create a display string that only shows count if it's greater than 0.
+          const displayTitle = count > 0 ? `${key} (${count})` : key;
+
           const filteredItems = content.filter((item) => {
             const lowerItem = removeDiacritics(item.toLowerCase());
             if (key === 'Composer') return lowerItem.includes(normalizedComposerSearch);
@@ -138,7 +150,7 @@ const MobileFilterAccordion: React.FC<MobileFilterAccordionProps> = ({
                   aria-expanded={openAccordion === index}
                   aria-controls={`accordion-body-${index}`}
                 >
-                  <span>{key}</span>
+                  <span>{displayTitle}</span>
                   <svg
                     className={`w-4 h-4 transition-transform ${openAccordion === index ? 'rotate-180' : ''}`}
                     aria-hidden="true"
@@ -161,7 +173,6 @@ const MobileFilterAccordion: React.FC<MobileFilterAccordionProps> = ({
                 className={`transition-[max-height] overflow-hidden ${openAccordion === index ? 'max-h-96' : 'max-h-0'}`}
               >
                 <div className="p-4 border-t border-gray-300" style={{ maxHeight: '300px', overflowY: 'auto' }}>
-                  {/* Special Year Range Slider */}
                   {key === 'Year' && (
                     <div>
                       <label className="block mb-4 text-sm text-black font-semibold">
@@ -185,7 +196,6 @@ const MobileFilterAccordion: React.FC<MobileFilterAccordionProps> = ({
                     </div>
                   )}
 
-                  {/* Composer Search */}
                   {key === 'Composer' && (
                     <div className="mb-2">
                       <input
@@ -199,7 +209,6 @@ const MobileFilterAccordion: React.FC<MobileFilterAccordionProps> = ({
                     </div>
                   )}
 
-                  {/* Country Search */}
                   {key === 'Country' && (
                     <div className="mb-2">
                       <input

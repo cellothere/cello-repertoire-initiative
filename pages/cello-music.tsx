@@ -1,4 +1,3 @@
-// pages/music.tsx
 import { NextPage } from 'next';
 import Head from 'next/head';
 import { useRef, useEffect, useState, useMemo } from 'react';
@@ -10,7 +9,6 @@ import MusicCard from '@/components/music-card';
 import MusicListView from '@/components/music-list-view';
 import LoadingAnimation from '@/components/loading-animation';
 import { removeDiacritics, compareDurations } from '@/utils/musicUtils';
-
 
 interface MusicPiece {
   id: number;
@@ -49,8 +47,6 @@ const Music: NextPage = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [viewMode, setViewMode] = useState<'card' | 'list'>('card');
   const [sortConfig, setSortConfig] = useState<SortConfig>({ field: 'level', direction: 'asc' });
-  
-  // Loading state
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
   // UI control states
@@ -82,7 +78,7 @@ const Music: NextPage = () => {
     'Various',
   ], []);
 
-  // Accordion content for filtering (initial content)
+  // Accordion content for filtering
   const [accordionContent, setAccordionContent] = useState({
     Level: levelOrder,
     Instrumentation: [
@@ -98,7 +94,7 @@ const Music: NextPage = () => {
     Year: [],
   });
 
-  // --- 1. Read Query Parameters on Mount ---
+  // 1. Read query parameters on mount
   useEffect(() => {
     if (router.isReady) {
       const {
@@ -119,28 +115,28 @@ const Music: NextPage = () => {
       if (qSelectedComposers) {
         setSelectedComposers(
           Array.isArray(qSelectedComposers)
-            ? qSelectedComposers as string[]
+            ? (qSelectedComposers as string[])
             : [qSelectedComposers as string]
         );
       }
       if (qSelectedLevels) {
         setSelectedLevels(
           Array.isArray(qSelectedLevels)
-            ? qSelectedLevels as string[]
+            ? (qSelectedLevels as string[])
             : [qSelectedLevels as string]
         );
       }
       if (qSelectedInstruments) {
         setSelectedInstruments(
           Array.isArray(qSelectedInstruments)
-            ? qSelectedInstruments as string[]
+            ? (qSelectedInstruments as string[])
             : [qSelectedInstruments as string]
         );
       }
       if (qSelectedCountries) {
         setSelectedCountries(
           Array.isArray(qSelectedCountries)
-            ? qSelectedCountries as string[]
+            ? (qSelectedCountries as string[])
             : [qSelectedCountries as string]
         );
       }
@@ -154,7 +150,7 @@ const Music: NextPage = () => {
     }
   }, [router.isReady]);
 
-  // --- 2. Update URL Query When Filters Change ---
+  // 2. Update URL query when filters change
   useEffect(() => {
     const query = {
       filter,
@@ -184,7 +180,7 @@ const Music: NextPage = () => {
     router.pathname,
   ]);
 
-  // --- 3. Fetch Data ---
+  // 3. Fetch data
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -198,26 +194,23 @@ const Music: NextPage = () => {
         const nationalitiesData: { nationality: string }[] = await nationalitiesRes.json();
         const composersData = await composersRes.json();
 
-        // Flatten pieces data
-        const flattenedPieces = piecesData.flatMap((group: { musicPieces: MusicPiece[] }) => group.musicPieces);
+        const flattenedPieces = piecesData.flatMap(
+          (group: { musicPieces: MusicPiece[] }) => group.musicPieces
+        );
         setPieces(flattenedPieces);
 
-        // Update accordion content for nationalities
         const countries = nationalitiesData.map((item) => item.nationality);
         setAccordionContent((prev) => ({ ...prev, Country: countries }));
 
-        // Update accordion content for composers
         const composers = composersData
           .map((group: { composers: Composer[] }) =>
             group.composers.map((composer) => composer.composer_full_name)
           )
           .flat();
         setAccordionContent((prev) => ({ ...prev, Composer: composers }));
-
       } catch (error) {
         console.error('Error fetching data:', error);
       } finally {
-        // All fetches are done
         setIsLoading(false);
       }
     };
@@ -225,8 +218,7 @@ const Music: NextPage = () => {
     fetchData();
   }, []);
 
-  // --- 4. Optimized Filtering and Sorting ---
-  // Precompute the normalized filter string so we do not re-run removeDiacritics on every iteration.
+  // 4. Optimized filtering and sorting
   const normalizedFilter = useMemo(() => removeDiacritics(filter.toLowerCase()), [filter]);
 
   const filteredPieces = useMemo(() => {
@@ -245,7 +237,6 @@ const Music: NextPage = () => {
         const validYear = !isNaN(pieceYear) && pieceYear > 0;
         const yearFilterMatch = validYear && pieceYear >= minYear && pieceYear <= maxYear;
 
-        // Compute normalized instrumentation once per piece
         const normalizedInstrumentation = Array.isArray(piece.instrumentation)
           ? piece.instrumentation.map((instr) =>
               instr.toLowerCase() === 'cello solo' ? 'cello' : instr.toLowerCase()
@@ -280,7 +271,6 @@ const Music: NextPage = () => {
           yearFilterMatch
         );
       })
-      // Use a new array copy for sorting so as not to mutate the original.
       .sort((a, b) => {
         switch (sortConfig.field) {
           case 'title':
@@ -314,12 +304,12 @@ const Music: NextPage = () => {
     levelOrder,
   ]);
 
-  // Reset current page to 1 whenever any filter criteria change.
+  // Reset current page when filters change
   useEffect(() => {
     setCurrentPage(1);
   }, [filter, selectedComposers, selectedLevels, selectedCountries, selectedInstruments, minYear, maxYear]);
 
-  // --- 5. Pagination Calculation ---
+  // 5. Pagination calculation
   const totalPages = Math.ceil(filteredPieces.length / itemsPerPage);
 
   const paginatedPieces = useMemo(() => {
@@ -353,7 +343,7 @@ const Music: NextPage = () => {
     return items;
   }, [totalPages, currentPage]);
 
-  // --- 6. Sort Handlers ---
+  // 6. Sort handlers
   const handleSort = (sortOption: string) => {
     let field = '';
     let direction: 'asc' | 'desc' = 'asc';
@@ -396,7 +386,7 @@ const Music: NextPage = () => {
     setSortConfig({ field, direction });
   };
 
-  // --- 7. Checkbox Toggle Handlers ---
+  // 7. Checkbox toggle handlers
   const toggleComposerSelection = (composer: string) => {
     setSelectedComposers((prev) =>
       prev.includes(composer) ? prev.filter((c) => c !== composer) : [...prev, composer]
@@ -426,7 +416,17 @@ const Music: NextPage = () => {
 
   const mobileFilterRef = useRef<HTMLDivElement>(null);
 
-  // If data is still loading, show the loading animation
+  // Compute filter count from filter-related states
+  const filterCount = useMemo(() => {
+    return (
+      selectedComposers.length +
+      selectedLevels.length +
+      selectedInstruments.length +
+      selectedCountries.length +
+      (minYear !== 1600 || maxYear !== 2025 ? 1 : 0)
+    );
+  }, [selectedComposers, selectedLevels, selectedInstruments, selectedCountries, minYear, maxYear]);
+
   if (isLoading) {
     return <LoadingAnimation />;
   }
@@ -441,18 +441,14 @@ const Music: NextPage = () => {
         />
         <meta name="keywords" content="Cello, Music, Composers, Music Pieces, Classical, Cello Music" />
         <link rel="canonical" href="https://www.cellorepertoire.com/" />
-
-        {/* Open Graph tags */}
         <meta property="og:title" content="Cello Music" />
         <meta
           property="og:description"
           content="Discover and explore a curated collection of cello music pieces, composers, and arrangements designed for music enthusiasts."
         />
         <meta property="og:type" content="website" />
-        <meta property="og:url" content="http://https://www.cellorepertoire.com/cello-music?filter=&minYear=1600&maxYear=2025&page=1&viewMode=card&sortField=level&sortDirection=asc" />
+        <meta property="og:url" content="https://www.cellorepertoire.com/cello-music" />
         <meta property="og:image" content="https://www.cellorepertoire.com/_next/image?url=%2Fassets%2FaltLogo.png&w=256&q=75" />
-
-        {/* Twitter Card tags */}
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content="Cello Music" />
         <meta
@@ -490,7 +486,6 @@ const Music: NextPage = () => {
           toggleCountrySelection={toggleCountrySelection}
           setCurrentPage={setCurrentPage}
         />
-
         {isFilterVisible && (
           <div
             ref={mobileFilterRef}
@@ -512,9 +507,9 @@ const Music: NextPage = () => {
               toggleCountrySelection={toggleCountrySelection}
               minYear={minYear}
               maxYear={maxYear}
-              setCurrentPage={setCurrentPage}
               setMinYear={setMinYear}
               setMaxYear={setMaxYear}
+              setCurrentPage={setCurrentPage}
             />
           </div>
         )}
@@ -552,7 +547,7 @@ const Music: NextPage = () => {
                 className="flex items-center text-white bg-black px-3 py-2 rounded-md"
                 onClick={() => setIsFilterVisible(true)}
               >
-                <div>Filter</div>
+                <div>Filter{filterCount > 0 ? ` (${filterCount})` : ''}</div>
               </button>
               <div className="relative">
                 <button
@@ -566,12 +561,60 @@ const Music: NextPage = () => {
                     className="absolute right-0 mt-2 w-[200px] bg-white rounded text-black shadow-md p-2 z-50"
                     onClick={(e) => e.stopPropagation()}
                   >
-                    <button className="block w-full text-left px-2 py-1 hover:bg-gray-100" onClick={() => { handleSort('title-asc'); setIsSortMenuOpen(false); }}>Title A-Z</button>
-                    <button className="block w-full text-left px-2 py-1 hover:bg-gray-100" onClick={() => { handleSort('title-desc'); setIsSortMenuOpen(false); }}>Title Z-A</button>
-                    <button className="block w-full text-left px-2 py-1 hover:bg-gray-100" onClick={() => { handleSort('level-asc'); setIsSortMenuOpen(false); }}>Level (Low → High)</button>
-                    <button className="block w-full text-left px-2 py-1 hover:bg-gray-100" onClick={() => { handleSort('level-desc'); setIsSortMenuOpen(false); }}>Level (High → Low)</button>
-                    <button className="block w-full text-left px-2 py-1 hover:bg-gray-100" onClick={() => { handleSort('composer-asc'); setIsSortMenuOpen(false); }}>Composer (A-Z)</button>
-                    <button className="block w-full text-left px-2 py-1 hover:bg-gray-100" onClick={() => { handleSort('composer-desc'); setIsSortMenuOpen(false); }}>Composer (Z-A)</button>
+                    <button
+                      className="block w-full text-left px-2 py-1 hover:bg-gray-100"
+                      onClick={() => {
+                        handleSort('title-asc');
+                        setIsSortMenuOpen(false);
+                      }}
+                    >
+                      Title A-Z
+                    </button>
+                    <button
+                      className="block w-full text-left px-2 py-1 hover:bg-gray-100"
+                      onClick={() => {
+                        handleSort('title-desc');
+                        setIsSortMenuOpen(false);
+                      }}
+                    >
+                      Title Z-A
+                    </button>
+                    <button
+                      className="block w-full text-left px-2 py-1 hover:bg-gray-100"
+                      onClick={() => {
+                        handleSort('level-asc');
+                        setIsSortMenuOpen(false);
+                      }}
+                    >
+                      Level (Low → High)
+                    </button>
+                    <button
+                      className="block w-full text-left px-2 py-1 hover:bg-gray-100"
+                      onClick={() => {
+                        handleSort('level-desc');
+                        setIsSortMenuOpen(false);
+                      }}
+                    >
+                      Level (High → Low)
+                    </button>
+                    <button
+                      className="block w-full text-left px-2 py-1 hover:bg-gray-100"
+                      onClick={() => {
+                        handleSort('composer-asc');
+                        setIsSortMenuOpen(false);
+                      }}
+                    >
+                      Composer (A-Z)
+                    </button>
+                    <button
+                      className="block w-full text-left px-2 py-1 hover:bg-gray-100"
+                      onClick={() => {
+                        handleSort('composer-desc');
+                        setIsSortMenuOpen(false);
+                      }}
+                    >
+                      Composer (Z-A)
+                    </button>
                   </div>
                 )}
               </div>
