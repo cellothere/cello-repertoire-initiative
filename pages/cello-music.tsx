@@ -62,7 +62,7 @@ const Music: NextPage = () => {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  const itemsPerPage = isMobile ? 10 : 16;
+  const itemsPerPage = isMobile ? 10 : 20;
 
   // Keep levelOrder stable across renders
   const levelOrder = useMemo(() => [
