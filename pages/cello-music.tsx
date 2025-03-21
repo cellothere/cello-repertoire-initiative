@@ -239,8 +239,8 @@ const Music: NextPage = () => {
 
         const normalizedInstrumentation = Array.isArray(piece.instrumentation)
           ? piece.instrumentation.map((instr) =>
-              instr.toLowerCase() === 'cello solo' ? 'cello' : instr.toLowerCase()
-            )
+            instr.toLowerCase() === 'cello solo' ? 'cello' : instr.toLowerCase()
+          )
           : [];
         const instrumentationMatch =
           selectedInstruments.length === 0 ||
@@ -522,7 +522,7 @@ const Music: NextPage = () => {
               </label>
               <select
                 id="sort-by"
-                defaultValue="level-asc"
+                value={`${sortConfig.field}-${sortConfig.direction}`}
                 className="border border-gray-300 rounded-md p-1 text-black font-medium text-sm bg-white focus:outline-none"
                 onChange={(e) => handleSort(e.target.value)}
               >
@@ -533,6 +533,7 @@ const Music: NextPage = () => {
                 <option value="composer-asc">Composer (A-Z)</option>
                 <option value="composer-desc">Composer (Z-A)</option>
               </select>
+
               <select
                 value={viewMode}
                 onChange={(e) => setViewMode(e.target.value as 'card' | 'list')}
@@ -667,9 +668,8 @@ const Music: NextPage = () => {
                   return (
                     <button
                       key={item}
-                      className={`flex-shrink-0 px-2 py-1 md:px-3 md:py-2 border rounded text-xs md:text-sm ${
-                        currentPage === item ? 'bg-black text-white' : 'bg-white text-black'
-                      }`}
+                      className={`flex-shrink-0 px-2 py-1 md:px-3 md:py-2 border rounded text-xs md:text-sm ${currentPage === item ? 'bg-black text-white' : 'bg-white text-black'
+                        }`}
                       onClick={() => setCurrentPage(item as number)}
                     >
                       {item}
