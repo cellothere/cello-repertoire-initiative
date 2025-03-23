@@ -9,7 +9,7 @@ export const indigenousKeywords = [
     "muscogee", "seminole", "yuchi", "pawnee", "kiowa", "winnebago", "ho-chunk", "hupa", "yurok", 
     "karuk", "modoc", "salish", "shoshone", "utes", "nez perce", "cheyenne", "arapaho", "tuscarora", 
     "catawba", "nanticoke", "tahltan", "sechelt", "kwakwaka'wakw", "nuu-chah-nulth", "dena’ina",
-    "siksika", "tsaahl", "chumash", "tongva", "gabrielino", "cahuilla", "shinnecock", "wampanoag", "Algonquin-Anishinaabe",
+    "siksika", "tsaahl", "chumash", "tongva", "Mohawk Kaniènkeha", "gabrielino", "cahuilla", "shinnecock", "wampanoag", "Algonquin-Anishinaabe",
 
     // South America
     "mapuche", "quechua", "aymara", "guaraní", "yanomami", "tupi", "wounaan", "asháninka", "shipibo", 
