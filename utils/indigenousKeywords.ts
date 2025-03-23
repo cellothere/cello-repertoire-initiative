@@ -7,7 +7,7 @@ export const indigenousKeywords = [
     "haudenosaunee", "cree", "ojibwe", "chippewa", "blackfoot", "inuit", "tlingit", "haida", "mi'kmaq", 
     "algonquin", "anishinaabe", "potawatomi", "mohawk", "chickasaw", "choctaw", "caddo", "lenape", 
     "muscogee", "seminole", "yuchi", "pawnee", "kiowa", "winnebago", "ho-chunk", "hupa", "yurok", 
-    "karuk", "modoc", "salish", "shoshone", "utes", "nez perce", "cheyenne", "arapaho", "tuscarora", 
+    "karuk", "modoc", "salish", "shoshone", "utes", "nez perce", "lac seul first nation", "cheyenne", "arapaho", "tuscarora", 
     "catawba", "nanticoke", "tahltan", "sechelt", "kwakwaka'wakw", "nuu-chah-nulth", "dena’ina",
     "siksika", "tsaahl", "chumash", "tongva", "Mohawk Kaniènkeha", "gabrielino", "cahuilla", "shinnecock", "wampanoag", "Algonquin-Anishinaabe",
 
