@@ -3,7 +3,7 @@
 export const indigenousKeywords = [
     // North America (United States, Canada)
     "navajo", "diné", "cherokee", "stockbridge", "munsee", "sioux", "lakota", "dakota", 
-    "nakota", "apache", "comanche", "hopi", "pueblo", "zuni", "taos", "tewa", "tiwa", "iroquois", 
+    "nakota", "apache", "comanche", "hopi", "pueblo", "zuni", "taos", "tewa", "tiwa", "haudenosaunee (iroquois confederacy)", 
     "haudenosaunee", "cree", "ojibwe", "chippewa", "blackfoot", "inuit", "tlingit", "haida", "mi'kmaq", 
     "algonquin", "anishinaabe", "potawatomi", "mohawk", "chickasaw", "choctaw", "caddo", "lenape", 
     "muscogee", "seminole", "yuchi", "pawnee", "kiowa", "winnebago", "ho-chunk", "hupa", "yurok", 
