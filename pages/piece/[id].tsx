@@ -338,7 +338,7 @@ const Piece: NextPage<PieceProps> = ({ piece, composerInfo }) => {
         {hasVideo && (
           <div className="container mx-auto flex flex-col">
             <div className="w-full flex justify-center md:justify-end"></div>
-            <div className="flex justify-center items-center mt-20">
+            <div className="flex justify-center items-center md:mt-20 lg:mt-20">
               {videoId1 && <VideoIframe videoId={videoId1} title={piece.title} />}
             </div>
           </div>
