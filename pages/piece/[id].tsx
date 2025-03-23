@@ -344,7 +344,7 @@ const Piece: NextPage<PieceProps> = ({ piece, composerInfo }) => {
           </div>
         )}
       </main>
-
+      
     {/* Modal Dialog for displaying detailed level information */}
     <LevelModal
       open={modalOpen}
