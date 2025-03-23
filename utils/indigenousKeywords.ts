@@ -19,7 +19,7 @@ export const indigenousKeywords = [
     "aboriginal", "indigenous australian", "arrernte", "noongar", "pitjantjatjara", "wiradjuri", 
     "koori", "murri", "palawa", "yorta yorta", "walpiri", "tiwi", "bundjalung", "torres strait islander",
     "maori", "moriori", "samoan", "tongan", "fijian", "hawaiian", "kanaka maoli", "chamorro", "marshallese", 
-    "palauan", "tahitian", "rapanui", "banaban", "navigators islanders",
+    "palauan", "tahitian", "rapanui", "banaban", "navigators islanders","kanaka maoli",
 
     // Asia
     "aeta", "ifugao", "igorot", "lumad", "manobo", "moro", "bontoc", "taiwanese indigenous", "amis", 
