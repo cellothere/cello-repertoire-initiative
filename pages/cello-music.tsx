@@ -34,7 +34,7 @@ interface Composer {
 
 type SortConfig = { field: string; direction: 'asc' | 'desc' };
 
-const Music: NextPage = () => {
+const CelloMusic: NextPage = () => {
   const router = useRouter();
 
   // Data and filter states
@@ -770,4 +770,4 @@ const Music: NextPage = () => {
   );
 };
 
-export default Music;
+export default CelloMusic;
