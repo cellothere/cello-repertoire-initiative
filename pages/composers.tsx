@@ -203,7 +203,7 @@ const ComposersPage: React.FC = () => {
                     {loadingComposerId === composer.id ? (
                       <FaSpinner className="animate-spin inline-block" />
                     ) : (
-                      'See more'
+                      'View Works'
                     )}
                   </button>
                 </Link>
@@ -217,6 +217,5 @@ const ComposersPage: React.FC = () => {
     </div>
   );
 };
-
 
 export default ComposersPage;

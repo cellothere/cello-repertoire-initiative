@@ -143,21 +143,31 @@ const Piece: NextPage<PieceProps> = ({ piece, composerInfo }) => {
       <main className={`grid grid-cols-1 gap-6 p-4 ${hasVideo ? 'md:grid-cols-2' : 'md:grid-cols-1'}`}>
         <div className="container flex flex-col items-start">
           <div className="mb-4">
-            <p className="text-md sm:text-lg mb-1 text-white">
-              by{' '}
-              {composerInfo?.bio_links?.[0] ? (
-                <Link
-                  href={composerInfo.bio_links[0]}
-                  className="underline"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  {composerInfo.composer_full_name || 'Unknown Composer'}
-                </Link>
-              ) : (
-                <span>{composerInfo?.composer_full_name || 'Unknown Composer'}</span>
-              )}
-            </p>
+          <p className="text-md sm:text-lg mb-1 text-white">
+  by{' '}
+  {composerInfo?.bio_links?.[0] ? (
+    <Link
+      href={composerInfo.bio_links[0]}
+      className="underline"
+      target="_blank"
+      rel="noopener noreferrer"
+    >
+      {composerInfo.composer_full_name || 'Unknown Composer'}
+    </Link>
+  ) : (
+    <span>{composerInfo?.composer_full_name || 'Unknown Composer'}</span>
+  )}
+  {composerInfo?.composer_full_name && (
+    <Link
+      href={`/search-results?query=${encodeURIComponent(composerInfo.composer_full_name)}`}
+    >
+      <button className="ml-2 text-sm px-2 py-1 bg-black text-white rounded-full hover:bg-gradient-to-br transition-colors duration-300">
+        View Works
+      </button>
+    </Link>
+  )}
+</p>
+
             <div className="flex items-center">
               <p className="text-sm text-white sm:text-md italic mr-1">
                 {piece.level}
