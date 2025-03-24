@@ -32,6 +32,7 @@ interface PieceProps {
     publisher_info: string;
     description: string;
     technical_overview: string;
+    technique_focus: string[]; // New field
     is_public_domain: boolean;
     where_to_buy_or_download: string[];
     duration: string;
@@ -43,6 +44,7 @@ interface PieceProps {
     bio_links: string[];
   } | null;
 }
+
 
 const isValidUrl = (url: string) => {
   try {
@@ -269,28 +271,39 @@ const Piece: NextPage<PieceProps> = ({ piece, composerInfo }) => {
           </Accordion>
 
           {/* Accordion for Technical Overview */}
-          <Accordion
-            className="w-full max-w-full md:max-w-2xl"
-            expanded={expanded === 'panel2'}
-            onChange={handleChange('panel2')}
-          >
-            <AccordionSummary
-              expandIcon={<ExpandMoreIcon />}
-              aria-controls="panel2-content"
-              id="panel2-header"
-              className="ml-1 text-lg font-bold bg-clip-text"
-            >
-              Technical Overview
-            </AccordionSummary>
-            <div className="border-b border-gray-300 my-1"></div>
-            <AccordionDetails>
-              <p className="text-sm sm:text-md break-words">
-                {piece.technical_overview
-                  ? linkify(piece.technical_overview)
-                  : 'No technical overview available.'}
-              </p>
-            </AccordionDetails>
-          </Accordion>
+  {/* Accordion for Technical Overview */}
+<Accordion
+  className="w-full max-w-full md:max-w-2xl"
+  expanded={expanded === 'panel2'}
+  onChange={handleChange('panel2')}
+>
+  <AccordionSummary
+    expandIcon={<ExpandMoreIcon />}
+    aria-controls="panel2-content"
+    id="panel2-header"
+    className="ml-1 text-lg font-bold bg-clip-text"
+  >
+    Technical Overview
+  </AccordionSummary>
+  <div className="border-b border-gray-300 my-1"></div>
+  <AccordionDetails>
+    <p className="text-sm sm:text-md break-words">
+      {piece.technical_overview
+        ? linkify(piece.technical_overview)
+        : 'No technical overview available.'}
+    </p>
+    <br></br>
+    <h2 className="font-bold italic">Technical Focus Points</h2>
+    {piece.technique_focus && piece.technique_focus.length > 0 && (
+      <ul className="list-disc pl-5 mt-2 text-sm sm:text-md">
+        {piece.technique_focus.map((point, idx) => (
+          <li key={idx}>{point}</li>
+        ))}
+      </ul>
+    )}
+  </AccordionDetails>
+</Accordion>
+
 
           {/* Accordion for Audio and Recordings */}
           <Accordion
@@ -411,6 +424,7 @@ export const getStaticProps: GetStaticProps = async (context) => {
               publisher_info: piece.publisher_info || '',
               description: piece.description || '',
               technical_overview: piece.technical_overview || '',
+              technique_focus: piece.technique_focus || [], // Include the new field
               is_public_domain: piece.is_public_domain || false,
               where_to_buy_or_download: piece.where_to_buy_or_download || [],
               duration: piece.duration || '',
@@ -431,5 +445,6 @@ export const getStaticProps: GetStaticProps = async (context) => {
     return { notFound: true };
   }
 };
+
 
 export default Piece;
