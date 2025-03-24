@@ -20,7 +20,7 @@ const techniqueKeywords: string[] = [
     'Double Stops',
     'Thumb Position',
     'Rubato',
-    'Ornamentation',
+    'Theory'
     // Add as many as you like
   ];
   
