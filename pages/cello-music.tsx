@@ -1,6 +1,6 @@
 import { NextPage } from 'next';
 import Head from 'next/head';
-import { useRef, useEffect, useState, useMemo } from 'react';
+import { useRef, useEffect, useState, useMemo, useCallback } from 'react';
 import { useRouter } from 'next/router';
 import NavbarMain from '@/components/navbar-main';
 import FilterAside from '@/components/filter-search';
@@ -9,6 +9,7 @@ import MusicCard from '@/components/music-card';
 import MusicListView from '@/components/music-list-view';
 import LoadingAnimation from '@/components/loading-animation';
 import { removeDiacritics, compareDurations } from '@/utils/musicUtils';
+import techniqueKeywords from '@/utils/techniqueKeywords';
 
 interface MusicPiece {
   id: number;
@@ -21,6 +22,7 @@ interface MusicPiece {
   nationality: string[];
   duration: string;
   composition_year?: string;
+  technique_focus?: string[]; // New field for technical focus points
 }
 
 interface Composer {
@@ -42,6 +44,7 @@ const Music: NextPage = () => {
   const [selectedLevels, setSelectedLevels] = useState<string[]>([]);
   const [selectedInstruments, setSelectedInstruments] = useState<string[]>([]);
   const [selectedCountries, setSelectedCountries] = useState<string[]>([]);
+  const [selectedTechnicalFocus, setSelectedTechnicalFocus] = useState<string[]>([]);
   const [minYear, setMinYear] = useState<number>(1600);
   const [maxYear, setMaxYear] = useState<number>(2025);
   const [currentPage, setCurrentPage] = useState(1);
@@ -78,7 +81,7 @@ const Music: NextPage = () => {
     'Various',
   ], []);
 
-  // Accordion content for filtering
+  // Accordion content for filtering; include a new category for Technical Focus.
   const [accordionContent, setAccordionContent] = useState({
     Level: levelOrder,
     Instrumentation: [
@@ -91,8 +94,14 @@ const Music: NextPage = () => {
     ],
     Composer: [] as string[],
     Country: ['United States of America', 'Canada', 'France', 'Mexico', 'China'],
+    'Technical Focus': [] as string[],
     Year: [],
   });
+
+  // Additional local states for search inputs inside the filter aside (if needed)
+  const [composerSearch, setComposerSearch] = useState<string>('');
+  const [levelSearch, setLevelSearch] = useState<string>('');
+  const [countrySearch, setCountrySearch] = useState<string>('');
 
   // 1. Read query parameters on mount
   useEffect(() => {
@@ -103,6 +112,7 @@ const Music: NextPage = () => {
         selectedLevels: qSelectedLevels,
         selectedInstruments: qSelectedInstruments,
         selectedCountries: qSelectedCountries,
+        selectedTechnicalFocus: qSelectedTechnicalFocus,
         minYear: qMinYear,
         maxYear: qMaxYear,
         page: qPage,
@@ -140,6 +150,13 @@ const Music: NextPage = () => {
             : [qSelectedCountries as string]
         );
       }
+      if (qSelectedTechnicalFocus) {
+        setSelectedTechnicalFocus(
+          Array.isArray(qSelectedTechnicalFocus)
+            ? (qSelectedTechnicalFocus as string[])
+            : [qSelectedTechnicalFocus as string]
+        );
+      }
       if (qMinYear) setMinYear(Number(qMinYear));
       if (qMaxYear) setMaxYear(Number(qMaxYear));
       if (qPage) setCurrentPage(Number(qPage));
@@ -158,6 +175,7 @@ const Music: NextPage = () => {
       selectedLevels,
       selectedInstruments,
       selectedCountries,
+      selectedTechnicalFocus,
       minYear,
       maxYear,
       page: currentPage,
@@ -172,6 +190,7 @@ const Music: NextPage = () => {
     selectedLevels,
     selectedInstruments,
     selectedCountries,
+    selectedTechnicalFocus,
     minYear,
     maxYear,
     currentPage,
@@ -180,7 +199,7 @@ const Music: NextPage = () => {
     router.pathname,
   ]);
 
-  // 3. Fetch data
+  // 3. Fetch data from APIs
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -199,15 +218,23 @@ const Music: NextPage = () => {
         );
         setPieces(flattenedPieces);
 
+        // Update Country options from fetched data.
         const countries = nationalitiesData.map((item) => item.nationality);
         setAccordionContent((prev) => ({ ...prev, Country: countries }));
 
+        // Update Composer options.
         const composers = composersData
           .map((group: { composers: Composer[] }) =>
             group.composers.map((composer) => composer.composer_full_name)
           )
           .flat();
         setAccordionContent((prev) => ({ ...prev, Composer: composers }));
+
+        // Populate Technical Focus options from pieces.
+        setAccordionContent((prev) => ({
+          ...prev,
+          'Technical Focus': techniqueKeywords,
+        }));
       } catch (error) {
         console.error('Error fetching data:', error);
       } finally {
@@ -239,8 +266,8 @@ const Music: NextPage = () => {
 
         const normalizedInstrumentation = Array.isArray(piece.instrumentation)
           ? piece.instrumentation.map((instr) =>
-            instr.toLowerCase() === 'cello solo' ? 'cello' : instr.toLowerCase()
-          )
+              instr.toLowerCase() === 'cello solo' ? 'cello' : instr.toLowerCase()
+            )
           : [];
         const instrumentationMatch =
           selectedInstruments.length === 0 ||
@@ -262,13 +289,25 @@ const Music: NextPage = () => {
             return selectedParts.every((part) => normalizedInstrumentation.includes(part));
           });
 
+        // Technical Focus filter.
+        const technicalFocusFilterMatch =
+        selectedTechnicalFocus.length === 0 ||
+        (piece.technique_focus &&
+          piece.technique_focus.some((focus) =>
+            selectedTechnicalFocus.some(
+              (selectedFocus) =>
+                removeDiacritics(selectedFocus.toLowerCase()) === removeDiacritics(focus.toLowerCase())
+            )
+          ));
+      
         return (
           (titleMatch || composerMatch) &&
           composerFilterMatch &&
           levelFilterMatch &&
           countryFilterMatch &&
           instrumentationMatch &&
-          yearFilterMatch
+          yearFilterMatch &&
+          technicalFocusFilterMatch
         );
       })
       .sort((a, b) => {
@@ -302,12 +341,13 @@ const Music: NextPage = () => {
     maxYear,
     sortConfig,
     levelOrder,
+    selectedTechnicalFocus,
   ]);
 
-  // Reset current page when filters change
+  // Reset current page when filters change.
   useEffect(() => {
     setCurrentPage(1);
-  }, [filter, selectedComposers, selectedLevels, selectedCountries, selectedInstruments, minYear, maxYear]);
+  }, [filter, selectedComposers, selectedLevels, selectedCountries, selectedInstruments, selectedTechnicalFocus, minYear, maxYear]);
 
   // 5. Pagination calculation
   const totalPages = Math.ceil(filteredPieces.length / itemsPerPage);
@@ -414,22 +454,54 @@ const Music: NextPage = () => {
     );
   };
 
+  const toggleTechnicalFocusSelection = (focus: string) => {
+    setSelectedTechnicalFocus((prev) =>
+      prev.includes(focus) ? prev.filter((f) => f !== focus) : [...prev, focus]
+    );
+  };
+
   const mobileFilterRef = useRef<HTMLDivElement>(null);
 
-  // Compute filter count from filter-related states
+  // Compute filter count from filter-related states.
   const filterCount = useMemo(() => {
     return (
       selectedComposers.length +
       selectedLevels.length +
       selectedInstruments.length +
       selectedCountries.length +
+      selectedTechnicalFocus.length +
       (minYear !== 1600 || maxYear !== 2025 ? 1 : 0)
     );
-  }, [selectedComposers, selectedLevels, selectedInstruments, selectedCountries, minYear, maxYear]);
+  }, [selectedComposers, selectedLevels, selectedInstruments, selectedCountries, selectedTechnicalFocus, minYear, maxYear]);
 
-  if (isLoading) {
-    return <LoadingAnimation />;
-  }
+  // Clear filters function.
+  const clearFilters = useCallback(() => {
+    setFilter('');
+    setComposerSearch('');
+    setLevelSearch('');
+    setCountrySearch('');
+    selectedComposers.forEach((composer) => toggleComposerSelection(composer));
+    selectedLevels.forEach((level) => toggleLevelSelection(level));
+    selectedInstruments.forEach((instrument) => toggleInstrumentSelection(instrument));
+    selectedCountries.forEach((country) => toggleCountrySelection(country));
+    selectedTechnicalFocus.forEach((tech) => toggleTechnicalFocusSelection(tech));
+    setMinYear(1600);
+    setMaxYear(2025);
+    setCurrentPage(1);
+  }, [
+    selectedComposers,
+    toggleComposerSelection,
+    selectedLevels,
+    toggleLevelSelection,
+    selectedInstruments,
+    toggleInstrumentSelection,
+    selectedCountries,
+    toggleCountrySelection,
+    selectedTechnicalFocus,
+    toggleTechnicalFocusSelection,
+  ]);
+
+  if (isLoading) return <LoadingAnimation />;
 
   return (
     <div>
@@ -458,6 +530,7 @@ const Music: NextPage = () => {
         <meta name="twitter:image" content="https://www.cellorepertoire.com/_next/image?url=%2Fassets%2FaltLogo.png&w=256&q=75" />
       </Head>
       <NavbarMain />
+      {/* Mobile overlay for filters and sort */}
       {(isFilterVisible || isSortMenuOpen) && (
         <div
           className="fixed inset-0 z-40"
@@ -468,13 +541,10 @@ const Music: NextPage = () => {
         />
       )}
       <div className="flex mt-4">
+        {/* Desktop Filter Aside */}
         <FilterAside
           filter={filter}
           setFilter={setFilter}
-          minYear={minYear}
-          maxYear={maxYear}
-          setMinYear={setMinYear}
-          setMaxYear={setMaxYear}
           accordionContent={accordionContent}
           selectedComposers={selectedComposers}
           toggleComposerSelection={toggleComposerSelection}
@@ -484,8 +554,15 @@ const Music: NextPage = () => {
           toggleInstrumentSelection={toggleInstrumentSelection}
           selectedCountries={selectedCountries}
           toggleCountrySelection={toggleCountrySelection}
+          selectedTechnicalFocus={selectedTechnicalFocus}
+          toggleTechnicalFocusSelection={toggleTechnicalFocusSelection}
+          minYear={minYear}
+          maxYear={maxYear}
+          setMinYear={setMinYear}
+          setMaxYear={setMaxYear}
           setCurrentPage={setCurrentPage}
         />
+        {/* Mobile Filter Accordion */}
         {isFilterVisible && (
           <div
             ref={mobileFilterRef}
@@ -505,6 +582,8 @@ const Music: NextPage = () => {
               toggleInstrumentSelection={toggleInstrumentSelection}
               selectedCountries={selectedCountries}
               toggleCountrySelection={toggleCountrySelection}
+              selectedTechnicalFocus={selectedTechnicalFocus}
+              toggleTechnicalFocusSelection={toggleTechnicalFocusSelection}
               minYear={minYear}
               maxYear={maxYear}
               setMinYear={setMinYear}
@@ -533,7 +612,6 @@ const Music: NextPage = () => {
                 <option value="composer-asc">Composer (A-Z)</option>
                 <option value="composer-desc">Composer (Z-A)</option>
               </select>
-
               <select
                 value={viewMode}
                 onChange={(e) => setViewMode(e.target.value as 'card' | 'list')}

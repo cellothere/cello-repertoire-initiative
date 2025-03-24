@@ -17,6 +17,8 @@ interface FilterAsideProps {
   toggleInstrumentSelection: (instrument: string) => void;
   selectedCountries: string[];
   toggleCountrySelection: (country: string) => void;
+  selectedTechnicalFocus: string[];
+  toggleTechnicalFocusSelection: (focus: string) => void;
   minYear: number;
   maxYear: number;
   setMinYear: React.Dispatch<React.SetStateAction<number>>;
@@ -40,6 +42,8 @@ const FilterAside: React.FC<FilterAsideProps> = ({
   toggleInstrumentSelection,
   selectedCountries,
   toggleCountrySelection,
+  selectedTechnicalFocus,
+  toggleTechnicalFocusSelection,
   minYear,
   maxYear,
   setMinYear,
@@ -51,7 +55,7 @@ const FilterAside: React.FC<FilterAsideProps> = ({
   const [levelSearch, setLevelSearch] = useState<string>('');
   const [countrySearch, setCountrySearch] = useState<string>('');
 
-  // State for the tooltip modal for levels
+  // State for the tooltip modal for levels.
   const [modalOpen, setModalOpen] = useState(false);
   const [modalLevel, setModalLevel] = useState<string | null>(null);
 
@@ -83,6 +87,7 @@ const FilterAside: React.FC<FilterAsideProps> = ({
     selectedLevels.forEach((level) => toggleLevelSelection(level));
     selectedInstruments.forEach((instrument) => toggleInstrumentSelection(instrument));
     selectedCountries.forEach((country) => toggleCountrySelection(country));
+    selectedTechnicalFocus.forEach((focus) => toggleTechnicalFocusSelection(focus));
     setMinYear(1600);
     setMaxYear(2025);
     setCurrentPage(1);
@@ -97,9 +102,11 @@ const FilterAside: React.FC<FilterAsideProps> = ({
     toggleInstrumentSelection,
     selectedCountries,
     toggleCountrySelection,
+    selectedTechnicalFocus,
+    toggleTechnicalFocusSelection,
     setMinYear,
     setMaxYear,
-    setCurrentPage
+    setCurrentPage,
   ]);
 
   const getSelectedCountForKey = useCallback((key: string): number => {
@@ -107,8 +114,9 @@ const FilterAside: React.FC<FilterAsideProps> = ({
     if (key === 'Level') return selectedLevels.length;
     if (key === 'Instrumentation') return selectedInstruments.length;
     if (key === 'Country') return selectedCountries.length;
+    if (key === 'Technical Focus') return selectedTechnicalFocus.length;
     return 0;
-  }, [selectedComposers, selectedLevels, selectedInstruments, selectedCountries]);
+  }, [selectedComposers, selectedLevels, selectedInstruments, selectedCountries, selectedTechnicalFocus]);
 
   return (
     <aside className="hidden md:block relative w-66 p-5 border-gray-300" aria-label="Filter Panel">
@@ -271,6 +279,8 @@ const FilterAside: React.FC<FilterAsideProps> = ({
                                 ? selectedInstruments.includes(item === 'Cello Solo' ? 'Cello' : item)
                                 : key === 'Country'
                                 ? selectedCountries.includes(item)
+                                : key === 'Technical Focus'
+                                ? selectedTechnicalFocus.includes(item)
                                 : false
                             }
                             onChange={() => {
@@ -282,6 +292,8 @@ const FilterAside: React.FC<FilterAsideProps> = ({
                                 toggleInstrumentSelection(item);
                               } else if (key === 'Country') {
                                 toggleCountrySelection(item);
+                              } else if (key === 'Technical Focus') {
+                                toggleTechnicalFocusSelection(item);
                               }
                             }}
                           />

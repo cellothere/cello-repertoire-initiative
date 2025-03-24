@@ -14,6 +14,8 @@ interface MobileFilterAccordionProps {
   toggleInstrumentSelection: (instrument: string) => void;
   selectedCountries: string[];
   toggleCountrySelection: (country: string) => void;
+  selectedTechnicalFocus: string[];
+  toggleTechnicalFocusSelection: (focus: string) => void;
   minYear: number;
   maxYear: number;
   setMinYear: React.Dispatch<React.SetStateAction<number>>;
@@ -36,6 +38,8 @@ const MobileFilterAccordion: React.FC<MobileFilterAccordionProps> = ({
   toggleInstrumentSelection,
   selectedCountries = [],
   toggleCountrySelection,
+  selectedTechnicalFocus = [],
+  toggleTechnicalFocusSelection,
   minYear,
   maxYear,
   setMinYear,
@@ -61,7 +65,8 @@ const MobileFilterAccordion: React.FC<MobileFilterAccordionProps> = ({
     selectedLevels.forEach((level) => toggleLevelSelection(level));
     selectedInstruments.forEach((instrument) => toggleInstrumentSelection(instrument));
     selectedCountries.forEach((country) => toggleCountrySelection(country));
-    // Reset the year range to the default values (matching the parent defaults)
+    selectedTechnicalFocus.forEach((focus) => toggleTechnicalFocusSelection(focus));
+    // Reset the year range to the default values.
     setMinYear(1600);
     setMaxYear(2025);
     setCurrentPage(1);
@@ -76,6 +81,8 @@ const MobileFilterAccordion: React.FC<MobileFilterAccordionProps> = ({
     toggleInstrumentSelection,
     selectedCountries,
     toggleCountrySelection,
+    selectedTechnicalFocus,
+    toggleTechnicalFocusSelection,
     setMinYear,
     setMaxYear,
     setCurrentPage,
@@ -125,6 +132,8 @@ const MobileFilterAccordion: React.FC<MobileFilterAccordionProps> = ({
               ? selectedInstruments.length
               : key === 'Country'
               ? selectedCountries.length
+              : key === 'Technical Focus'
+              ? selectedTechnicalFocus.length
               : 0;
 
           // Create a display string that only shows count if it's greater than 0.
@@ -239,6 +248,8 @@ const MobileFilterAccordion: React.FC<MobileFilterAccordionProps> = ({
                                 ? selectedInstruments.includes(item === 'Cello Solo' ? 'Cello' : item)
                                 : key === 'Country'
                                 ? selectedCountries.includes(item)
+                                : key === 'Technical Focus'
+                                ? selectedTechnicalFocus.includes(item)
                                 : false
                             }
                             onChange={() => {
@@ -246,6 +257,7 @@ const MobileFilterAccordion: React.FC<MobileFilterAccordionProps> = ({
                               else if (key === 'Level') toggleLevelSelection(item);
                               else if (key === 'Instrumentation') toggleInstrumentSelection(item);
                               else if (key === 'Country') toggleCountrySelection(item);
+                              else if (key === 'Technical Focus') toggleTechnicalFocusSelection(item);
                             }}
                           />
                         </label>

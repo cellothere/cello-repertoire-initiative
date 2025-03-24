@@ -9,9 +9,10 @@ type MusicPiece = {
   composer_first_name: string;
   level: string;
   instrumentation: string[];
-  nationality: string;
+  nationality: string[];
   composition_year: string;
   duration: string;
+  technique_focus?: string[];
 };
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -21,7 +22,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     const musicPieces = await collection
       .aggregate<MusicPiece>([
-        // Only include music pieces that are not disabled
         { $match: { disabled: false } },
         {
           $lookup: {
@@ -32,15 +32,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           },
         },
         { $unwind: '$composerDetails' },
-        // Filter out pieces where the composer is disabled
         { $match: { "composerDetails.disabled": false } },
         {
           $group: {
-            // Group by first letter of composer's last name
             _id: {
               $toLower: { $substrCP: ['$composerDetails.composer_last_name', 0, 1] },
             },
-            // Ensure each piece appears only once
             musicPieces: {
               $addToSet: {
                 id: '$id',
@@ -53,15 +50,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 instrumentation: '$instrumentation',
                 nationality: '$composerDetails.nationality',
                 duration: '$duration',
+                technique_focus: '$technique_focus', // ✅ Add this line
                 tags: '$tags'
               },
             },
             count: { $sum: 1 },
           },
         },
-        {
-          $sort: { _id: 1 },
-        },
+        { $sort: { _id: 1 } },
       ])
       .toArray();
 
