@@ -143,30 +143,30 @@ const Piece: NextPage<PieceProps> = ({ piece, composerInfo }) => {
       <main className={`grid grid-cols-1 gap-6 p-4 ${hasVideo ? 'md:grid-cols-2' : 'md:grid-cols-1'}`}>
         <div className="container flex flex-col items-start">
           <div className="mb-4">
-          <p className="text-md sm:text-lg mb-1 text-white">
-  by{' '}
-  {composerInfo?.bio_links?.[0] ? (
-    <Link
-      href={composerInfo.bio_links[0]}
-      className="underline"
-      target="_blank"
-      rel="noopener noreferrer"
-    >
-      {composerInfo.composer_full_name || 'Unknown Composer'}
-    </Link>
-  ) : (
-    <span>{composerInfo?.composer_full_name || 'Unknown Composer'}</span>
-  )}
-  {composerInfo?.composer_full_name && (
-    <Link
-      href={`/search-results?query=${encodeURIComponent(composerInfo.composer_full_name)}`}
-    >
-      <button className="ml-2 text-sm px-2 py-1 bg-black text-white rounded-full hover:bg-gradient-to-br transition-colors duration-300">
-        View Works
-      </button>
-    </Link>
-  )}
-</p>
+            <p className="text-md sm:text-lg mb-1 text-white">
+              by{' '}
+              {composerInfo?.bio_links?.[0] ? (
+                <Link
+                  href={composerInfo.bio_links[0]}
+                  className="underline"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  {composerInfo.composer_full_name || 'Unknown Composer'}
+                </Link>
+              ) : (
+                <span>{composerInfo?.composer_full_name || 'Unknown Composer'}</span>
+              )}
+              {composerInfo?.composer_full_name && (
+                <Link
+                  href={`/search-results?query=${encodeURIComponent(composerInfo.composer_full_name)}`}
+                >
+                  <button className="ml-2 text-sm px-2 py-1 bg-black text-white rounded-full hover:bg-gradient-to-br transition-colors duration-300">
+                    View Works
+                  </button>
+                </Link>
+              )}
+            </p>
 
             <div className="flex items-center">
               <p className="text-sm text-white sm:text-md italic mr-1">
@@ -247,32 +247,14 @@ const Piece: NextPage<PieceProps> = ({ piece, composerInfo }) => {
             <AccordionDetails>
               {piece.where_to_buy_or_download && piece.where_to_buy_or_download.length > 0 ? (
                 <div className="text-sm sm:text-md mb-4">
-                  {piece.where_to_buy_or_download.map((link, index) => {
-                    if (!link) return null;
-                    try {
-                      const domain = new URL(link).hostname.replace(/^www\./, '');
-                      return (
-                        <div key={index} className="mb-2">
-                          <BsFileEarmarkMusicFill className="inline-block align-middle mr-2" />
-                          <Link
-                            href={link}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="underline align-middle"
-                          >
-                            {domain}
-                          </Link>
-                        </div>
-                      );
-                    } catch (error) {
-                      return (
-                        <div key={index} className="text-md mb-2">
-                          <BsFileEarmarkMusicFill className="inline-block align-middle mr-2" />
-                          <span className="align-middle">{link}</span>
-                        </div>
-                      );
-                    }
-                  })}
+                  {piece.where_to_buy_or_download.map((entry, index) => (
+                    entry ? (
+                      <div key={index} className="mb-2">
+                        <BsFileEarmarkMusicFill className="inline-block align-middle mr-2" />
+                        {linkify(entry)}
+                      </div>
+                    ) : null
+                  ))}
                 </div>
               ) : (
                 <p className="text-sm sm:text-md">Nothing here.</p>
@@ -281,38 +263,37 @@ const Piece: NextPage<PieceProps> = ({ piece, composerInfo }) => {
           </Accordion>
 
           {/* Accordion for Technical Overview */}
-  {/* Accordion for Technical Overview */}
-<Accordion
-  className="w-full max-w-full md:max-w-2xl"
-  expanded={expanded === 'panel2'}
-  onChange={handleChange('panel2')}
->
-  <AccordionSummary
-    expandIcon={<ExpandMoreIcon />}
-    aria-controls="panel2-content"
-    id="panel2-header"
-    className="ml-1 text-lg font-bold bg-clip-text"
-  >
-    Technical Overview
-  </AccordionSummary>
-  <div className="border-b border-gray-300 my-1"></div>
-  <AccordionDetails>
-    <p className="text-sm sm:text-md break-words">
-      {piece.technical_overview
-        ? linkify(piece.technical_overview)
-        : 'No technical overview available.'}
-    </p>
-    <br></br>
-    <h2 className="font-bold italic">Technical Focus Points</h2>
-    {piece.technique_focus && piece.technique_focus.length > 0 && (
-      <ul className="list-disc pl-5 mt-2 text-sm sm:text-md">
-        {piece.technique_focus.map((point, idx) => (
-          <li key={idx}>{point}</li>
-        ))}
-      </ul>
-    )}
-  </AccordionDetails>
-</Accordion>
+          <Accordion
+            className="w-full max-w-full md:max-w-2xl"
+            expanded={expanded === 'panel2'}
+            onChange={handleChange('panel2')}
+          >
+            <AccordionSummary
+              expandIcon={<ExpandMoreIcon />}
+              aria-controls="panel2-content"
+              id="panel2-header"
+              className="ml-1 text-lg font-bold bg-clip-text"
+            >
+              Technical Overview
+            </AccordionSummary>
+            <div className="border-b border-gray-300 my-1"></div>
+            <AccordionDetails>
+              <p className="text-sm sm:text-md break-words">
+                {piece.technical_overview
+                  ? linkify(piece.technical_overview)
+                  : 'No technical overview available.'}
+              </p>
+              <br></br>
+              <h2 className="font-bold italic">Technical Focus Points</h2>
+              {piece.technique_focus && piece.technique_focus.length > 0 && (
+                <ul className="list-disc pl-5 mt-2 text-sm sm:text-md">
+                  {piece.technique_focus.map((point, idx) => (
+                    <li key={idx}>{point}</li>
+                  ))}
+                </ul>
+              )}
+            </AccordionDetails>
+          </Accordion>
 
 
           {/* Accordion for Audio and Recordings */}
@@ -367,14 +348,14 @@ const Piece: NextPage<PieceProps> = ({ piece, composerInfo }) => {
           </div>
         )}
       </main>
-      
-    {/* Modal Dialog for displaying detailed level information */}
-    <LevelModal
-      open={modalOpen}
-      onClose={() => setModalOpen(false)}
-      level={piece.level}
-      tooltipContent={tooltipContent}
-    />
+
+      {/* Modal Dialog for displaying detailed level information */}
+      <LevelModal
+        open={modalOpen}
+        onClose={() => setModalOpen(false)}
+        level={piece.level}
+        tooltipContent={tooltipContent}
+      />
     </div>
   );
 };
@@ -423,29 +404,29 @@ export const getStaticProps: GetStaticProps = async (context) => {
       props: {
         piece: piece
           ? {
-              id: piece.id,
-              title: piece.title || '',
-              composer_id: piece.composer_id || '',
-              composition_year: piece.composition_year || '',
-              level: piece.level || 'Unknown',
-              isArrangement: piece.isArrangement || false,
-              audio_link: piece.audio_link || [],
-              instrumentation: piece.instrumentation || [],
-              publisher_info: piece.publisher_info || '',
-              description: piece.description || '',
-              technical_overview: piece.technical_overview || '',
-              technique_focus: piece.technique_focus || [], // Include the new field
-              is_public_domain: piece.is_public_domain || false,
-              where_to_buy_or_download: piece.where_to_buy_or_download || [],
-              duration: piece.duration || '',
-              coverImage: piece.coverImage || '',
-            }
+            id: piece.id,
+            title: piece.title || '',
+            composer_id: piece.composer_id || '',
+            composition_year: piece.composition_year || '',
+            level: piece.level || 'Unknown',
+            isArrangement: piece.isArrangement || false,
+            audio_link: piece.audio_link || [],
+            instrumentation: piece.instrumentation || [],
+            publisher_info: piece.publisher_info || '',
+            description: piece.description || '',
+            technical_overview: piece.technical_overview || '',
+            technique_focus: piece.technique_focus || [], // Include the new field
+            is_public_domain: piece.is_public_domain || false,
+            where_to_buy_or_download: piece.where_to_buy_or_download || [],
+            duration: piece.duration || '',
+            coverImage: piece.coverImage || '',
+          }
           : null,
         composerInfo: piece?.composerDetails
           ? {
-              composer_full_name: piece.composerDetails.composer_full_name || 'Unknown Composer',
-              bio_links: piece.composerDetails.bio_link || [],
-            }
+            composer_full_name: piece.composerDetails.composer_full_name || 'Unknown Composer',
+            bio_links: piece.composerDetails.bio_link || [],
+          }
           : null,
       },
       revalidate: 60, // Revalidate this page every 60 seconds
