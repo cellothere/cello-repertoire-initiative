@@ -2,6 +2,7 @@
 
 const techniqueKeywords: string[] = [
     'Bow Retakes',
+    'Sight-Reading',
     'Legato',
     'Detaché',
     'A String Notes',
