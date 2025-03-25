@@ -103,7 +103,19 @@ const CelloMusic: NextPage = () => {
   const [levelSearch, setLevelSearch] = useState<string>('');
   const [countrySearch, setCountrySearch] = useState<string>('');
 
-  // 1. Read query parameters on mount
+  // Ref to store initial filter values from the URL query parameters.
+  const initialFilters = useRef({
+    filter: '',
+    selectedComposers: [] as string[],
+    selectedLevels: [] as string[],
+    selectedInstruments: [] as string[],
+    selectedCountries: [] as string[],
+    selectedTechnicalFocus: [] as string[],
+    minYear: 1600,
+    maxYear: 2025,
+  });
+
+  // 1. Read query parameters on mount and update initialFilters.
   useEffect(() => {
     if (router.isReady) {
       const {
@@ -164,10 +176,42 @@ const CelloMusic: NextPage = () => {
       if (sortField && sortDirection) {
         setSortConfig({ field: sortField as string, direction: sortDirection as 'asc' | 'desc' });
       }
+
+      // Save the initial filters (excluding page, viewMode, sort config, etc.)
+      initialFilters.current = {
+        filter: qFilter ? (qFilter as string) : '',
+        selectedComposers: qSelectedComposers
+          ? Array.isArray(qSelectedComposers)
+            ? (qSelectedComposers as string[])
+            : [qSelectedComposers as string]
+          : [],
+        selectedLevels: qSelectedLevels
+          ? Array.isArray(qSelectedLevels)
+            ? (qSelectedLevels as string[])
+            : [qSelectedLevels as string]
+          : [],
+        selectedInstruments: qSelectedInstruments
+          ? Array.isArray(qSelectedInstruments)
+            ? (qSelectedInstruments as string[])
+            : [qSelectedInstruments as string]
+          : [],
+        selectedCountries: qSelectedCountries
+          ? Array.isArray(qSelectedCountries)
+            ? (qSelectedCountries as string[])
+            : [qSelectedCountries as string]
+          : [],
+        selectedTechnicalFocus: qSelectedTechnicalFocus
+          ? Array.isArray(qSelectedTechnicalFocus)
+            ? (qSelectedTechnicalFocus as string[])
+            : [qSelectedTechnicalFocus as string]
+          : [],
+        minYear: qMinYear ? Number(qMinYear) : 1600,
+        maxYear: qMaxYear ? Number(qMaxYear) : 2025,
+      };
     }
   }, [router.isReady]);
 
-  // 2. Update URL query when filters change
+  // 2. Update URL query when filters change.
   useEffect(() => {
     const query = {
       filter,
@@ -199,7 +243,7 @@ const CelloMusic: NextPage = () => {
     router.pathname,
   ]);
 
-  // 3. Fetch data from APIs
+  // 3. Fetch data from APIs.
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -245,7 +289,7 @@ const CelloMusic: NextPage = () => {
     fetchData();
   }, []);
 
-  // 4. Optimized filtering and sorting
+  // 4. Optimized filtering and sorting.
   const normalizedFilter = useMemo(() => removeDiacritics(filter.toLowerCase()), [filter]);
 
   const filteredPieces = useMemo(() => {
@@ -291,15 +335,15 @@ const CelloMusic: NextPage = () => {
 
         // Technical Focus filter.
         const technicalFocusFilterMatch =
-        selectedTechnicalFocus.length === 0 ||
-        (piece.technique_focus &&
-          piece.technique_focus.some((focus) =>
-            selectedTechnicalFocus.some(
-              (selectedFocus) =>
-                removeDiacritics(selectedFocus.toLowerCase()) === removeDiacritics(focus.toLowerCase())
-            )
-          ));
-      
+          selectedTechnicalFocus.length === 0 ||
+          (piece.technique_focus &&
+            piece.technique_focus.some((focus) =>
+              selectedTechnicalFocus.some(
+                (selectedFocus) =>
+                  removeDiacritics(selectedFocus.toLowerCase()) === removeDiacritics(focus.toLowerCase())
+              )
+            ));
+
         return (
           (titleMatch || composerMatch) &&
           composerFilterMatch &&
@@ -344,12 +388,34 @@ const CelloMusic: NextPage = () => {
     selectedTechnicalFocus,
   ]);
 
-  // Reset current page when filters change.
+  // Reset current page when filters change, but only if the current filter state differs from the initial filters.
   useEffect(() => {
-    setCurrentPage(1);
-  }, [filter, selectedComposers, selectedLevels, selectedCountries, selectedInstruments, selectedTechnicalFocus, minYear, maxYear]);
+    const currentFilters = {
+      filter,
+      selectedComposers,
+      selectedLevels,
+      selectedInstruments,
+      selectedCountries,
+      selectedTechnicalFocus,
+      minYear,
+      maxYear,
+    };
 
-  // 5. Pagination calculation
+    if (JSON.stringify(currentFilters) !== JSON.stringify(initialFilters.current)) {
+      setCurrentPage(1);
+    }
+  }, [
+    filter,
+    selectedComposers,
+    selectedLevels,
+    selectedInstruments,
+    selectedCountries,
+    selectedTechnicalFocus,
+    minYear,
+    maxYear,
+  ]);
+
+  // 5. Pagination calculation.
   const totalPages = Math.ceil(filteredPieces.length / itemsPerPage);
 
   const paginatedPieces = useMemo(() => {
@@ -383,7 +449,7 @@ const CelloMusic: NextPage = () => {
     return items;
   }, [totalPages, currentPage]);
 
-  // 6. Sort handlers
+  // 6. Sort handlers.
   const handleSort = (sortOption: string) => {
     let field = '';
     let direction: 'asc' | 'desc' = 'asc';
@@ -426,7 +492,7 @@ const CelloMusic: NextPage = () => {
     setSortConfig({ field, direction });
   };
 
-  // 7. Checkbox toggle handlers
+  // 7. Checkbox toggle handlers.
   const toggleComposerSelection = (composer: string) => {
     setSelectedComposers((prev) =>
       prev.includes(composer) ? prev.filter((c) => c !== composer) : [...prev, composer]
@@ -746,8 +812,7 @@ const CelloMusic: NextPage = () => {
                   return (
                     <button
                       key={item}
-                      className={`flex-shrink-0 px-2 py-1 md:px-3 md:py-2 border rounded text-xs md:text-sm ${currentPage === item ? 'bg-black text-white' : 'bg-white text-black'
-                        }`}
+                      className={`flex-shrink-0 px-2 py-1 md:px-3 md:py-2 border rounded text-xs md:text-sm ${currentPage === item ? 'bg-black text-white' : 'bg-white text-black'}`}
                       onClick={() => setCurrentPage(item as number)}
                     >
                       {item}
