@@ -119,6 +119,8 @@ const Piece: NextPage<PieceProps> = ({ piece, composerInfo }) => {
     }
   }, [piece]);
 
+
+
   // Remove any "(Book ...)" text from the level
   const levelKey = piece?.level.replace(/\s*\(.*\)/, '') || '';
   const tooltipContent = modalLevelText[levelKey as keyof typeof modalLevelText] || modalLevelText.default;
@@ -128,6 +130,8 @@ const Piece: NextPage<PieceProps> = ({ piece, composerInfo }) => {
   };
 
   if (!piece) return <LoadingAnimation />;
+
+  const validTechFocus = piece.technique_focus.filter(point => point.trim() !== "");
 
   return (
     <div>
@@ -284,13 +288,15 @@ const Piece: NextPage<PieceProps> = ({ piece, composerInfo }) => {
                   : 'No technical overview available.'}
               </p>
               <br></br>
-              <h2 className="font-bold italic">Technical Focus Points</h2>
-              {piece.technique_focus && piece.technique_focus.length > 0 && (
-                <ul className="list-disc pl-5 mt-2 text-sm sm:text-md">
-                  {piece.technique_focus.map((point, idx) => (
-                    <li key={idx}>{point}</li>
-                  ))}
-                </ul>
+              {validTechFocus.length > 0 && (
+                <>
+                  <h2 className="font-bold italic">Technical Focus Points</h2>
+                  <ul className="list-disc pl-5 mt-2 text-sm sm:text-md">
+                    {validTechFocus.map((point, idx) => (
+                      <li key={idx}>{point}</li>
+                    ))}
+                  </ul>
+                </>
               )}
             </AccordionDetails>
           </Accordion>
