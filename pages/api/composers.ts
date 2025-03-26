@@ -17,7 +17,7 @@ type Composer = {
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   try {
     const client = await clientPromise;
-    const collection = client.db('cello_repertoire').collection('composers');
+    const collection = client.db('repertoire').collection('composers');
 
     const composers = await collection
       .aggregate([

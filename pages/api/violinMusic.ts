@@ -18,7 +18,7 @@ type MusicPiece = {
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   try {
     const client = await clientPromise;
-    const collection = client.db('cello_repertoire').collection('violin_pieces');
+    const collection = client.db('repertoire').collection('violin_pieces');
 
     const musicPieces = await collection
       .aggregate<MusicPiece>([

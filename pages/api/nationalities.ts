@@ -4,7 +4,7 @@ import clientPromise from '../../lib/mongodb';
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   try {
     const client = await clientPromise;
-    const db = client.db('cello_repertoire');
+    const db = client.db('repertoire');
 
     const nationalities = await db.collection('composers')
       .aggregate([

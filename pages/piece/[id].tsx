@@ -369,7 +369,7 @@ const Piece: NextPage<PieceProps> = ({ piece, composerInfo }) => {
 export const getStaticPaths: GetStaticPaths = async () => {
   try {
     const client = await clientPromise;
-    const collection = client.db('cello_repertoire').collection('cello_pieces');
+    const collection = client.db('repertoire').collection('cello_pieces');
     // Pre-generate paths for up to 100 pieces; adjust limit as needed
     const pieces = await collection.find({}, { projection: { id: 1 } }).limit(100).toArray();
     const paths = pieces.map(piece => ({
@@ -389,7 +389,7 @@ export const getStaticProps: GetStaticProps = async (context) => {
 
   try {
     const client = await clientPromise;
-    const collection = client.db('cello_repertoire').collection('cello_pieces');
+    const collection = client.db('repertoire').collection('cello_pieces');
 
     const piece = await collection
       .aggregate([
