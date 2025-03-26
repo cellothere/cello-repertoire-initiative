@@ -8,37 +8,70 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     const nationalities = await db.collection('composers')
       .aggregate([
-        // Join with cello_pieces collection on composer_id
+        // Join with cello_pieces
         {
           $lookup: {
             from: "cello_pieces",
             localField: "id",
             foreignField: "composer_id",
-            as: "pieces"
+            as: "cello_pieces"
           }
         },
-        // Only include composers who have at least one music piece
+        // Join with violin_pieces
+        {
+          $lookup: {
+            from: "violin_pieces",
+            localField: "id",
+            foreignField: "composer_id",
+            as: "violin_pieces"
+          }
+        },
+        // Join with viola_pieces
+        {
+          $lookup: {
+            from: "viola_pieces",
+            localField: "id",
+            foreignField: "composer_id",
+            as: "viola_pieces"
+          }
+        },
+        // Join with bass_pieces
+        {
+          $lookup: {
+            from: "bass_pieces",
+            localField: "id",
+            foreignField: "composer_id",
+            as: "bass_pieces"
+          }
+        },
+        // Only include composers who have pieces in at least one collection
         {
           $match: {
             nationality: { $exists: true, $ne: "" },
-            pieces: { $ne: [] } // Ensures composers have pieces
+            $or: [
+              { cello_pieces: { $ne: [] } },
+              { violin_pieces: { $ne: [] } },
+              { viola_pieces: { $ne: [] } },
+              { bass_pieces: { $ne: [] } }
+            ]
           }
         },
-        // Group by distinct nationalities
+        // Unwind nationalities in case they are arrays
         { $unwind: "$nationality" },
+        // Group by nationality
         {
           $group: {
             _id: "$nationality"
           }
         },
-        // Project for cleaner output
+        // Project output
         {
           $project: {
             _id: 0,
             nationality: "$_id"
           }
         },
-        // Sort alphabetically
+        // Sort results
         {
           $sort: { nationality: 1 }
         }

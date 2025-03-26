@@ -141,7 +141,7 @@ const MusicListView: React.FC<MusicListViewProps> = ({ pieces, sortConfig, onSor
             <tr key={piece.id} className={`hover:bg-gray-50 transition-colors ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}`}>
               <td className="w-[200px] px-4 py-3 border">
                 <Link
-                  href={`/piece/${piece.id}`}
+                  href={`/cello-piece/${piece.id}`}
                   className="text-black hover:underline"
                 >
                   {piece.title}

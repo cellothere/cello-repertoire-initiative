@@ -120,7 +120,7 @@ const MusicCard: React.FC<MusicCardProps> = ({
 
   return (
     <div className="bg-white shadow-md rounded-sm p-4 hover:scale-105 transition-transform duration-300">
-      <Link href={`/piece/${id}`} onClick={() => setIsLoading(true)}>
+      <Link href={`/cello-piece/${id}`} onClick={() => setIsLoading(true)}>
         <div className="flex flex-col h-full">
           {/* Image Section */}
           <div className="relative w-full h-40 mb-4">

@@ -18,9 +18,10 @@ type MusicPiece = {
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   try {
     const client = await clientPromise;
-    const collection = client.db('repertoire').collection('cello_pieces');
+    const db = client.db('repertoire');
 
-    const recentlyAdded = await collection.aggregate<MusicPiece>([
+    // Define a pipeline that performs the composer lookup and unwind.
+    const lookupPipeline = [
       {
         $lookup: {
           from: 'composers',
@@ -29,8 +30,32 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           as: 'composerDetails',
         },
       },
-      { $unwind: '$composerDetails' },
-      { $sort: { _id: -1 } }, // Newest first based on ObjectId timestamp
+      { $unwind: '$composerDetails' }
+    ];
+
+    // Start with cello_pieces and then union with the other collections.
+    const recentlyAdded = await db.collection('cello_pieces').aggregate<MusicPiece>([
+      ...lookupPipeline,
+      {
+        $unionWith: {
+          coll: "violin_pieces",
+          pipeline: lookupPipeline
+        }
+      },
+      {
+        $unionWith: {
+          coll: "viola_pieces",
+          pipeline: lookupPipeline
+        }
+      },
+      {
+        $unionWith: {
+          coll: "bass_pieces",
+          pipeline: lookupPipeline
+        }
+      },
+      // Sort descending (newest first based on ObjectId timestamp)
+      { $sort: { _id: -1 } },
       { $limit: 10 },
       {
         $project: {
