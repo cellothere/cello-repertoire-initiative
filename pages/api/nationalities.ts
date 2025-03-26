@@ -8,10 +8,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     const nationalities = await db.collection('composers')
       .aggregate([
-        // Join with music_pieces collection on composer_id
+        // Join with cello_pieces collection on composer_id
         {
           $lookup: {
-            from: "music_pieces",
+            from: "cello_pieces",
             localField: "id",
             foreignField: "composer_id",
             as: "pieces"
