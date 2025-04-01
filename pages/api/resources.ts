@@ -12,7 +12,7 @@ type Resource = {
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   try {
     const client = await clientPromise;
-    const collection = client.db('repertoire').collection('Resources');
+    const collection = client.db('repertoire').collection('resources');
 
     // Fetch all non-disabled resources sorted alphabetically by title
     const resources = await collection
