@@ -777,6 +777,7 @@ const CelloMusic: NextPage = () => {
                 <MusicCard
                   key={piece.id}
                   id={piece.id}
+                  instrument='cello'
                   title={piece.title}
                   composer_last_name={piece.composer_last_name}
                   composer_first_name={piece.composer_first_name}

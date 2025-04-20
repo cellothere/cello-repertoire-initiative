@@ -5,6 +5,7 @@ import { FaSpinner } from 'react-icons/fa';
 
 interface MusicCardProps {
   id: number;
+  instrument: string;
   title: string;
   composer_first_name: string;
   composer_last_name: string;
@@ -14,6 +15,7 @@ interface MusicCardProps {
 
 const MusicCard: React.FC<MusicCardProps> = ({
   id,
+  instrument,
   title,
   composer_first_name,
   composer_last_name,
@@ -22,28 +24,40 @@ const MusicCard: React.FC<MusicCardProps> = ({
 }) => {
   const [isLoading, setIsLoading] = useState(false);
 
-  // Dynamically determine the title text size
+  // build slug from instrument prop (e.g. "Cello & Piano" → "cello-&-piano")
+  const instrumentSlug = useMemo(
+    () => instrument.toLowerCase().replace(/\s+/g, '-'),
+    [instrument]
+  );
+
+  // dynamic href based on instrument
+  const pieceHref = useMemo(
+    () => `/${instrumentSlug}-piece/${id}`,
+    [instrumentSlug, id]
+  );
+
+  // dynamic text size for title
   const titleClass = useMemo(() => {
     if (title.length > 40) return 'text-sm';
     if (title.length > 25) return 'text-md';
     return 'text-lg';
   }, [title]);
 
-  // Helper function to format the composer's name
+  // format composer name
   const getFormattedComposer = (firstName: string, lastName: string) => {
     if (['Other', 'Traditional'].includes(lastName)) return lastName;
     if (['Other', 'Traditional'].includes(firstName)) return firstName;
     return `${lastName}, ${firstName}`.trim();
   };
 
-  // Lowercase values for case-insensitive comparisons
+  // lowercase arrays for comparisons
   const lowerInstrumentation = useMemo(
     () => instrumentation.map((inst) => inst.toLowerCase()),
     [instrumentation]
   );
   const lowerLevel = useMemo(() => level.toLowerCase(), [level]);
 
-  // Derived booleans for instrumentation types
+  // instrumentation flags
   const isOther = lowerInstrumentation.includes('other');
   const isCelloSaxophone =
     lowerInstrumentation.includes('cello') && lowerInstrumentation.includes('saxophone');
@@ -55,53 +69,62 @@ const MusicCard: React.FC<MusicCardProps> = ({
   const isCelloWithOrchestra =
     lowerInstrumentation.includes('cello') && lowerInstrumentation.includes('orchestra');
 
-  // Helper function to determine the image source
+  // choose image based on level & instrumentation
   const getImageSrc = () => {
     if (isOther) return '/assets/Other.png';
     if (isCelloSaxophone) return '/assets/cello_saxophone.png';
 
-    if (lowerLevel === 'professional') {
-      if (isCelloDuet) return '/assets/professional_duet.png';
-      if (isCelloSolo) return '/assets/professional_cello_solo.png';
-      if (isCelloWithOrchestra) return '/assets/professional_cello_orchestra.png';
-      return '/assets/professional_cello_piano.png';
+    switch (lowerLevel) {
+      case 'professional':
+        if (isCelloDuet) return '/assets/professional_duet.png';
+        if (isCelloSolo) return '/assets/professional_cello_solo.png';
+        if (isCelloWithOrchestra) return '/assets/professional_cello_orchestra.png';
+        return '/assets/professional_cello_piano.png';
+
+      case 'beginner':
+        if (isCelloAndPiano) return '/assets/beginner_cello_and_piano.png';
+        if (isCelloDuet) return '/assets/beginner_duet.png';
+        if (isCelloSolo) return '/assets/beginner_solo.png';
+        break;
+
+      case 'late beginner':
+        if (isCelloDuet) return '/assets/late_beginner_duet.png';
+        if (isCelloAndPiano) return '/assets/late_beginner_cello_piano.png';
+        if (isCelloSolo) return '/assets/late_beginner_solo.png';
+        break;
+
+      case 'intermediate':
+        if (isCelloDuet) return '/assets/intermediate_duet.png';
+        if (isCelloAndPiano) return '/assets/intermediate_cello_piano.png';
+        if (isCelloSolo) return '/assets/intermediate_solo.png';
+        break;
+
+      case 'late intermediate':
+        if (isCelloSolo) return '/assets/late_intermediate_solo.png';
+        if (isCelloAndPiano) return '/assets/late_intermediate_cello_piano.png';
+        break;
+
+      case 'early advanced':
+        if (isCelloDuet) return '/assets/early_advanced_duet.png';
+        if (isCelloAndPiano) return '/assets/early_advanced_cello_piano.png';
+        return '/assets/early_advanced_cello.png';
+
+      case 'advanced':
+        if (isCelloAndPiano) return '/assets/advanced_cello_piano.png';
+        if (isCelloDuet) return '/assets/advanced_duet.png';
+        return '/assets/advanced_cello_solo.png';
+
+      case 'early beginner':
+        if (isCelloSolo) return '/assets/early_beginner_cello_solo.png';
+        break;
+
+      case 'various':
+        if (isCelloAndPiano) return '/assets/various_cello_piano.png';
+        if (isCelloSolo) return '/assets/various_cello.png';
+        break;
     }
-    if (lowerLevel === 'beginner') {
-      if (isCelloAndPiano) return '/assets/beginner_cello_and_piano.png';
-      if (isCelloDuet) return '/assets/beginner_duet.png';
-      if (isCelloSolo) return '/assets/beginner_solo.png';
-    }
-    if (lowerLevel === 'late beginner') {
-      if (isCelloDuet) return '/assets/late_beginner_duet.png';
-      if (isCelloAndPiano) return '/assets/late_beginner_cello_piano.png';
-      if (isCelloSolo) return '/assets/late_beginner_solo.png';
-    }
-    if (lowerLevel === 'intermediate') {
-      if (isCelloDuet) return '/assets/intermediate_duet.png';
-      if (isCelloAndPiano) return '/assets/intermediate_cello_piano.png';
-      if (isCelloSolo) return '/assets/intermediate_solo.png';
-    }
-    if (lowerLevel === 'late intermediate') {
-      if (isCelloSolo) return '/assets/late_intermediate_solo.png';
-      if (isCelloAndPiano) return '/assets/late_intermediate_cello_piano.png';
-    }
-    if (lowerLevel === 'early advanced') {
-      if (isCelloDuet) return '/assets/early_advanced_duet.png';
-      if (isCelloAndPiano) return '/assets/early_advanced_cello_piano.png';
-      return '/assets/early_advanced_cello.png';
-    }
-    if (lowerLevel === 'advanced') {
-      if (isCelloAndPiano) return '/assets/advanced_cello_piano.png';
-      if (isCelloDuet) return '/assets/advanced_duet.png';
-      return '/assets/advanced_cello_solo.png';
-    }
-    if (lowerLevel === 'early beginner' && isCelloSolo) {
-      return '/assets/early_beginner_cello_solo.png';
-    }
-    if (lowerLevel === 'various') {
-      if (isCelloAndPiano) return '/assets/various_cello_piano.png';
-      if (isCelloSolo) return '/assets/various_cello.png';
-    }
+
+    // fallback defaults
     if (isCelloDuet) return '/assets/early_beginner_duet.png';
     if (isCelloAndPiano) return '/assets/early_beginner_cello_piano.png';
     return '/assets/default_cello_and_piano.png';
@@ -120,19 +143,20 @@ const MusicCard: React.FC<MusicCardProps> = ({
 
   return (
     <div className="bg-white shadow-md rounded-sm p-4 hover:scale-105 transition-transform duration-300">
-      <Link href={`/cello-piece/${id}`} onClick={() => setIsLoading(true)}>
+      <Link href={pieceHref} onClick={() => setIsLoading(true)}>
         <div className="flex flex-col h-full">
-          {/* Image Section */}
+          {/* Image */}
           <div className="relative w-full h-40 mb-4">
             <Image
               src={imageSrc}
-              alt="Cellist"
+              alt={`${instrument} piece`}
               fill
               style={{ objectFit: 'contain' }}
               className="rounded-md bg-white"
             />
           </div>
-          {/* Content */}
+
+          {/* Title & Composer */}
           <div className="flex-grow flex flex-col">
             <h2
               className={`font-semibold text-gray-800 ${titleClass}`}
@@ -151,15 +175,18 @@ const MusicCard: React.FC<MusicCardProps> = ({
               </span>
             </p>
           </div>
+
           {/* Level */}
           <div className="mt-5">
             <strong>
               <p className="text-black">{level}</p>
             </strong>
           </div>
+
           {/* Divider */}
           <div className="border-b border-gray-300 mb-3 mt-1" />
-          {/* Centered Button */}
+
+          {/* See More Button */}
           <div className="flex justify-center">
             <button
               onClick={() => setIsLoading(true)}

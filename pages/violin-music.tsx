@@ -85,11 +85,11 @@ const ViolinMusic: NextPage = () => {
   const [accordionContent, setAccordionContent] = useState({
     Level: levelOrder,
     Instrumentation: [
-      'Cello and Piano',
-      'Cello Solo',
-      'Cello Duet',
-      'Cello Ensemble',
-      'Cello and Orchestra',
+      'Violin and Piano',
+      'Violin Solo',
+      'Violin Duet',
+      'Violin Ensemble',
+      'Violin and Orchestra',
       'Other',
     ],
     Composer: [] as string[],
@@ -310,17 +310,17 @@ const ViolinMusic: NextPage = () => {
 
         const normalizedInstrumentation = Array.isArray(piece.instrumentation)
           ? piece.instrumentation.map((instr) =>
-              instr.toLowerCase() === 'cello solo' ? 'cello' : instr.toLowerCase()
+              instr.toLowerCase() === 'violin solo' ? 'violin' : instr.toLowerCase()
             )
           : [];
         const instrumentationMatch =
           selectedInstruments.length === 0 ||
           selectedInstruments.some((selectedInstrument) => {
-            const normalizedSelected = selectedInstrument === 'Cello Solo' ? 'cello' : selectedInstrument.toLowerCase();
-            if (normalizedSelected === 'cello duet') {
+            const normalizedSelected = selectedInstrument === 'Violin Solo' ? 'violin' : selectedInstrument.toLowerCase();
+            if (normalizedSelected === 'violin duet') {
               return (
                 normalizedInstrumentation.length === 2 &&
-                normalizedInstrumentation.every((instr) => instr === 'cello')
+                normalizedInstrumentation.every((instr) => instr === 'violin')
               );
             }
             const selectedParts = normalizedSelected.split(' and ');
@@ -512,7 +512,7 @@ const ViolinMusic: NextPage = () => {
   };
 
   const toggleInstrumentSelection = (instrument: string) => {
-    const normalizedInstrument = instrument === 'Cello Solo' ? 'Cello' : instrument;
+    const normalizedInstrument = instrument === 'Violin Solo' ? 'Violin' : instrument;
     setSelectedInstruments((prev) =>
       prev.includes(normalizedInstrument)
         ? prev.filter((i) => i !== normalizedInstrument)
@@ -585,7 +585,7 @@ const ViolinMusic: NextPage = () => {
           content="Discover and explore a curated collection of violin music pieces, composers, and arrangements designed for amateur and professional cellists."
         />
         <meta property="og:type" content="website" />
-        <meta property="og:url" content="https://www.cellorepertoire.com/cello-music" />
+        <meta property="og:url" content="https://www.cellorepertoire.com/violin-music" />
         <meta property="og:image" content="https://www.cellorepertoire.com/_next/image?url=%2Fassets%2FaltLogo.png&w=256&q=75" />
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content="Violin Music" />
@@ -777,6 +777,7 @@ const ViolinMusic: NextPage = () => {
                 <MusicCard
                   key={piece.id}
                   id={piece.id}
+                  instrument='violin'
                   title={piece.title}
                   composer_last_name={piece.composer_last_name}
                   composer_first_name={piece.composer_first_name}
