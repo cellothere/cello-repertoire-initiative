@@ -1,6 +1,7 @@
 // /utils/techniqueKeywords.ts
 
 const techniqueKeywords: string[] = [
+    'Bariolage',  
     'Bow Retakes',
     'Sight-Reading',
     'Legato',
@@ -9,7 +10,7 @@ const techniqueKeywords: string[] = [
     'D String Notes',
     'G String Notes',
     'C String Notes',
-    'Hairpin Dynamics',
+    'Dynamics',
     'Shifting',
     'Vibrato',
     '2 Note Slurs',

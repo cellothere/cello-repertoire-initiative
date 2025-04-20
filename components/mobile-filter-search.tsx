@@ -273,5 +273,4 @@ const MobileFilterAccordion: React.FC<MobileFilterAccordionProps> = ({
     </div>
   );
 };
-
 export default MobileFilterAccordion;
