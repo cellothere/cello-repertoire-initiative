@@ -44,7 +44,7 @@ const RecentlyAdded: NextPage = () => {
         </p>
       </header>
       <main className="container mx-auto px-4 pb-10">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-4 gap-8">
+        <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-4 gap-8">
           {pieces.map((piece) => (
             <MusicCard
               key={piece.id}
@@ -52,6 +52,7 @@ const RecentlyAdded: NextPage = () => {
               title={piece.title}
               composer_first_name={piece.composer_first_name}
               composer_last_name={piece.composer_last_name}
+              instrument='cello'
               level={piece.level}
               instrumentation={piece.instrumentation}
             />
