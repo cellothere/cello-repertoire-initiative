@@ -118,6 +118,7 @@ const SearchResults: NextPage = () => {
                   <MusicCard
                     key={result.id}
                     id={result.id}
+                    instrument='cello'
                     title={result.title}
                     composer_first_name={result.composer_first_name}
                     composer_last_name={result.composer_last_name}

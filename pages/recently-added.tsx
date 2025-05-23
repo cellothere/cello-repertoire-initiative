@@ -49,6 +49,7 @@ const RecentlyAdded: NextPage = () => {
             <MusicCard
               key={piece.id}
               id={piece.id}
+              instrument='cello'
               title={piece.title}
               composer_first_name={piece.composer_first_name}
               composer_last_name={piece.composer_last_name}
