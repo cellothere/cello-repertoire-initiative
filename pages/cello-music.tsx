@@ -98,11 +98,6 @@ const CelloMusic: NextPage = () => {
     Year: [],
   });
 
-  // Additional local states for search inputs inside the filter aside (if needed)
-  const [composerSearch, setComposerSearch] = useState<string>('');
-  const [levelSearch, setLevelSearch] = useState<string>('');
-  const [countrySearch, setCountrySearch] = useState<string>('');
-
   // Ref to store initial filter values from the URL query parameters.
   const initialFilters = useRef({
     filter: '',
@@ -209,7 +204,7 @@ const CelloMusic: NextPage = () => {
         maxYear: qMaxYear ? Number(qMaxYear) : 2025,
       };
     }
-  }, [router.isReady]);
+  }, [router.isReady, router.query]);
 
   // 2. Update URL query when filters change.
   useEffect(() => {
@@ -228,6 +223,7 @@ const CelloMusic: NextPage = () => {
       sortDirection: sortConfig?.direction,
     };
     router.replace({ pathname: router.pathname, query }, undefined, { shallow: true });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     filter,
     selectedComposers,
@@ -240,7 +236,7 @@ const CelloMusic: NextPage = () => {
     currentPage,
     viewMode,
     sortConfig,
-    router.pathname,
+    // router intentionally omitted to prevent circular dependency
   ]);
 
   // 3. Fetch data from APIs.
@@ -449,40 +445,22 @@ const CelloMusic: NextPage = () => {
     return items;
   }, [totalPages, currentPage]);
 
-  // 6. Sort handlers.
-  const handleSort = (sortOption: string) => {
-    let field = '';
-    let direction: 'asc' | 'desc' = 'asc';
-    switch (sortOption) {
-      case 'title-asc':
-        field = 'title';
-        direction = 'asc';
-        break;
-      case 'title-desc':
-        field = 'title';
-        direction = 'desc';
-        break;
-      case 'level-asc':
-        field = 'level';
-        direction = 'asc';
-        break;
-      case 'level-desc':
-        field = 'level';
-        direction = 'desc';
-        break;
-      case 'composer-asc':
-        field = 'composer';
-        direction = 'asc';
-        break;
-      case 'composer-desc':
-        field = 'composer';
-        direction = 'desc';
-        break;
-      default:
-        break;
+  // 6. Sort handlers - simplified with lookup object
+  const handleSort = useCallback((sortOption: string) => {
+    const sortOptions: Record<string, SortConfig> = {
+      'title-asc': { field: 'title', direction: 'asc' },
+      'title-desc': { field: 'title', direction: 'desc' },
+      'level-asc': { field: 'level', direction: 'asc' },
+      'level-desc': { field: 'level', direction: 'desc' },
+      'composer-asc': { field: 'composer', direction: 'asc' },
+      'composer-desc': { field: 'composer', direction: 'desc' },
+    };
+
+    const config = sortOptions[sortOption];
+    if (config) {
+      setSortConfig(config);
     }
-    setSortConfig({ field, direction });
-  };
+  }, []);
 
   const onSort = (field: string) => {
     let direction: 'asc' | 'desc' = 'asc';
@@ -493,38 +471,38 @@ const CelloMusic: NextPage = () => {
   };
 
   // 7. Checkbox toggle handlers.
-  const toggleComposerSelection = (composer: string) => {
+  const toggleComposerSelection = useCallback((composer: string) => {
     setSelectedComposers((prev) =>
       prev.includes(composer) ? prev.filter((c) => c !== composer) : [...prev, composer]
     );
-  };
+  }, []);
 
-  const toggleCountrySelection = (country: string) => {
+  const toggleCountrySelection = useCallback((country: string) => {
     setSelectedCountries((prev) =>
       prev.includes(country) ? prev.filter((c) => c !== country) : [...prev, country]
     );
-  };
+  }, []);
 
-  const toggleLevelSelection = (level: string) => {
+  const toggleLevelSelection = useCallback((level: string) => {
     setSelectedLevels((prev) =>
       prev.includes(level) ? prev.filter((l) => l !== level) : [...prev, level]
     );
-  };
+  }, []);
 
-  const toggleInstrumentSelection = (instrument: string) => {
+  const toggleInstrumentSelection = useCallback((instrument: string) => {
     const normalizedInstrument = instrument === 'Cello Solo' ? 'Cello' : instrument;
     setSelectedInstruments((prev) =>
       prev.includes(normalizedInstrument)
         ? prev.filter((i) => i !== normalizedInstrument)
         : [...prev, normalizedInstrument]
     );
-  };
+  }, []);
 
-  const toggleTechnicalFocusSelection = (focus: string) => {
+  const toggleTechnicalFocusSelection = useCallback((focus: string) => {
     setSelectedTechnicalFocus((prev) =>
       prev.includes(focus) ? prev.filter((f) => f !== focus) : [...prev, focus]
     );
-  };
+  }, []);
 
   const mobileFilterRef = useRef<HTMLDivElement>(null);
 
@@ -540,32 +518,18 @@ const CelloMusic: NextPage = () => {
     );
   }, [selectedComposers, selectedLevels, selectedInstruments, selectedCountries, selectedTechnicalFocus, minYear, maxYear]);
 
-  // Clear filters function.
+  // Clear filters function - optimized to directly set state
   const clearFilters = useCallback(() => {
     setFilter('');
-    setComposerSearch('');
-    setLevelSearch('');
-    setCountrySearch('');
-    selectedComposers.forEach((composer) => toggleComposerSelection(composer));
-    selectedLevels.forEach((level) => toggleLevelSelection(level));
-    selectedInstruments.forEach((instrument) => toggleInstrumentSelection(instrument));
-    selectedCountries.forEach((country) => toggleCountrySelection(country));
-    selectedTechnicalFocus.forEach((tech) => toggleTechnicalFocusSelection(tech));
+    setSelectedComposers([]);
+    setSelectedLevels([]);
+    setSelectedInstruments([]);
+    setSelectedCountries([]);
+    setSelectedTechnicalFocus([]);
     setMinYear(1600);
     setMaxYear(2025);
     setCurrentPage(1);
-  }, [
-    selectedComposers,
-    toggleComposerSelection,
-    selectedLevels,
-    toggleLevelSelection,
-    selectedInstruments,
-    toggleInstrumentSelection,
-    selectedCountries,
-    toggleCountrySelection,
-    selectedTechnicalFocus,
-    toggleTechnicalFocusSelection,
-  ]);
+  }, []);
 
   if (isLoading) return <LoadingAnimation />;
 

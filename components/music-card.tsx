@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { FaSpinner } from 'react-icons/fa';
@@ -12,6 +12,13 @@ interface MusicCardProps {
   level: string;
   instrumentation: string[];
 }
+
+// Helper function moved outside component for better performance
+const getFormattedComposer = (firstName: string, lastName: string) => {
+  if (['Other', 'Traditional'].includes(lastName)) return lastName;
+  if (['Other', 'Traditional'].includes(firstName)) return firstName;
+  return `${lastName}, ${firstName}`.trim();
+};
 
 const MusicCard: React.FC<MusicCardProps> = ({
   id,
@@ -43,13 +50,6 @@ const MusicCard: React.FC<MusicCardProps> = ({
     return 'text-lg';
   }, [title]);
 
-  // format composer name
-  const getFormattedComposer = (firstName: string, lastName: string) => {
-    if (['Other', 'Traditional'].includes(lastName)) return lastName;
-    if (['Other', 'Traditional'].includes(firstName)) return firstName;
-    return `${lastName}, ${firstName}`.trim();
-  };
-
   // lowercase arrays for comparisons
   const lowerInstrumentation = useMemo(
     () => instrumentation.map((inst) => inst.toLowerCase()),
@@ -57,20 +57,26 @@ const MusicCard: React.FC<MusicCardProps> = ({
   );
   const lowerLevel = useMemo(() => level.toLowerCase(), [level]);
 
-  // instrumentation flags
-  const isOther = lowerInstrumentation.includes('other');
-  const isCelloSaxophone =
-    lowerInstrumentation.includes('cello') && lowerInstrumentation.includes('saxophone');
-  const isCelloAndPiano =
-    lowerInstrumentation.includes('cello') && lowerInstrumentation.includes('piano');
-  const isCelloSolo = lowerInstrumentation.length === 1 && lowerInstrumentation.includes('cello');
-  const isCelloDuet =
-    lowerInstrumentation.length === 2 && lowerInstrumentation.every((inst) => inst === 'cello');
-  const isCelloWithOrchestra =
-    lowerInstrumentation.includes('cello') && lowerInstrumentation.includes('orchestra');
+  // instrumentation flags - memoized for performance
+  const instrumentationFlags = useMemo(() => {
+    const isOther = lowerInstrumentation.includes('other');
+    const isCelloSaxophone =
+      lowerInstrumentation.includes('cello') && lowerInstrumentation.includes('saxophone');
+    const isCelloAndPiano =
+      lowerInstrumentation.includes('cello') && lowerInstrumentation.includes('piano');
+    const isCelloSolo = lowerInstrumentation.length === 1 && lowerInstrumentation.includes('cello');
+    const isCelloDuet =
+      lowerInstrumentation.length === 2 && lowerInstrumentation.every((inst) => inst === 'cello');
+    const isCelloWithOrchestra =
+      lowerInstrumentation.includes('cello') && lowerInstrumentation.includes('orchestra');
 
-  // choose image based on level & instrumentation
-  const getImageSrc = () => {
+    return { isOther, isCelloSaxophone, isCelloAndPiano, isCelloSolo, isCelloDuet, isCelloWithOrchestra };
+  }, [lowerInstrumentation]);
+
+  // choose image based on level & instrumentation - optimized to useMemo
+  const imageSrc = useMemo(() => {
+    const { isOther, isCelloSaxophone, isCelloAndPiano, isCelloSolo, isCelloDuet, isCelloWithOrchestra } = instrumentationFlags;
+
     if (isOther) return '/assets/Other.png';
     if (isCelloSaxophone) return '/assets/cello_saxophone.png';
 
@@ -128,18 +134,7 @@ const MusicCard: React.FC<MusicCardProps> = ({
     if (isCelloDuet) return '/assets/early_beginner_duet.png';
     if (isCelloAndPiano) return '/assets/early_beginner_cello_piano.png';
     return '/assets/default_cello_and_piano.png';
-  };
-
-  const imageSrc = useMemo(() => getImageSrc(), [
-    lowerLevel,
-    lowerInstrumentation,
-    isCelloDuet,
-    isCelloSolo,
-    isCelloAndPiano,
-    isCelloWithOrchestra,
-    isOther,
-    isCelloSaxophone,
-  ]);
+  }, [lowerLevel, instrumentationFlags]);
 
   return (
     <div className="bg-white shadow-md rounded-sm p-4 hover:scale-105 transition-transform duration-300">

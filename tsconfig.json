@@ -2,7 +2,7 @@
   "compilerOptions": {
     "lib": ["dom", "dom.iterable", "esnext"],
     "allowJs": true,
-    "skipLibCheck": true,
+    "skipLibCheck": true,               // already skipping .d.ts checks
     "strict": true,
     "noEmit": true,
     "esModuleInterop": true,
@@ -11,13 +11,25 @@
     "resolveJsonModule": true,
     "isolatedModules": true,
     "jsx": "preserve",
-    "incremental": true,
+    "incremental": true,                // cache project state for faster rebuilds
+    "tsBuildInfoFile": ".tsbuildinfo",  // file where incremental metadata is stored
     "paths": {
       "@/*": ["./*"]
     },
     "target": "es5",
     "typeRoots": ["./node_modules/@types", "./global.d.ts"]
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", "components/header.jsx"],
-  "exclude": ["node_modules"]
+  "include": [
+    "next-env.d.ts",
+    "**/*.ts",
+    "**/*.tsx"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist",
+    ".next",
+    "out",
+    "build",
+    "coverage"
+  ]
 }
