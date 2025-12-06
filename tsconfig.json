@@ -1,8 +1,12 @@
 {
   "compilerOptions": {
-    "lib": ["dom", "dom.iterable", "esnext"],
+    "lib": [
+      "dom",
+      "dom.iterable",
+      "esnext"
+    ],
     "allowJs": true,
-    "skipLibCheck": true,               // already skipping .d.ts checks
+    "skipLibCheck": true, // already skipping .d.ts checks
     "strict": true,
     "noEmit": true,
     "esModuleInterop": true,
@@ -10,14 +14,19 @@
     "moduleResolution": "bundler",
     "resolveJsonModule": true,
     "isolatedModules": true,
-    "jsx": "preserve",
-    "incremental": true,                // cache project state for faster rebuilds
-    "tsBuildInfoFile": ".tsbuildinfo",  // file where incremental metadata is stored
+    "jsx": "react-jsx",
+    "incremental": true, // cache project state for faster rebuilds
+    "tsBuildInfoFile": ".tsbuildinfo", // file where incremental metadata is stored
     "paths": {
-      "@/*": ["./*"]
+      "@/*": [
+        "./*"
+      ]
     },
     "target": "es5",
-    "typeRoots": ["./node_modules/@types", "./global.d.ts"]
+    "typeRoots": [
+      "./node_modules/@types",
+      "./global.d.ts"
+    ]
   },
   "include": [
     "next-env.d.ts",
