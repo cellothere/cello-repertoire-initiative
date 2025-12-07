@@ -99,6 +99,12 @@ const MusicCard: React.FC<MusicCardProps> = ({
         if (isCelloSolo) return '/assets/late_beginner_solo.png';
         break;
 
+      case 'early intermediate':
+        if (isCelloDuet) return '/assets/early_intermediate_duet.png';
+        if (isCelloSolo) return '/assets/early_intermediate_solo.png';
+        if (isCelloAndPiano) return '/assets/early_intermediate_cello_piano.png';
+        break;
+
       case 'intermediate':
         if (isCelloDuet) return '/assets/intermediate_duet.png';
         if (isCelloAndPiano) return '/assets/intermediate_cello_piano.png';
