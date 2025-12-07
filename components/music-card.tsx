@@ -179,7 +179,7 @@ const MusicCard: React.FC<MusicCardProps> = ({
 
           {/* Level */}
           <div className="mt-4">
-            <span className="inline-block px-3 py-1 bg-gray-100 text-gray-800 text-sm font-semibold rounded-md">
+            <span className="inline-block px-3 py-1 bg-gray-100 text-gray-800 text-sm font-semibold rounded-md whitespace-nowrap">
               {level}
             </span>
           </div>
