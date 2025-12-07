@@ -1,7 +1,7 @@
 import { useState, useMemo, useCallback } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { FaSpinner } from 'react-icons/fa';
+import { FaSpinner, FaChevronRight } from 'react-icons/fa';
 
 interface MusicCardProps {
   id: number;
@@ -137,24 +137,24 @@ const MusicCard: React.FC<MusicCardProps> = ({
   }, [lowerLevel, instrumentationFlags]);
 
   return (
-    <div className="bg-white border border-gray-200 shadow-sm rounded-lg p-5 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 ease-out">
-      <Link href={pieceHref} onClick={() => setIsLoading(true)}>
+    <div className="bg-white border border-gray-200 shadow-sm rounded-lg p-5 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 ease-out focus-within:ring-2 focus-within:ring-blue-500 focus-within:ring-offset-2">
+      <Link href={pieceHref} onClick={() => setIsLoading(true)} className="focus:outline-none group">
         <div className="flex flex-col h-full">
           {/* Image */}
-          <div className="relative w-full h-40 mb-4">
+          <div className="relative w-full h-40 mb-4 overflow-hidden rounded-lg">
             <Image
               src={imageSrc}
               alt={`${instrument} piece`}
               fill
               style={{ objectFit: 'contain' }}
-              className="rounded-lg bg-white"
+              className="bg-white"
             />
           </div>
 
           {/* Title & Composer */}
           <div className="flex-grow flex flex-col space-y-1">
             <h2
-              className={`font-bold text-gray-900 ${titleClass}`}
+              className={`font-bold text-gray-900 ${titleClass} line-clamp-3 group-hover:underline`}
               style={{
                 overflowWrap: 'break-word',
                 wordBreak: 'break-word',
@@ -185,12 +185,15 @@ const MusicCard: React.FC<MusicCardProps> = ({
           <div className="flex justify-center">
             <button
               onClick={() => setIsLoading(true)}
-              className="bg-black text-white w-full max-w-xs py-2 px-4 rounded-lg text-sm font-medium hover:bg-gray-800 transition-colors shadow-sm"
+              className="bg-gradient-to-r from-black to-gray-800 text-white w-full max-w-xs py-2 px-4 rounded-lg text-sm font-medium hover:from-gray-800 hover:to-gray-700 transition-all shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 flex items-center justify-center gap-2"
             >
               {isLoading ? (
-                <FaSpinner className="animate-spin inline-block" />
+                <FaSpinner className="animate-spin" />
               ) : (
-                'See more'
+                <>
+                  See more
+                  <FaChevronRight className="text-xs" />
+                </>
               )}
             </button>
           </div>
