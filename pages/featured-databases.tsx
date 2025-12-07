@@ -198,56 +198,73 @@ const FeaturedDatabases: NextPage = () => {
         />
       </Head>
       <NavbarMain />
-      <header className="py-10 bg-gradient-to-r from-purple-600 to-pink-600 text-center text-white">
-        <h1 className="text-4xl mb-6 font-bold">Featured Databases</h1>
-        <div className="mt-4 flex flex-col items-center space-y-4 md:flex-row md:justify-center md:space-y-0 md:space-x-4">
-          {/* Category selection */}
-          <div>
-            <div className="md:hidden">
-              <select
-                value={selectedCategory}
-                onChange={(e) => setSelectedCategory(e.target.value)}
-                className="p-2 rounded text-gray-900"
-              >
-                <option value="Woman">Women Composers</option>
-                <option value="LGBTQIA+">Non-Binary Composers</option>
-                <option value="Black">Black Composers</option>
-                <option value="Indigenous">Indigenous Composers</option>
-              </select>
-            </div>
-            <div className="hidden md:flex justify-center space-x-4">
-              <button
-                onClick={() => setSelectedCategory('Woman')}
-                className={`px-4 py-2 rounded ${
-                  selectedCategory === 'Woman' ? 'bg-purple-700 text-white' : 'bg-gray-200 text-gray-800'
-                }`}
-              >
-                Women Composers
-              </button>
-              <button
-                onClick={() => setSelectedCategory('LGBTQIA+')}
-                className={`px-4 py-2 rounded ${
-                  selectedCategory === 'LGBTQIA+' ? 'bg-purple-700 text-white' : 'bg-gray-200 text-gray-800'
-                }`}
-              >
-                Non-Binary Composers
-              </button>
-              <button
-                onClick={() => setSelectedCategory('Black')}
-                className={`px-4 py-2 rounded ${
-                  selectedCategory === 'Black' ? 'bg-purple-700 text-white' : 'bg-gray-200 text-gray-800'
-                }`}
-              >
-                Black Composers
-              </button>
-              <button
-                onClick={() => setSelectedCategory('Indigenous')}
-                className={`px-4 py-2 rounded ${
-                  selectedCategory === 'Indigenous' ? 'bg-purple-700 text-white' : 'bg-gray-200 text-gray-800'
-                }`}
-              >
-                Indigenous Composers
-              </button>
+      <header className="relative py-16 bg-gradient-to-br from-purple-600 via-purple-500 to-pink-500 text-center text-white overflow-hidden">
+        {/* Subtle pattern overlay */}
+        <div className="absolute inset-0 bg-white/5 backdrop-blur-3xl"></div>
+
+        <div className="relative z-10">
+          <h1 className="text-5xl md:text-6xl mb-3 font-bold tracking-tight">Featured Databases</h1>
+          <p className="text-purple-100 text-lg mb-8 max-w-2xl mx-auto px-4">
+            Discover diverse voices in cello music
+          </p>
+
+          <div className="mt-8 flex flex-col items-center space-y-4 md:flex-row md:justify-center md:space-y-0 md:space-x-3">
+            {/* Category selection */}
+            <div className="w-full max-w-sm md:max-w-none">
+              <div className="md:hidden px-4">
+                <select
+                  value={selectedCategory}
+                  onChange={(e) => setSelectedCategory(e.target.value)}
+                  className="w-full p-3 rounded-lg text-gray-900 font-medium shadow-lg focus:outline-none focus:ring-2 focus:ring-purple-300 bg-white/95 backdrop-blur"
+                >
+                  <option value="Woman">Women Composers</option>
+                  <option value="LGBTQIA+">Non-Binary Composers</option>
+                  <option value="Black">Black Composers</option>
+                  <option value="Indigenous">Indigenous Composers</option>
+                </select>
+              </div>
+              <div className="hidden md:flex justify-center gap-3 flex-wrap">
+                <button
+                  onClick={() => setSelectedCategory('Woman')}
+                  className={`px-6 py-3 rounded-lg font-medium transition-all duration-200 ${
+                    selectedCategory === 'Woman'
+                      ? 'bg-white text-purple-600 shadow-lg scale-105'
+                      : 'bg-white/20 text-white hover:bg-white/30 backdrop-blur'
+                  }`}
+                >
+                  Women Composers
+                </button>
+                <button
+                  onClick={() => setSelectedCategory('LGBTQIA+')}
+                  className={`px-6 py-3 rounded-lg font-medium transition-all duration-200 ${
+                    selectedCategory === 'LGBTQIA+'
+                      ? 'bg-white text-purple-600 shadow-lg scale-105'
+                      : 'bg-white/20 text-white hover:bg-white/30 backdrop-blur'
+                  }`}
+                >
+                  Non-Binary Composers
+                </button>
+                <button
+                  onClick={() => setSelectedCategory('Black')}
+                  className={`px-6 py-3 rounded-lg font-medium transition-all duration-200 ${
+                    selectedCategory === 'Black'
+                      ? 'bg-white text-purple-600 shadow-lg scale-105'
+                      : 'bg-white/20 text-white hover:bg-white/30 backdrop-blur'
+                  }`}
+                >
+                  Black Composers
+                </button>
+                <button
+                  onClick={() => setSelectedCategory('Indigenous')}
+                  className={`px-6 py-3 rounded-lg font-medium transition-all duration-200 ${
+                    selectedCategory === 'Indigenous'
+                      ? 'bg-white text-purple-600 shadow-lg scale-105'
+                      : 'bg-white/20 text-white hover:bg-white/30 backdrop-blur'
+                  }`}
+                >
+                  Indigenous Composers
+                </button>
+              </div>
             </div>
           </div>
         </div>
