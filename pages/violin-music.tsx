@@ -208,6 +208,8 @@ const ViolinMusic: NextPage = () => {
 
   // 2. Update URL query when filters change.
   useEffect(() => {
+    if (!router.isReady) return;
+
     const query = {
       filter,
       selectedComposers,
@@ -222,7 +224,7 @@ const ViolinMusic: NextPage = () => {
       sortField: sortConfig?.field,
       sortDirection: sortConfig?.direction,
     };
-    router.replace({ pathname: router.pathname, query }, undefined, { shallow: true });
+    router.push({ pathname: router.pathname, query }, undefined, { shallow: true });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     filter,
