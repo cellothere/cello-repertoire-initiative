@@ -198,9 +198,55 @@ const MobileFilterAccordion: React.FC<MobileFilterAccordionProps> = ({
                           setMaxYear(newMax);
                         }}
                       />
-                      <div className="flex justify-between mt-2 text-sm text-black">
-                        <span>{minYear}</span>
-                        <span>{maxYear}</span>
+                      <div className="flex justify-between gap-2 mt-2 text-sm text-black">
+                        <div className="flex flex-col items-start flex-1">
+                          <label className="text-xs mb-1">From:</label>
+                          <input
+                            type="number"
+                            min={1600}
+                            max={maxYear}
+                            value={minYear}
+                            onChange={(e) => {
+                              const value = parseInt(e.target.value);
+                              if (!isNaN(value) && value >= 1600 && value <= maxYear) {
+                                setMinYear(value);
+                              }
+                            }}
+                            onBlur={(e) => {
+                              const value = parseInt(e.target.value);
+                              if (isNaN(value) || value < 1600) {
+                                setMinYear(1600);
+                              } else if (value > maxYear) {
+                                setMinYear(maxYear);
+                              }
+                            }}
+                            className="w-full p-1 border border-gray-300 rounded text-center focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          />
+                        </div>
+                        <div className="flex flex-col items-end flex-1">
+                          <label className="text-xs mb-1">To:</label>
+                          <input
+                            type="number"
+                            min={minYear}
+                            max={2025}
+                            value={maxYear}
+                            onChange={(e) => {
+                              const value = parseInt(e.target.value);
+                              if (!isNaN(value) && value >= minYear && value <= 2025) {
+                                setMaxYear(value);
+                              }
+                            }}
+                            onBlur={(e) => {
+                              const value = parseInt(e.target.value);
+                              if (isNaN(value) || value > 2025) {
+                                setMaxYear(2025);
+                              } else if (value < minYear) {
+                                setMaxYear(minYear);
+                              }
+                            }}
+                            className="w-full p-1 border border-gray-300 rounded text-center focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          />
+                        </div>
                       </div>
                     </div>
                   )}
