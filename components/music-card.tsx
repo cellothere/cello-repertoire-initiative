@@ -137,7 +137,7 @@ const MusicCard: React.FC<MusicCardProps> = ({
   }, [lowerLevel, instrumentationFlags]);
 
   return (
-    <div className="bg-white shadow-md rounded-sm p-4 hover:scale-105 transition-transform duration-300">
+    <div className="bg-white border border-gray-200 shadow-sm rounded-lg p-5 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 ease-out">
       <Link href={pieceHref} onClick={() => setIsLoading(true)}>
         <div className="flex flex-col h-full">
           {/* Image */}
@@ -147,45 +147,45 @@ const MusicCard: React.FC<MusicCardProps> = ({
               alt={`${instrument} piece`}
               fill
               style={{ objectFit: 'contain' }}
-              className="rounded-md bg-white"
+              className="rounded-lg bg-white"
             />
           </div>
 
           {/* Title & Composer */}
-          <div className="flex-grow flex flex-col">
+          <div className="flex-grow flex flex-col space-y-1">
             <h2
-              className={`font-semibold text-gray-800 ${titleClass}`}
+              className={`font-bold text-gray-900 ${titleClass}`}
               style={{
                 overflowWrap: 'break-word',
                 wordBreak: 'break-word',
-                lineHeight: '1.2',
+                lineHeight: '1.3',
               }}
             >
               {title}
             </h2>
-            <p className="text-gray-600">
+            <p className="text-sm text-gray-600">
               by{' '}
-              <span className="font-medium">
+              <span className="font-medium text-gray-700">
                 {getFormattedComposer(composer_first_name, composer_last_name)}
               </span>
             </p>
           </div>
 
           {/* Level */}
-          <div className="mt-5">
-            <strong>
-              <p className="text-black">{level}</p>
-            </strong>
+          <div className="mt-4">
+            <span className="inline-block px-3 py-1 bg-gray-100 text-gray-800 text-sm font-semibold rounded-md">
+              {level}
+            </span>
           </div>
 
           {/* Divider */}
-          <div className="border-b border-gray-300 mb-3 mt-1" />
+          <div className="border-b border-gray-200 my-4" />
 
           {/* See More Button */}
           <div className="flex justify-center">
             <button
               onClick={() => setIsLoading(true)}
-              className="bg-black text-white w-[75%] max-w-xs py-1 rounded-full text-center hover:bg-gradient-to-br transition-colors"
+              className="bg-black text-white w-full max-w-xs py-2 px-4 rounded-lg text-sm font-medium hover:bg-gray-800 transition-colors shadow-sm"
             >
               {isLoading ? (
                 <FaSpinner className="animate-spin inline-block" />
