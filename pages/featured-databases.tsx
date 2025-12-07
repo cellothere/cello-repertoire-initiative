@@ -205,7 +205,7 @@ const FeaturedDatabases: NextPage = () => {
         <div className="relative z-10">
           <h1 className="text-5xl md:text-6xl mb-3 font-bold tracking-tight">Featured Databases</h1>
           <p className="text-purple-100 text-lg mb-8 max-w-2xl mx-auto px-4">
-            Discover diverse voices in cello music
+            Explore curated databases featuring composers from all backgrounds.
           </p>
 
           <div className="mt-8 flex flex-col items-center space-y-4 md:flex-row md:justify-center md:space-y-0 md:space-x-3">
