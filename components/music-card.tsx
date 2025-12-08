@@ -50,6 +50,12 @@ const MusicCard: React.FC<MusicCardProps> = ({
     return 'text-lg';
   }, [title]);
 
+  // dynamic text size for level (shrink at 852px or less for long text)
+  const levelClass = useMemo(() => {
+    if (level.length > 15) return 'text-xs card-lg:text-sm';
+    return 'text-sm';
+  }, [level]);
+
   // lowercase arrays for comparisons
   const lowerInstrumentation = useMemo(
     () => instrumentation.map((inst) => inst.toLowerCase()),
@@ -179,7 +185,7 @@ const MusicCard: React.FC<MusicCardProps> = ({
 
           {/* Level */}
           <div className="mt-4">
-            <span className="inline-block px-3 py-1 bg-gray-100 text-gray-800 text-sm font-semibold rounded-md whitespace-nowrap">
+            <span className={`inline-block px-3 py-1 bg-gray-100 text-gray-800 ${levelClass} font-semibold rounded-md whitespace-nowrap`}>
               {level}
             </span>
           </div>
