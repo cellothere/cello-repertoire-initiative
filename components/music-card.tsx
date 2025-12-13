@@ -75,16 +75,20 @@ const MusicCard: React.FC<MusicCardProps> = ({
       lowerInstrumentation.length === 2 && lowerInstrumentation.every((inst) => inst === 'cello');
     const isCelloWithOrchestra =
       lowerInstrumentation.includes('cello') && lowerInstrumentation.includes('orchestra');
+    const isCelloEnsemble =
+      lowerInstrumentation.includes('cello ensemble') ||
+      (lowerInstrumentation.length >= 3 && lowerInstrumentation.every((inst) => inst === 'cello'));
 
-    return { isOther, isCelloSaxophone, isCelloAndPiano, isCelloSolo, isCelloDuet, isCelloWithOrchestra };
+    return { isOther, isCelloSaxophone, isCelloAndPiano, isCelloSolo, isCelloDuet, isCelloWithOrchestra, isCelloEnsemble };
   }, [lowerInstrumentation]);
 
   // choose image based on level & instrumentation - optimized to useMemo
   const imageSrc = useMemo(() => {
-    const { isOther, isCelloSaxophone, isCelloAndPiano, isCelloSolo, isCelloDuet, isCelloWithOrchestra } = instrumentationFlags;
+    const { isOther, isCelloSaxophone, isCelloAndPiano, isCelloSolo, isCelloDuet, isCelloWithOrchestra, isCelloEnsemble } = instrumentationFlags;
 
     if (isOther) return '/assets/Other.png';
     if (isCelloSaxophone) return '/assets/cello_saxophone.png';
+    if (isCelloEnsemble) return '/assets/various_cello_ensemble.png';
 
     switch (lowerLevel) {
       case 'professional':
