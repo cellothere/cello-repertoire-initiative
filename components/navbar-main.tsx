@@ -8,7 +8,7 @@ import {
   Button,
 } from "@heroui/react";
 import { RxHamburgerMenu } from "react-icons/rx";
-import { FaSearch, FaUserCircle } from "react-icons/fa";
+import { FaSearch, FaUserCircle, FaSignInAlt } from "react-icons/fa";
 import { BiSolidHomeCircle } from "react-icons/bi";
 import { useRouter } from "next/router";
 import Image from "next/image";
@@ -203,13 +203,19 @@ const NavbarMain = () => {
               <BiSolidHomeCircle size={35} className="mr-3" />
             </Link>
             {!authLoading && (
-              <button
-                onClick={() => setIsMobileUserMenuOpen((prev) => !prev)}
-                className="bg-black text-white p-2 rounded-full mr-2"
-                aria-label="User menu"
-              >
-                <FaUserCircle size={24} />
-              </button>
+              user ? (
+                <button
+                  onClick={() => setIsMobileUserMenuOpen((prev) => !prev)}
+                  className="bg-black text-white p-2 rounded-full mr-2"
+                  aria-label="User menu"
+                >
+                  <FaUserCircle size={24} />
+                </button>
+              ) : (
+                <Link href="/login" className="text-black font-bold mr-2 flex items-center gap-1">
+                  <FaSignInAlt size={24} />
+                </Link>
+              )
             )}
             <Button
               variant="flat"
@@ -302,7 +308,6 @@ const NavbarMain = () => {
                   onClick={() => setIsMobileUserMenuOpen(false)}
                   className="w-full py-2 px-4 text-left hover:bg-gray-200 text-purple-600 font-medium"
                 >
-                  Login
                 </button>
               </Link>
             )}
@@ -439,8 +444,8 @@ const NavbarMain = () => {
               </DropdownMenu>
             </Dropdown>
           ) : (
-            <Link href="/login" className="text-black font-bold mx-2 hover:underline">
-              Login
+            <Link href="/login" className="text-black font-bold mx-2 hover:underline flex items-center gap-1">
+              <FaSignInAlt size={20} />
             </Link>
           )
         )}
