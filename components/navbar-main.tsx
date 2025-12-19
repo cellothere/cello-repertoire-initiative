@@ -105,7 +105,7 @@ const NavbarMain = () => {
   };
 
   return (
-    <header className="bg-gray-100 text-black p-4 flex items-center justify-between">
+    <header className="bg-gray-100 text-black p-4 flex items-center justify-between relative z-50">
       {/* Logo Section */}
       <div className="flex items-center">
         <div className="flex-shrink-0">
