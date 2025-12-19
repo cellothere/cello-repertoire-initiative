@@ -131,55 +131,75 @@ const ComposersPage: React.FC = () => {
     : filteredComposers;
 
   return (
-    <div>
+    <div className="min-h-screen bg-gray-100 text-gray-900">
       <NavbarMain />
-      <div className="container mx-auto p-4">
-        <h1 className="text-2xl font-bold mb-4">Composers</h1>
 
-        {/* Search and Sort */}
-        <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between mb-4">
-          <input
-            type="text"
-            placeholder="Search by name or nationality..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="border text-black border-gray-300 rounded p-2 w-full"
-          />
-          <select
-            defaultValue="lastname-asc"
-            onChange={(e) => handleSort(e.target.value)}
-            className="border border-gray-300 rounded-md p-2 text-black font-medium text-sm bg-white w-full md:w-auto focus:outline-none"
-          >
-            <option value="lastname-asc">Last Name (A-Z)</option>
-            <option value="lastname-desc">Last Name (Z-A)</option>
-            <option value="nationality-asc">Nationality (A-Z)</option>
-            <option value="nationality-desc">Nationality (Z-A)</option>
-            <option value="born-asc">Born (Asc)</option>
-            <option value="born-desc">Born (Desc)</option>
-          </select>
+      {/* Gradient Header */}
+      <header className="relative py-16 bg-gradient-to-br from-purple-600 via-purple-500 to-pink-500 text-center text-white overflow-hidden">
+        {/* Subtle pattern overlay */}
+        <div className="absolute inset-0 bg-white/5 backdrop-blur-3xl"></div>
+
+        <div className="relative z-10">
+          <h1 className="text-5xl md:text-6xl mb-3 font-bold tracking-tight">Composers</h1>
+          <p className="text-purple-100 text-lg max-w-2xl mx-auto px-4">
+            Discover the artists behind the music.
+          </p>
+        </div>
+      </header>
+
+      <main className="container mx-auto px-4 pb-10">
+        {/* Search and Sort Controls */}
+        <div className="mt-8 mb-6 flex flex-col gap-4 md:flex-row md:items-center md:gap-4">
+          <div className="flex-1">
+            <input
+              type="text"
+              placeholder="Search by name or nationality..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full px-4 py-3 rounded-lg border border-gray-300 text-gray-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+            />
+          </div>
+          <div className="flex items-center gap-2">
+            <label htmlFor="sort-select" className="text-sm font-medium whitespace-nowrap">
+              Sort by:
+            </label>
+            <select
+              id="sort-select"
+              defaultValue="lastname-asc"
+              onChange={(e) => handleSort(e.target.value)}
+              className="px-4 py-3 rounded-lg border border-gray-300 text-gray-900 font-medium shadow-sm bg-white focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+            >
+              <option value="lastname-asc">Last Name (A-Z)</option>
+              <option value="lastname-desc">Last Name (Z-A)</option>
+              <option value="nationality-asc">Nationality (A-Z)</option>
+              <option value="nationality-desc">Nationality (Z-A)</option>
+              <option value="born-asc">Born (Asc)</option>
+              <option value="born-desc">Born (Desc)</option>
+            </select>
+          </div>
         </div>
 
         {/* Composer List */}
         {sortedComposers.length > 0 ? (
-          <ul className="space-y-2">
+          <div className="space-y-3">
             {sortedComposers.map((composer) => (
-              <li
+              <div
                 key={composer.id}
-                className="bg-white shadow-md rounded-sm p-4 text-black flex items-center justify-between"
+                className="bg-white shadow-sm hover:shadow-md rounded-lg p-5 transition-all duration-200 flex items-center justify-between group"
               >
                 {/* Left side: name on top, nationality/dates below */}
-                <div>
-                  <div className="font-medium text-base">
+                <div className="flex-1">
+                  <div className="font-semibold text-lg text-gray-900 mb-1">
                     {formatComposer(composer.lastName, composer.firstName)}
                   </div>
                   {(composer.nationalities?.length || composer.born || composer.died) && (
                     <div className="text-sm text-gray-600">
-                    {composer.nationalities && composer.nationalities.length > 0 && (
-                      <>{composer.nationalities.join(', ')}</>
-                    )}
+                      {composer.nationalities && composer.nationalities.length > 0 && (
+                        <span className="font-medium">{composer.nationalities.join(', ')}</span>
+                      )}
                       {composer.born && (
-                        <span>
-                          {' '}({composer.born}
+                        <span className="ml-1">
+                          ({composer.born}
                           {composer.died ? ` - ${composer.died}` : ''})
                         </span>
                       )}
@@ -194,7 +214,7 @@ const ComposersPage: React.FC = () => {
                   )}`}
                 >
                   <button
-                    className="px-4 py-2 bg-black text-white rounded transition duration-300 ease-in-out hover:bg-gradient-to-br hover:from-[#623d88] hover:to-[#36c190]"
+                    className="px-5 py-2.5 bg-gradient-to-br from-purple-600 to-pink-500 text-white rounded-lg font-medium transition-all duration-200 hover:shadow-lg hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
                     disabled={loadingComposerId === composer.id}
                     onClick={() => {
                       setLoadingComposerId(composer.id);
@@ -210,13 +230,15 @@ const ComposersPage: React.FC = () => {
                     )}
                   </button>
                 </Link>
-              </li>
+              </div>
             ))}
-          </ul>
+          </div>
         ) : (
-          <p>No composers found.</p>
+          <div className="text-center mt-10 text-gray-600">
+            <p className="text-lg">No composers found.</p>
+          </div>
         )}
-      </div>
+      </main>
     </div>
   );
 };
