@@ -37,7 +37,7 @@ const ContactUs: NextPage = () => {
   };
 
   return (
-    <div>
+    <div className="min-h-screen bg-gray-100 text-gray-900">
       <Head>
         <title>Contact Us | Cello Repertoire Initiative</title>
         <meta
@@ -46,21 +46,42 @@ const ContactUs: NextPage = () => {
         />
       </Head>
       <NavbarMain />
-      <section className="flex flex-col items-center justify-center min-h-screen px-6 py-12 text-center">
-        <div className="max-w-3xl w-full">
-          <h1 className="text-3xl font-bold font-mono text-gray-900">Contact Us</h1>
+
+      {/* Gradient Header */}
+      <header className="relative py-16 bg-gradient-to-br from-purple-600 via-purple-500 to-pink-500 text-center text-white overflow-hidden">
+        {/* Subtle pattern overlay */}
+        <div className="absolute inset-0 bg-white/5 backdrop-blur-3xl"></div>
+
+        <div className="relative z-10">
+          <h1 className="text-5xl md:text-6xl mb-3 font-bold tracking-tight">Contact Us</h1>
+          <p className="text-purple-100 text-lg max-w-2xl mx-auto px-4">
+            We'd love to hear from you.
+          </p>
+        </div>
+      </header>
+
+      <main className="container mx-auto px-4 py-12">
+        <div className="max-w-2xl mx-auto">
           {!formSubmitted && (
-            <p className="mt-4 text-lg text-gray-900 leading-relaxed">
-              Have a question or want to get in touch? Send us an email at
-              <a href="mailto:cellorepertoireinitiative@gmail.com" className="text-white hover:underline"> cellorepertoireinitiative@gmail.com </a>
-              or fill out the form below.
+            <p className="text-center text-lg text-gray-700 leading-relaxed mb-8">
+              Have a question or want to get in touch? Send us an email at{' '}
+              <a
+                href="mailto:cellorepertoireinitiative@gmail.com"
+                className="text-purple-600 hover:text-purple-700 font-medium hover:underline transition-colors"
+              >
+                cellorepertoireinitiative@gmail.com
+              </a>
+              {' '}or fill out the form below.
             </p>
           )}
+
           {/* Contact Form */}
           {!formSubmitted ? (
-            <form onSubmit={handleSubmit} className="mt-8 space-y-6 bg-white text-black shadow-lg rounded-lg p-6">
-              <div className="flex flex-col text-left">
-                <label htmlFor="name" className="font-semibold">Name</label>
+            <form onSubmit={handleSubmit} className="space-y-6 bg-white shadow-lg rounded-xl p-8">
+              <div className="flex flex-col">
+                <label htmlFor="name" className="font-semibold text-gray-900 mb-2">
+                  Name
+                </label>
                 <input
                   type="text"
                   id="name"
@@ -68,13 +89,15 @@ const ContactUs: NextPage = () => {
                   value={formData.name}
                   onChange={handleChange}
                   required
-                  className="mt-1 p-2 border rounded-md w-full"
+                  className="px-4 py-3 border border-gray-300 rounded-lg w-full focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
                   placeholder="Your Name"
                 />
               </div>
 
-              <div className="flex flex-col text-left">
-                <label htmlFor="email" className="font-semibold">Email</label>
+              <div className="flex flex-col">
+                <label htmlFor="email" className="font-semibold text-gray-900 mb-2">
+                  Email
+                </label>
                 <input
                   type="email"
                   id="email"
@@ -82,37 +105,52 @@ const ContactUs: NextPage = () => {
                   value={formData.email}
                   onChange={handleChange}
                   required
-                  className="mt-1 p-2 border rounded-md w-full"
+                  className="px-4 py-3 border border-gray-300 rounded-lg w-full focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
                   placeholder="Your Email"
                 />
               </div>
 
-              <div className="flex flex-col text-left">
-                <label htmlFor="message" className="font-semibold">Message</label>
+              <div className="flex flex-col">
+                <label htmlFor="message" className="font-semibold text-gray-900 mb-2">
+                  Message
+                </label>
                 <textarea
                   id="message"
                   name="message"
                   value={formData.message}
                   onChange={handleChange}
                   required
-                  className="mt-1 p-2 border rounded-md w-full"
+                  className="px-4 py-3 border border-gray-300 rounded-lg w-full focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all resize-none"
                   placeholder="Your Message"
-                  rows={4}
+                  rows={5}
                 ></textarea>
               </div>
 
               <button
                 type="submit"
-                className="w-full bg-black text-white py-2 px-4 rounded-md hover:scale-105 transition">
+                className="w-full bg-gradient-to-br from-purple-600 to-pink-500 text-white py-3 px-6 rounded-lg font-semibold hover:shadow-lg hover:scale-105 transition-all duration-200"
+              >
                 Send Message
               </button>
             </form>
           ) : (
-            <div className="text-center">
-              <p className="text-lg font-semibold text-gray-800">Thank you for your message! We will get back to you soon.</p>
+            <div className="bg-white shadow-lg rounded-xl p-8 text-center">
+              <div className="mb-6">
+                <div className="mx-auto w-16 h-16 bg-gradient-to-br from-purple-600 to-pink-500 rounded-full flex items-center justify-center mb-4">
+                  <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                </div>
+                <p className="text-xl font-semibold text-gray-900 mb-2">
+                  Thank you for your message!
+                </p>
+                <p className="text-gray-600">
+                  We'll get back to you as soon as possible.
+                </p>
+              </div>
               <button
                 type="button"
-                className="mt-4 bg-black text-white py-2 px-4 rounded-md hover:scale-105 transition"
+                className="bg-gradient-to-br from-purple-600 to-pink-500 text-white py-3 px-6 rounded-lg font-semibold hover:shadow-lg hover:scale-105 transition-all duration-200"
                 onClick={() => setFormSubmitted(false)}
               >
                 Send Another Message
@@ -120,7 +158,7 @@ const ContactUs: NextPage = () => {
             </div>
           )}
         </div>
-      </section>
+      </main>
     </div>
   );
 };
