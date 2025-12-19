@@ -205,7 +205,7 @@ const NavbarMain = () => {
             {!authLoading && (
               <button
                 onClick={() => setIsMobileUserMenuOpen((prev) => !prev)}
-                className="bg-gradient-to-br from-purple-600 to-pink-500 text-white p-2 rounded-full mr-2"
+                className="bg-black text-white p-2 rounded-full mr-2"
                 aria-label="User menu"
               >
                 <FaUserCircle size={24} />
@@ -400,7 +400,7 @@ const NavbarMain = () => {
             >
               <DropdownTrigger>
                 <Button
-                  className="bg-gradient-to-br from-purple-600 to-pink-500 text-white hover:shadow-lg font-bold p-2 rounded-full mx-2"
+                  className="bg-black text-white hover:shadow-lg font-bold p-2 rounded-full mx-2"
                   onMouseEnter={() => setIsUserHovered(true)}
                   onMouseLeave={() => setIsUserHovered(false)}
                   isIconOnly
