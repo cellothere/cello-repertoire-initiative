@@ -439,10 +439,8 @@ const NavbarMain = () => {
               </DropdownMenu>
             </Dropdown>
           ) : (
-            <Link href="/login">
-              <Button className="bg-gradient-to-br from-purple-600 to-pink-500 text-white hover:shadow-lg font-bold py-2 px-4 rounded mx-2">
-                Login
-              </Button>
+            <Link href="/login" className="text-black font-bold mx-2 hover:underline">
+              Login
             </Link>
           )
         )}
