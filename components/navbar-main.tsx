@@ -9,7 +9,6 @@ import {
 } from "@heroui/react";
 import { RxHamburgerMenu } from "react-icons/rx";
 import { FaSearch, FaUserCircle, FaSignInAlt } from "react-icons/fa";
-import { BiSolidHomeCircle } from "react-icons/bi";
 import { useRouter } from "next/router";
 import Image from "next/image";
 import { useAuth } from "@/contexts/AuthContext";
@@ -199,9 +198,6 @@ const NavbarMain = () => {
         </button>
         {!isSearchOpen && (
           <>
-            <Link href="/">
-              <BiSolidHomeCircle size={35} className="mr-3" />
-            </Link>
             {!authLoading && (
               user ? (
                 <button
@@ -317,11 +313,6 @@ const NavbarMain = () => {
 
       {/* Desktop Navigation */}
       <nav className="hidden md:flex">
-        <Link href="/">
-          <button className="bg-black hover:bg-teal-600 text-white font-bold py-2 px-4 rounded mx-2">
-            Home
-          </button>
-        </Link>
         {/* Music Dropdown */}
         <Dropdown
           onMouseEnter={() => setisMusicHovered(true)}
