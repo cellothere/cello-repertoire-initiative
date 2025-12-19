@@ -3,6 +3,11 @@ import clientPromise from '@/lib/mongodb';
 import { hashPassword } from '@/lib/password';
 import { generateToken } from '@/lib/jwt';
 
+interface Counter {
+  _id: string;
+  seq: number;
+}
+
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
@@ -50,7 +55,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     // Get next sequential ID
-    const countersCollection = db.collection('counters');
+    const countersCollection = db.collection<Counter>('counters');
     const counterResult = await countersCollection.findOneAndUpdate(
       { _id: 'userId' },
       { $inc: { seq: 1 } },
