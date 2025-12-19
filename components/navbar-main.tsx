@@ -8,17 +8,20 @@ import {
   Button,
 } from "@heroui/react";
 import { RxHamburgerMenu } from "react-icons/rx";
-import { FaSearch } from "react-icons/fa";
+import { FaSearch, FaUserCircle } from "react-icons/fa";
 import { BiSolidHomeCircle } from "react-icons/bi";
 import { useRouter } from "next/router";
 import Image from "next/image";
+import { useAuth } from "@/contexts/AuthContext";
 
 const NavbarMain = () => {
   const router = useRouter();
+  const { user, loading: authLoading, logout } = useAuth();
 
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isMusicHovered, setisMusicHovered] = useState(false);
   const [isAboutHovered, setisAboutHovered] = useState(false);
+  const [isUserHovered, setIsUserHovered] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -181,6 +184,15 @@ const NavbarMain = () => {
             <Link href="/">
               <BiSolidHomeCircle size={35} className="mr-3" />
             </Link>
+            {!authLoading && user && (
+              <button
+                onClick={() => router.push('/account')}
+                className="bg-gradient-to-br from-purple-600 to-pink-500 text-white p-2 rounded-full mr-2"
+                aria-label="User account"
+              >
+                <FaUserCircle size={24} />
+              </button>
+            )}
             <Button
               variant="flat"
               onClick={toggleMenu}
@@ -198,6 +210,21 @@ const NavbarMain = () => {
             ref={menuRef}
             className="z-50 mt-1 absolute top-16 items-center right-0 bg-white w-60 border border-gray-400 rounded shadow-lg flex flex-col"
           >
+            {!authLoading && user && (
+              <>
+                <Link href="/account">
+                  <button className="w-full py-2 px-4 text-left hover:bg-gray-200">
+                    Account Settings
+                  </button>
+                </Link>
+                <Link href="/saved-pieces">
+                  <button className="w-full py-2 px-4 text-left hover:bg-gray-200">
+                    Saved Pieces
+                  </button>
+                </Link>
+                <div className="w-full border-b border-gray-300"></div>
+              </>
+            )}
             <Link href="/cello-music">
               <button className="w-full py-2 px-4 text-left hover:bg-gray-200">
                 Cello Music
@@ -228,6 +255,28 @@ const NavbarMain = () => {
                 About
               </button>
             </Link>
+            {!authLoading && (
+              <>
+                <div className="w-full border-t border-gray-300"></div>
+                {user ? (
+                  <button
+                    onClick={() => {
+                      logout();
+                      setIsMenuOpen(false);
+                    }}
+                    className="w-full py-2 px-4 text-left hover:bg-gray-200 text-red-600 font-medium"
+                  >
+                    Logout
+                  </button>
+                ) : (
+                  <Link href="/login">
+                    <button className="w-full py-2 px-4 text-left hover:bg-gray-200 text-purple-600 font-medium">
+                      Login
+                    </button>
+                  </Link>
+                )}
+              </>
+            )}
           </div>
         )}
       </div>
@@ -311,6 +360,55 @@ const NavbarMain = () => {
             </DropdownItem>
           </DropdownMenu>
         </Dropdown>
+        {/* User/Login Section */}
+        {!authLoading && (
+          user ? (
+            <Dropdown
+              onMouseEnter={() => setIsUserHovered(true)}
+              onMouseLeave={() => setIsUserHovered(false)}
+              isOpen={isUserHovered}
+              className="bg-white font-sans w-45"
+            >
+              <DropdownTrigger>
+                <Button
+                  className="bg-gradient-to-br from-purple-600 to-pink-500 text-white hover:shadow-lg font-bold p-2 rounded-full mx-2"
+                  onMouseEnter={() => setIsUserHovered(true)}
+                  onMouseLeave={() => setIsUserHovered(false)}
+                  isIconOnly
+                  aria-label="User menu"
+                >
+                  <FaUserCircle size={24} />
+                </Button>
+              </DropdownTrigger>
+              <DropdownMenu
+                aria-label="User Options"
+                className="custom-dropdown-menu"
+                onMouseEnter={() => setIsUserHovered(true)}
+                onMouseLeave={() => setIsUserHovered(false)}
+              >
+                <DropdownItem key="MyAccount" className="custom-dropdown-item text-black p-2">
+                  <Link href="/account">Account Settings</Link>
+                </DropdownItem>
+                <DropdownItem key="SavedPieces" className="custom-dropdown-item text-black p-2">
+                  <Link href="/saved-pieces">Saved Pieces</Link>
+                </DropdownItem>
+                <DropdownItem
+                  key="Logout"
+                  className="custom-dropdown-item text-red-600 p-2"
+                  onClick={() => logout()}
+                >
+                  Logout
+                </DropdownItem>
+              </DropdownMenu>
+            </Dropdown>
+          ) : (
+            <Link href="/login">
+              <Button className="bg-gradient-to-br from-purple-600 to-pink-500 text-white hover:shadow-lg font-bold py-2 px-4 rounded mx-2">
+                Login
+              </Button>
+            </Link>
+          )
+        )}
       </nav>
     </header>
   );

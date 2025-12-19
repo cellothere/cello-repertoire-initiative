@@ -1,7 +1,9 @@
 import { useState, useMemo, useCallback } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { FaSpinner, FaChevronRight } from 'react-icons/fa';
+import { useRouter } from 'next/router';
+import { FaSpinner, FaChevronRight, FaHeart, FaRegHeart } from 'react-icons/fa';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface MusicCardProps {
   id: number;
@@ -29,7 +31,37 @@ const MusicCard: React.FC<MusicCardProps> = ({
   level,
   instrumentation,
 }) => {
+  const router = useRouter();
+  const { user, savePiece, unsavePiece, isPieceSaved } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+
+  const isSaved = isPieceSaved(id);
+
+  const handleHeartClick = useCallback(async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    if (!user) {
+      // Store intended action in sessionStorage
+      sessionStorage.setItem('pendingSave', JSON.stringify({ pieceId: id, instrument }));
+      router.push(`/login?redirect=${encodeURIComponent(router.asPath)}`);
+      return;
+    }
+
+    setIsSaving(true);
+    try {
+      if (isSaved) {
+        await unsavePiece(id);
+      } else {
+        await savePiece(id, instrument);
+      }
+    } catch (error) {
+      console.error('Failed to save/unsave piece:', error);
+    } finally {
+      setIsSaving(false);
+    }
+  }, [user, id, instrument, isSaved, savePiece, unsavePiece, router]);
 
   // build slug from instrument prop (e.g. "Cello & Piano" → "cello-&-piano")
   const instrumentSlug = useMemo(
@@ -165,6 +197,19 @@ const MusicCard: React.FC<MusicCardProps> = ({
               style={{ objectFit: 'contain' }}
               className="bg-white"
             />
+            {/* Heart Icon Overlay */}
+            <button
+              onClick={handleHeartClick}
+              disabled={isSaving}
+              className="absolute top-2 right-2 p-2 rounded-full bg-white/90 hover:bg-white shadow-md transition-all disabled:opacity-50 z-10"
+              aria-label={isSaved ? "Unsave piece" : "Save piece"}
+            >
+              {isSaved ? (
+                <FaHeart className="text-red-500 text-xl" />
+              ) : (
+                <FaRegHeart className="text-gray-700 text-xl hover:text-red-500 transition-colors" />
+              )}
+            </button>
           </div>
 
           {/* Title & Composer */}
