@@ -2,12 +2,28 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 import clientPromise from '@/lib/mongodb';
 import { requireAuth } from '@/lib/auth-middleware';
 
+interface SavedPiece {
+  pieceId: number;
+  instrument: string;
+  savedAt: Date;
+}
+
+interface User {
+  id: number;
+  email: string;
+  username: string;
+  passwordHash: string;
+  createdAt: Date;
+  updatedAt: Date;
+  savedPieces: SavedPiece[];
+}
+
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   try {
     const user = await requireAuth(req);
     const client = await clientPromise;
     const db = client.db('repertoire');
-    const usersCollection = db.collection('users');
+    const usersCollection = db.collection<User>('users');
 
     // GET: Return all saved pieces with full details
     if (req.method === 'GET') {
