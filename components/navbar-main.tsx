@@ -19,6 +19,7 @@ const NavbarMain = () => {
   const { user, loading: authLoading, logout } = useAuth();
 
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isMobileUserMenuOpen, setIsMobileUserMenuOpen] = useState(false);
   const [isMusicHovered, setisMusicHovered] = useState(false);
   const [isAboutHovered, setisAboutHovered] = useState(false);
   const [isUserHovered, setIsUserHovered] = useState(false);
@@ -28,8 +29,9 @@ const NavbarMain = () => {
   // Detect mobile view
   const [isMobileView, setIsMobileView] = useState(false);
 
-  // Create a ref for the menu container
+  // Create refs for the menu containers
   const menuRef = useRef<HTMLDivElement>(null);
+  const mobileUserMenuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const handleResize = () => {
@@ -59,6 +61,22 @@ const NavbarMain = () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, [isMenuOpen]);
+
+  // Close the mobile user menu if a click happens outside
+  useEffect(() => {
+    if (!isMobileUserMenuOpen) return;
+
+    const handleClickOutside = (event: MouseEvent) => {
+      if (mobileUserMenuRef.current && !mobileUserMenuRef.current.contains(event.target as Node)) {
+        setIsMobileUserMenuOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [isMobileUserMenuOpen]);
 
   const toggleMenu = () => {
     setIsMenuOpen((prev) => !prev);
@@ -184,11 +202,11 @@ const NavbarMain = () => {
             <Link href="/">
               <BiSolidHomeCircle size={35} className="mr-3" />
             </Link>
-            {!authLoading && user && (
+            {!authLoading && (
               <button
-                onClick={() => router.push('/account')}
+                onClick={() => setIsMobileUserMenuOpen((prev) => !prev)}
                 className="bg-gradient-to-br from-purple-600 to-pink-500 text-white p-2 rounded-full mr-2"
-                aria-label="User account"
+                aria-label="User menu"
               >
                 <FaUserCircle size={24} />
               </button>
@@ -204,27 +222,12 @@ const NavbarMain = () => {
           </>
         )}
 
-        {/* Wrap the dropdown menu with the ref */}
+        {/* Hamburger menu for navigation items */}
         {isMenuOpen && (
           <div
             ref={menuRef}
             className="z-50 mt-1 absolute top-16 items-center right-0 bg-white w-60 border border-gray-400 rounded shadow-lg flex flex-col"
           >
-            {!authLoading && user && (
-              <>
-                <Link href="/account">
-                  <button className="w-full py-2 px-4 text-left hover:bg-gray-200">
-                    Account Settings
-                  </button>
-                </Link>
-                <Link href="/saved-pieces">
-                  <button className="w-full py-2 px-4 text-left hover:bg-gray-200">
-                    Saved Pieces
-                  </button>
-                </Link>
-                <div className="w-full border-b border-gray-300"></div>
-              </>
-            )}
             <Link href="/cello-music">
               <button className="w-full py-2 px-4 text-left hover:bg-gray-200">
                 Cello Music
@@ -255,27 +258,53 @@ const NavbarMain = () => {
                 About
               </button>
             </Link>
-            {!authLoading && (
+          </div>
+        )}
+
+        {/* Mobile user menu */}
+        {isMobileUserMenuOpen && (
+          <div
+            ref={mobileUserMenuRef}
+            className="z-50 mt-1 absolute top-16 items-center right-0 bg-white w-60 border border-gray-400 rounded shadow-lg flex flex-col"
+          >
+            {!authLoading && user ? (
               <>
-                <div className="w-full border-t border-gray-300"></div>
-                {user ? (
+                <Link href="/account">
                   <button
-                    onClick={() => {
-                      logout();
-                      setIsMenuOpen(false);
-                    }}
-                    className="w-full py-2 px-4 text-left hover:bg-gray-200 text-red-600 font-medium"
+                    onClick={() => setIsMobileUserMenuOpen(false)}
+                    className="w-full py-2 px-4 text-left hover:bg-gray-200"
                   >
-                    Logout
+                    Account Settings
                   </button>
-                ) : (
-                  <Link href="/login">
-                    <button className="w-full py-2 px-4 text-left hover:bg-gray-200 text-purple-600 font-medium">
-                      Login
-                    </button>
-                  </Link>
-                )}
+                </Link>
+                <Link href="/saved-pieces">
+                  <button
+                    onClick={() => setIsMobileUserMenuOpen(false)}
+                    className="w-full py-2 px-4 text-left hover:bg-gray-200"
+                  >
+                    Saved Pieces
+                  </button>
+                </Link>
+                <div className="w-full border-t border-gray-300"></div>
+                <button
+                  onClick={() => {
+                    logout();
+                    setIsMobileUserMenuOpen(false);
+                  }}
+                  className="w-full py-2 px-4 text-left hover:bg-gray-200 text-red-600 font-medium"
+                >
+                  Logout
+                </button>
               </>
+            ) : (
+              <Link href="/login">
+                <button
+                  onClick={() => setIsMobileUserMenuOpen(false)}
+                  className="w-full py-2 px-4 text-left hover:bg-gray-200 text-purple-600 font-medium"
+                >
+                  Login
+                </button>
+              </Link>
             )}
           </div>
         )}
@@ -386,11 +415,19 @@ const NavbarMain = () => {
                 onMouseEnter={() => setIsUserHovered(true)}
                 onMouseLeave={() => setIsUserHovered(false)}
               >
-                <DropdownItem key="MyAccount" className="custom-dropdown-item text-black p-2">
-                  <Link href="/account">Account Settings</Link>
+                <DropdownItem
+                  key="MyAccount"
+                  className="custom-dropdown-item text-black p-2"
+                  onClick={() => router.push('/account')}
+                >
+                  Account Settings
                 </DropdownItem>
-                <DropdownItem key="SavedPieces" className="custom-dropdown-item text-black p-2">
-                  <Link href="/saved-pieces">Saved Pieces</Link>
+                <DropdownItem
+                  key="SavedPieces"
+                  className="custom-dropdown-item text-black p-2"
+                  onClick={() => router.push('/saved-pieces')}
+                >
+                  Saved Pieces
                 </DropdownItem>
                 <DropdownItem
                   key="Logout"
