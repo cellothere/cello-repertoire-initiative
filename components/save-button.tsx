@@ -69,7 +69,7 @@ export default function SaveButton({ pieceId, instrument, title, variant = 'icon
       aria-pressed={saved}
       aria-label={label}
       title={saved ? 'Remove from saved pieces' : 'Save piece'}
-      className={`rounded-full bg-white/90 p-2 shadow-md backdrop-blur transition hover:scale-110 hover:bg-white disabled:opacity-60 ${className}`}
+      className={`rounded-full bg-white/90 p-2.5 shadow-md backdrop-blur transition active:scale-90 hover:scale-110 hover:bg-white disabled:opacity-60 sm:p-2 ${className}`}
     >
       <Icon className={`h-4 w-4 ${saved ? 'text-rose-500' : 'text-gray-700'}`} aria-hidden="true" />
     </button>

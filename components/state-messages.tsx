@@ -12,7 +12,7 @@ export function Spinner({ className = 'h-5 w-5' }: { className?: string }) {
 
 export function ErrorState({ message, onRetry }: { message: string; onRetry?: () => void }) {
   return (
-    <div role="alert" className="card mx-auto max-w-lg p-8 text-center">
+    <div role="alert" className="card mx-auto max-w-lg p-6 text-center sm:p-8">
       <FaExclamationTriangle className="mx-auto mb-4 h-8 w-8 text-amber-500" aria-hidden="true" />
       <p className="mb-6 text-gray-700">{message}</p>
       {onRetry && (
@@ -34,7 +34,7 @@ export function EmptyState({
   children?: ReactNode;
 }) {
   return (
-    <div className="card mx-auto max-w-lg px-6 py-12 text-center">
+    <div className="card mx-auto max-w-lg px-6 py-10 text-center sm:py-12">
       {icon && <div className="mx-auto mb-4 flex justify-center text-gray-400">{icon}</div>}
       <h2 className="mb-2 text-xl font-bold text-gray-900">{title}</h2>
       {children && <div className="text-gray-600">{children}</div>}

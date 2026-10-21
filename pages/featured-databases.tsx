@@ -83,7 +83,8 @@ const FeaturedDatabases: NextPage = () => {
         description="Explore curated databases of cello music by women, non-binary, Black, and Indigenous composers."
       />
       <PageHeader title="Featured Databases" subtitle="Curated collections celebrating composers from all backgrounds.">
-        <div className="-mx-4 mt-8 overflow-x-auto px-4 pb-1">
+        {/* Swipeable on phones. */}
+        <div className="-mx-4 mt-5 snap-x snap-mandatory scroll-px-4 overflow-x-auto px-4 pb-1 [scrollbar-width:none] md:mt-8 [&::-webkit-scrollbar]:hidden">
           <div className="mx-auto flex w-max gap-2" role="group" aria-label="Choose a database">
             {CATEGORIES.map((c) => (
               <button
@@ -91,7 +92,7 @@ const FeaturedDatabases: NextPage = () => {
                 type="button"
                 onClick={() => selectCategory(c.slug)}
                 aria-pressed={category === c.slug}
-                className={`whitespace-nowrap rounded-full px-5 py-2.5 font-medium transition-colors ${
+                className={`snap-start whitespace-nowrap rounded-full px-4 py-2.5 text-[0.9375rem] font-medium transition-colors md:px-5 md:text-base ${
                   category === c.slug ? 'bg-white text-gray-900 shadow-lg' : 'bg-white/10 text-white hover:bg-white/20'
                 }`}
               >
@@ -107,10 +108,10 @@ const FeaturedDatabases: NextPage = () => {
         </div>
       </PageHeader>
 
-      <div className="container mx-auto px-4 py-8">
-        <div className="mb-6 flex flex-wrap items-center gap-3">
+      <div className="container mx-auto px-4 py-5 md:py-8">
+        <div className="mb-4 flex flex-wrap items-center gap-3 md:mb-6">
           <h2 className="text-xl font-bold">{active.label}</h2>
-          <div className="ml-auto flex items-center gap-3">
+          <div className="ml-auto flex items-center gap-2 sm:gap-3">
             <SortSelect
               id="featured-sort"
               value={sort}

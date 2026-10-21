@@ -15,8 +15,8 @@ import { formatDuration, hostnameOf, parseYear, youtubeId } from '@/utils/musicU
 
 function Card({ title, children, className = '' }: { title: string; children: ReactNode; className?: string }) {
   return (
-    <section className={`card p-6 ${className}`}>
-      <h2 className="mb-4 text-lg font-bold text-gray-900">{title}</h2>
+    <section className={`card p-5 sm:p-6 ${className}`}>
+      <h2 className="mb-3 text-lg font-bold text-gray-900 sm:mb-4">{title}</h2>
       {children}
     </section>
   );
@@ -45,6 +45,32 @@ export default function PieceDetailPage({ piece }: { piece: PieceDetail }) {
     { label: 'Publisher', value: piece.publisher_info },
   ].filter((detail) => detail.value);
 
+  // Shown in the sidebar on wide screens, and straight after the recording on phones, where the
+  // sidebar would otherwise come last.
+  const purchaseCard = (className: string) => (
+    <Card title="Purchase or download" className={className}>
+      {piece.where_to_buy_or_download.length > 0 ? (
+        <ul className="space-y-3">
+          {piece.where_to_buy_or_download.map((entry, index) => (
+            <li key={index} className="flex items-start gap-3 text-gray-700">
+              <BsFileEarmarkMusicFill className="mt-1 h-4 w-4 shrink-0 text-gray-400" aria-hidden="true" />
+              <span className="min-w-0 break-words">
+                <Linkify text={entry} />
+              </span>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p className="text-gray-600">
+          We don&apos;t have a source for this score yet.{' '}
+          <Link href="/contribute" className="font-medium text-teal-700 underline underline-offset-2">
+            Know where to find it?
+          </Link>
+        </p>
+      )}
+    </Card>
+  );
+
   return (
     <>
       <Seo
@@ -58,9 +84,9 @@ export default function PieceDetailPage({ piece }: { piece: PieceDetail }) {
 
       <header className="relative overflow-hidden bg-gradient-to-r from-gray-900 via-gray-800 to-black text-white">
         <div className="absolute inset-0 bg-gradient-to-br from-teal-500/10 to-transparent" aria-hidden="true" />
-        <div className="container relative z-10 mx-auto px-4 py-8 md:py-12">
+        <div className="container relative z-10 mx-auto px-4 py-6 md:py-12">
           {listingPath && (
-            <nav aria-label="Breadcrumb" className="mb-4 text-sm text-gray-400">
+            <nav aria-label="Breadcrumb" className="mb-3 text-sm text-gray-400 md:mb-4">
               <ol className="flex flex-wrap items-center gap-1.5">
                 <li>
                   <Link href={listingPath} className="hover:text-white hover:underline">
@@ -77,9 +103,9 @@ export default function PieceDetailPage({ piece }: { piece: PieceDetail }) {
             </nav>
           )}
 
-          <h1 className="max-w-4xl break-words text-3xl font-bold tracking-tight md:text-5xl">{piece.title}</h1>
+          <h1 className="max-w-4xl break-words text-[1.75rem] font-bold leading-tight tracking-tight md:text-5xl">{piece.title}</h1>
 
-          <p className="mt-3 text-lg text-gray-300">
+          <p className="mt-2 text-lg text-gray-300 md:mt-3">
             by{' '}
             {piece.composer.bio_link ? (
               <a
@@ -95,21 +121,39 @@ export default function PieceDetailPage({ piece }: { piece: PieceDetail }) {
             )}
           </p>
 
-          <div className="mt-6 flex flex-wrap items-center gap-3">
+          {/* Phones get the key facts up top; wider screens have the Details card beside the description. */}
+          {details.length > 0 && (
+            <dl className="mt-4 grid grid-cols-2 gap-x-4 gap-y-2 rounded-xl bg-white/5 p-3 text-sm ring-1 ring-inset ring-white/10 lg:hidden">
+              {details.map((detail) => (
+                <div key={detail.label} className={`min-w-0 ${detail.label === 'Publisher' ? 'col-span-2' : ''}`}>
+                  <dt className="text-xs text-gray-400">{detail.label}</dt>
+                  <dd className="break-words font-medium text-white">{detail.value}</dd>
+                </div>
+              ))}
+            </dl>
+          )}
+
+          <div className="mt-5 flex flex-wrap items-center gap-2 sm:mt-6 sm:gap-3">
             <button
               type="button"
               onClick={() => setRubricOpen(true)}
-              className="inline-flex items-center gap-2 rounded-lg bg-white/10 px-4 py-2 font-semibold text-white ring-1 ring-inset ring-white/20 transition-colors hover:bg-white/20"
+              className="inline-flex flex-1 items-center justify-center gap-2 whitespace-nowrap rounded-lg bg-white/10 px-4 py-2.5 font-semibold text-white ring-1 ring-inset ring-white/20 transition-colors hover:bg-white/20 sm:flex-none sm:py-2"
               aria-label={`Level: ${piece.level}. What does this level mean?`}
             >
               {piece.level}
               <AiFillQuestionCircle className="h-4 w-4 text-teal-300" aria-hidden="true" />
             </button>
-            <SaveButton pieceId={piece.id} instrument={piece.instrument} title={piece.title} variant="full" />
+            <SaveButton
+              pieceId={piece.id}
+              instrument={piece.instrument}
+              title={piece.title}
+              variant="full"
+              className="shrink-0 justify-center py-2.5 sm:py-2"
+            />
             {worksHref && (
               <Link
                 href={worksHref}
-                className="inline-flex items-center gap-2 rounded-lg px-4 py-2 font-semibold text-teal-300 transition-colors hover:bg-white/10 hover:text-teal-200"
+                className="-ml-2 inline-flex w-full items-center gap-2 rounded-lg px-2 py-2 font-semibold text-teal-300 transition-colors hover:bg-white/10 hover:text-teal-200 sm:ml-0 sm:w-auto sm:px-4"
               >
                 More by this composer
                 <FaArrowRight className="h-3 w-3" aria-hidden="true" />
@@ -119,13 +163,15 @@ export default function PieceDetailPage({ piece }: { piece: PieceDetail }) {
         </div>
       </header>
 
-      <div className="container mx-auto grid gap-6 px-4 py-8 md:py-12 lg:grid-cols-3 lg:gap-8">
-        <div className="space-y-6 lg:col-span-2">
+      <div className="container mx-auto grid gap-4 px-4 py-5 sm:gap-6 md:py-12 lg:grid-cols-3 lg:gap-8">
+        <div className="space-y-4 sm:space-y-6 lg:col-span-2">
           {videoId && (
             <section className="card overflow-hidden" aria-label="Recording">
               <YouTubeEmbed videoId={videoId} title={piece.title} />
             </section>
           )}
+
+          {purchaseCard('lg:hidden')}
 
           <Card title="About this piece">
             <p className="whitespace-pre-line break-words leading-relaxed text-gray-700">
@@ -156,9 +202,9 @@ export default function PieceDetailPage({ piece }: { piece: PieceDetail }) {
           </Card>
         </div>
 
-        <aside className="space-y-6">
+        <aside className="space-y-4 sm:space-y-6">
           {details.length > 0 && (
-            <Card title="Details">
+            <Card title="Details" className="hidden lg:block">
               <dl className="space-y-3">
                 {details.map((detail) => (
                   <div key={detail.label}>
@@ -172,27 +218,7 @@ export default function PieceDetailPage({ piece }: { piece: PieceDetail }) {
             </Card>
           )}
 
-          <Card title="Purchase or download">
-            {piece.where_to_buy_or_download.length > 0 ? (
-              <ul className="space-y-3">
-                {piece.where_to_buy_or_download.map((entry, index) => (
-                  <li key={index} className="flex items-start gap-3 text-gray-700">
-                    <BsFileEarmarkMusicFill className="mt-1 h-4 w-4 shrink-0 text-gray-400" aria-hidden="true" />
-                    <span className="min-w-0 break-words">
-                      <Linkify text={entry} />
-                    </span>
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <p className="text-gray-600">
-                We don&apos;t have a source for this score yet.{' '}
-                <Link href="/contribute" className="font-medium text-teal-700 underline underline-offset-2">
-                  Know where to find it?
-                </Link>
-              </p>
-            )}
-          </Card>
+          {purchaseCard('hidden lg:block')}
 
           {recordings.length > 0 && (
             <Card title="Recordings">

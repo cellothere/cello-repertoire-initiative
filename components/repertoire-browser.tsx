@@ -14,6 +14,7 @@ import type { PieceSummary } from '@/lib/types';
 import techniqueKeywords from '@/utils/techniqueKeywords';
 import {
   LEVEL_ORDER,
+  SORT_OPTIONS,
   baseLevel,
   formatComposerName,
   instrumentationCategories,
@@ -69,8 +70,8 @@ function FilterDrawer({
   return (
     <div className="fixed inset-0 z-50 lg:hidden" role="dialog" aria-modal="true" aria-labelledby="filter-drawer-title">
       <div className="absolute inset-0 animate-fade-in bg-black/40" onClick={onClose} aria-hidden="true" />
-      <div className="absolute inset-y-0 right-0 flex w-full max-w-sm animate-slide-in-right flex-col bg-white shadow-2xl">
-        <div className="flex items-center justify-between border-b border-gray-200 px-4 py-3">
+      <div className="absolute inset-y-0 right-0 flex w-full animate-slide-in-right flex-col bg-white shadow-2xl sm:max-w-sm">
+        <div className="flex items-center justify-between border-b border-gray-200 px-4 pb-3 pt-[max(0.75rem,env(safe-area-inset-top))]">
           <h2 id="filter-drawer-title" className="text-lg font-bold">
             Filters
           </h2>
@@ -84,8 +85,8 @@ function FilterDrawer({
             <IoClose className="h-6 w-6" />
           </button>
         </div>
-        <div className="flex-1 overflow-y-auto px-4">{children}</div>
-        <div className="flex gap-3 border-t border-gray-200 p-4">
+        <div className="flex-1 overflow-y-auto overscroll-contain px-4">{children}</div>
+        <div className="flex gap-3 border-t border-gray-200 px-4 pt-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
           <button type="button" onClick={onClear} className="btn-secondary flex-1">
             Clear all
           </button>
@@ -212,9 +213,19 @@ export default function RepertoireBrowser({ instrument, apiPath, path }: Reperto
       ? [{ key: 'year', label: `${state.from}–${state.to}`, remove: () => setYears(EMPTY_FILTERS.from, EMPTY_FILTERS.to) }]
       : []),
   ];
+  const sortLabel = SORT_OPTIONS.find((option) => option.value === state.sort)?.label ?? '';
   const hasQuery = state.q.trim().length > 0;
   const activeCount = chips.length + (hasQuery ? 1 : 0);
   const isLoading = loading || !ready;
+  const resultCount = isLoading ? (
+    'Loading…'
+  ) : (
+    <>
+      <span className="font-semibold text-gray-900">{sorted.length.toLocaleString()}</span>{' '}
+      {sorted.length === 1 ? 'piece' : 'pieces'}
+      {activeCount > 0 && ` of ${pieces.length.toLocaleString()}`}
+    </>
+  );
 
   const panel = (idPrefix: string) => (
     <FilterPanel
@@ -244,7 +255,7 @@ export default function RepertoireBrowser({ instrument, apiPath, path }: Reperto
         }
       />
 
-      <div className="container mx-auto px-4 py-6 lg:flex lg:items-start lg:gap-8">
+      <div className="container mx-auto px-4 py-4 sm:py-6 lg:flex lg:items-start lg:gap-8">
         <aside className="hidden w-72 shrink-0 lg:block" aria-label="Filters">
           <div className="sticky top-24 max-h-[calc(100vh-7rem)] overflow-y-auto rounded-2xl border border-gray-200 bg-white px-4 py-2 shadow-sm">
             <div className="flex items-center justify-between border-b border-gray-200 py-2">
@@ -266,17 +277,21 @@ export default function RepertoireBrowser({ instrument, apiPath, path }: Reperto
               type="search"
               value={state.q}
               onChange={(e) => update({ q: e.target.value })}
+              // Return closes the phone keyboard so the results are visible.
+              onKeyDown={(e) => e.key === 'Enter' && e.currentTarget.blur()}
+              enterKeyHint="search"
               placeholder="Search by title or composer"
               aria-label="Search by title or composer"
               className="input pl-11 shadow-sm"
             />
           </div>
 
-          <div className="mt-4 flex flex-wrap items-center gap-3">
+          {/* On phones and tablets this bar sticks under the header, so filters and sort stay in reach while scrolling. */}
+          <div className="sticky top-14 z-30 -mx-4 mt-3 flex items-center gap-2 border-b border-gray-200 bg-gray-50/95 px-4 py-2 backdrop-blur md:top-16 lg:static lg:mx-0 lg:mt-4 lg:gap-3 lg:border-0 lg:bg-transparent lg:p-0 lg:backdrop-blur-none">
             <button
               type="button"
               onClick={() => setDrawerOpen(true)}
-              className="btn-secondary px-4 py-2 text-sm lg:hidden"
+              className="btn-secondary shrink-0 px-3.5 py-2 text-sm lg:hidden"
             >
               <FaFilter className="h-3.5 w-3.5" aria-hidden="true" />
               Filters
@@ -284,32 +299,28 @@ export default function RepertoireBrowser({ instrument, apiPath, path }: Reperto
                 <span className="rounded-full bg-teal-600 px-2 py-0.5 text-xs font-bold text-white">{chips.length}</span>
               )}
             </button>
-            <p className="text-sm text-gray-600" aria-live="polite">
-              {isLoading ? (
-                'Loading…'
-              ) : (
-                <>
-                  <span className="font-semibold text-gray-900">{sorted.length.toLocaleString()}</span>{' '}
-                  {sorted.length === 1 ? 'piece' : 'pieces'}
-                  {activeCount > 0 && ` of ${pieces.length.toLocaleString()}`}
-                </>
-              )}
+            <p className="hidden text-sm text-gray-600 sm:block" aria-live="polite">
+              {resultCount}
             </p>
-            <div className="ml-auto flex items-center gap-3">
-              <div className="hidden sm:block">
-                <SortSelect id="sort-select" value={state.sort} onChange={(sort) => update({ sort })} />
-              </div>
+            <div className="ml-auto flex items-center gap-2 sm:gap-3">
+              <SortSelect id="sort-select" value={state.sort} onChange={(sort) => update({ sort })} />
               <ViewToggle value={state.view} onChange={(view) => update({ view }, { keepPage: true })} />
             </div>
           </div>
-          <div className="mt-3 sm:hidden">
-            <SortSelect id="sort-select-mobile" value={state.sort} onChange={(sort) => update({ sort })} />
-          </div>
+          <p className="mt-3 truncate text-sm text-gray-600 sm:hidden" aria-live="polite">
+            {resultCount}
+            {/* The phone toolbar only says "Sort", so name the current order here. */}
+            {!isLoading && <span className="text-gray-500"> · {sortLabel}</span>}
+          </p>
 
           {chips.length > 0 && (
-            <ul className="mt-4 flex flex-wrap gap-2" aria-label="Active filters">
+            // One swipeable row on phones; wraps on wider screens.
+            <ul
+              className="-mx-4 mt-3 flex gap-2 overflow-x-auto px-4 pb-1 [scrollbar-width:none] sm:mx-0 sm:mt-4 sm:flex-wrap sm:overflow-visible sm:px-0 sm:pb-0 [&::-webkit-scrollbar]:hidden"
+              aria-label="Active filters"
+            >
               {chips.map((chip) => (
-                <li key={chip.key}>
+                <li key={chip.key} className="shrink-0">
                   <button
                     type="button"
                     onClick={chip.remove}
@@ -321,7 +332,7 @@ export default function RepertoireBrowser({ instrument, apiPath, path }: Reperto
                   </button>
                 </li>
               ))}
-              <li>
+              <li className="shrink-0">
                 <button type="button" onClick={clearFilters} className="chip bg-transparent text-gray-600 hover:text-gray-900 hover:underline">
                   Clear all
                 </button>
@@ -329,7 +340,7 @@ export default function RepertoireBrowser({ instrument, apiPath, path }: Reperto
             </ul>
           )}
 
-          <div className="mt-6">
+          <div className="mt-4 sm:mt-6">
             {error ? (
               <ErrorState message="We couldn't load the catalogue. Please check your connection and try again." onRetry={retry} />
             ) : isLoading ? (

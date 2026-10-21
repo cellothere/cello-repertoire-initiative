@@ -30,20 +30,22 @@ const Resources: NextPage = () => {
       />
       <PageHeader title="Resource Catalog" subtitle="Websites, databases, and teaching tools we recommend." />
 
-      <div className="container mx-auto px-4 py-8 md:py-12">
+      <div className="container mx-auto px-4 py-5 md:py-12">
         <div className="relative mx-auto max-w-xl">
           <FaSearch className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" aria-hidden="true" />
           <input
             type="search"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && e.currentTarget.blur()}
+            enterKeyHint="search"
             placeholder="Search resources…"
             aria-label="Search resources"
             className="input pl-11 shadow-sm"
           />
         </div>
 
-        <div className="mt-8">
+        <div className="mt-5 md:mt-8">
           {error ? (
             <ErrorState message="We couldn't load the resource catalog. Please try again." onRetry={retry} />
           ) : loading ? (
@@ -61,14 +63,14 @@ const Resources: NextPage = () => {
               Try a different search.
             </EmptyState>
           ) : (
-            <ul className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            <ul className="grid gap-3 sm:gap-6 md:grid-cols-2 lg:grid-cols-3">
               {visible.map((resource) => (
                 <li key={resource._id}>
                   <a
                     href={resource.url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="card group flex h-full flex-col p-6 transition hover:-translate-y-0.5 hover:shadow-lg"
+                    className="card group flex h-full flex-col p-5 transition active:scale-[0.98] hover:-translate-y-0.5 hover:shadow-lg sm:p-6"
                   >
                     <h2 className="text-lg font-semibold text-gray-900 group-hover:underline">{resource.title}</h2>
                     <p className="mt-2 flex-grow leading-relaxed text-gray-600">{resource.description}</p>

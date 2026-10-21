@@ -53,12 +53,12 @@ const ContactUs: NextPage = () => {
       />
       <PageHeader title="Get in Touch" subtitle="Have questions or suggestions? We'd love to hear from you." />
 
-      <div className="container mx-auto px-4 py-12 md:py-16">
+      <div className="container mx-auto px-4 py-6 md:py-16">
         <div className="max-w-3xl mx-auto">
           {/* Contact Information */}
           {!formSubmitted && (
-            <div className="text-center mb-10">
-              <p className="text-lg text-gray-700 leading-relaxed mb-4">
+            <div className="text-center mb-6 md:mb-10">
+              <p className="text-base md:text-lg text-gray-700 leading-relaxed mb-3 md:mb-4">
                 Questions, feedback, or collaboration ideas? We&apos;re here to help.
               </p>
               <p className="text-gray-600">
@@ -76,7 +76,7 @@ const ContactUs: NextPage = () => {
 
           {/* Contact Form */}
           {!formSubmitted ? (
-            <form onSubmit={handleSubmit} className="space-y-6 bg-white shadow-xl rounded-2xl p-8 md:p-10 border border-gray-200">
+            <form onSubmit={handleSubmit} className="space-y-6 bg-white shadow-xl rounded-2xl p-5 sm:p-8 md:p-10 border border-gray-200">
               <div className="space-y-6">
                 <div className="flex flex-col">
                   <label htmlFor="name" className="font-semibold text-gray-800 mb-2 text-sm uppercase tracking-wide">
@@ -86,6 +86,7 @@ const ContactUs: NextPage = () => {
                     type="text"
                     id="name"
                     name="name"
+                    autoComplete="name"
                     value={formData.name}
                     onChange={handleChange}
                     required
@@ -103,6 +104,7 @@ const ContactUs: NextPage = () => {
                     type="email"
                     id="email"
                     name="email"
+                    autoComplete="email"
                     value={formData.email}
                     onChange={handleChange}
                     required
@@ -161,7 +163,7 @@ const ContactUs: NextPage = () => {
               </button>
             </form>
           ) : (
-            <div className="bg-white shadow-xl rounded-2xl p-8 md:p-12 text-center border border-gray-200">
+            <div className="bg-white shadow-xl rounded-2xl p-6 sm:p-8 md:p-12 text-center border border-gray-200">
               <div className="mb-8">
                 <div className="mx-auto w-20 h-20 bg-gradient-to-br from-teal-500 to-teal-600 rounded-full flex items-center justify-center mb-6 shadow-lg">
                   <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">

@@ -53,7 +53,7 @@ function Section({
           onClick={() => setOpen((value) => !value)}
           aria-expanded={open}
           aria-controls={id}
-          className="flex w-full items-center justify-between gap-2 py-3 text-left font-semibold text-gray-900"
+          className="flex w-full items-center justify-between gap-2 py-3.5 text-left font-semibold text-gray-900 lg:py-3"
         >
           <span className="flex items-center gap-2">
             {title}
@@ -111,10 +111,10 @@ function CheckboxList({
           onChange={(e) => setSearch(e.target.value)}
           placeholder={searchLabel}
           aria-label={searchLabel}
-          className="mb-2 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500"
+          className="mb-2 w-full rounded-lg border border-gray-300 px-3 py-2.5 text-base focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500 lg:py-2 lg:text-sm"
         />
       )}
-      <ul className={`space-y-0.5 ${searchLabel ? 'max-h-64 overflow-y-auto pr-1' : ''}`}>
+      <ul className={`space-y-0.5 ${searchLabel ? 'max-h-72 overflow-y-auto overscroll-contain pr-1 lg:max-h-64' : ''}`}>
         {visible.map((option) => {
           const id = `${idPrefix}-${option.value}`.replace(/[^\w-]/g, '_');
           return (
@@ -124,9 +124,10 @@ function CheckboxList({
                 type="checkbox"
                 checked={selectedSet.has(option.value)}
                 onChange={() => onToggle(option.value)}
-                className="h-4 w-4 shrink-0 rounded border-gray-300 accent-teal-600"
+                className="h-5 w-5 shrink-0 rounded border-gray-300 accent-teal-600 lg:h-4 lg:w-4"
               />
-              <label htmlFor={id} className="flex-1 cursor-pointer rounded px-1.5 py-1 text-sm text-gray-700 hover:bg-gray-100">
+              {/* Taller rows in the phone drawer, so each option is easy to hit with a thumb. */}
+              <label htmlFor={id} className="flex-1 cursor-pointer rounded px-2 py-2.5 text-base text-gray-700 hover:bg-gray-100 lg:px-1.5 lg:py-1 lg:text-sm">
                 {option.label}
               </label>
               {renderAfter?.(option)}
@@ -174,7 +175,7 @@ function YearRange({
   };
 
   const inputClass =
-    'w-full rounded-lg border border-gray-300 px-2 py-1.5 text-center text-sm tabular-nums focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500';
+    'w-full rounded-lg border border-gray-300 px-2 py-2.5 text-center text-base tabular-nums focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500 lg:py-1.5 lg:text-sm';
 
   return (
     <div className="px-1">
@@ -250,11 +251,11 @@ export default function FilterPanel({ idPrefix, filters, options, onToggle, onYe
             <button
               type="button"
               onClick={() => setRubricLevel(option.value)}
-              className="rounded-full p-1 text-gray-400 transition-colors hover:text-teal-700"
+              className="rounded-full p-2.5 text-gray-400 transition-colors hover:text-teal-700 lg:p-1"
               aria-label={`What does ${option.label} mean?`}
               title="What does this level mean?"
             >
-              <AiFillQuestionCircle className="h-4 w-4" aria-hidden="true" />
+              <AiFillQuestionCircle className="h-5 w-5 lg:h-4 lg:w-4" aria-hidden="true" />
             </button>
           )}
         />
