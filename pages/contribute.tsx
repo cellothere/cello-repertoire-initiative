@@ -71,12 +71,12 @@ const Contribute: NextPage = () => {
                 subtitle="Help us grow by sharing cello music and teaching resources"
             />
 
-            <div className="container mx-auto px-4 py-12 md:py-16">
+            <div className="container mx-auto px-4 py-6 md:py-16">
                 <div className="max-w-3xl mx-auto">
                     {!formSubmitted ? (
                         <>
-                            <div className="text-center mb-10">
-                                <p className="text-lg text-gray-700 leading-relaxed mb-4">
+                            <div className="text-center mb-6 md:mb-10">
+                                <p className="text-base md:text-lg text-gray-700 leading-relaxed mb-3 md:mb-4">
                                     Know of a piece of music or teaching resource that&apos;s not in our database?
                                 </p>
                                 <p className="text-gray-600">
@@ -84,7 +84,7 @@ const Contribute: NextPage = () => {
                                 </p>
                             </div>
 
-                            <form onSubmit={submitForm} className="space-y-6 bg-white shadow-xl rounded-2xl p-8 md:p-10 border border-gray-200">
+                            <form onSubmit={submitForm} className="space-y-6 bg-white shadow-xl rounded-2xl p-5 sm:p-8 md:p-10 border border-gray-200">
                                 <div className="space-y-6">
                                     <div className="flex flex-col">
                                         <label htmlFor="pieceName" className="font-semibold text-gray-800 mb-2 text-sm uppercase tracking-wide">
@@ -136,6 +136,8 @@ const Contribute: NextPage = () => {
                                                 <div key={index} className="flex items-center gap-2">
                                                     <input
                                                         type="url"
+                                                        inputMode="url"
+                                                        autoCapitalize="off"
                                                         value={link}
                                                         placeholder="https://www.example.com/sheet-music"
                                                         onChange={(e) => handleLinkChange(index, e.target.value)}
@@ -148,7 +150,7 @@ const Contribute: NextPage = () => {
                                                             type="button"
                                                             onClick={() => removeLinkField(index)}
                                                             disabled={isSubmitting}
-                                                            className="p-2 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                                            className="p-3 text-red-500 hover:text-red-700 hover:bg-red-50 active:bg-red-50 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                                                             aria-label={`Remove link ${index + 1}`}
                                                         >
                                                             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -225,7 +227,7 @@ const Contribute: NextPage = () => {
                             </form>
                         </>
                     ) : (
-                        <div className="bg-white shadow-xl rounded-2xl p-8 md:p-12 text-center border border-gray-200">
+                        <div className="bg-white shadow-xl rounded-2xl p-6 sm:p-8 md:p-12 text-center border border-gray-200">
                             <div className="mb-8">
                                 <div className="mx-auto w-20 h-20 bg-gradient-to-br from-teal-500 to-teal-600 rounded-full flex items-center justify-center mb-6 shadow-lg">
                                     <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">

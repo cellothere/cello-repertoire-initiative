@@ -59,7 +59,7 @@ export default function AccountPage() {
           <div className="space-y-6">
             <Link
               href="/saved-pieces"
-              className="card group flex items-center gap-4 p-6 transition hover:-translate-y-0.5 hover:shadow-lg"
+              className="card group flex items-center gap-4 p-5 transition active:scale-[0.98] hover:-translate-y-0.5 hover:shadow-lg sm:p-6"
             >
               <span className="flex h-12 w-12 items-center justify-center rounded-full bg-rose-50 text-rose-500">
                 <FaHeart className="h-5 w-5" aria-hidden="true" />
@@ -73,7 +73,7 @@ export default function AccountPage() {
               <FaArrowRight className="h-4 w-4 text-gray-400 transition-transform group-hover:translate-x-1" aria-hidden="true" />
             </Link>
 
-            <section className="card space-y-5 p-8">
+            <section className="card space-y-5 p-5 sm:p-8">
               <h2 className="text-xl font-bold">Profile</h2>
 
               <div>

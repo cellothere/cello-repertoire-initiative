@@ -1,7 +1,7 @@
 import { useDeferredValue, useMemo, useState } from 'react';
 import { NextPage } from 'next';
 import Link from 'next/link';
-import { FaArrowRight, FaSearch, FaUsers } from 'react-icons/fa';
+import { FaArrowRight, FaChevronRight, FaSearch, FaUsers } from 'react-icons/fa';
 import Seo from '@/components/seo';
 import PageHeader from '@/components/page-header';
 import { ExternalLink } from '@/components/linkify';
@@ -62,25 +62,45 @@ function ComposerRow({ composer }: { composer: ComposerSummary }) {
   const worksHref = composer.cello_works > 0 ? composerWorksHref('cello', composer.composer_full_name) : null;
   const dates = composer.born ? `${composer.born}${composer.died ? `–${composer.died}` : '–'}` : '';
 
+  const works = `${composer.cello_works} ${composer.cello_works === 1 ? 'work' : 'works'}`;
+
   return (
-    <li className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between sm:p-5">
-      <div className="min-w-0">
-        <p className="text-lg font-semibold text-gray-900">
+    <li className="relative flex items-center gap-3 px-4 py-3 active:bg-gray-50 sm:justify-between sm:p-5 sm:active:bg-transparent">
+      <div className="min-w-0 flex-1">
+        <p className="font-semibold text-gray-900 sm:text-lg">
           {formatComposerName(composer.composer_first_name, composer.composer_last_name)}
           {dates && <span className="ml-2 text-sm font-normal text-gray-500">({dates})</span>}
         </p>
-        <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-gray-600">
+        <div className="mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-gray-600 sm:mt-1">
           {composer.nationality.length > 0 && <span>{composer.nationality.join(', ')}</span>}
-          {composer.bio_link && <ExternalLink href={composer.bio_link}>Biography</ExternalLink>}
+          {/* Above the row-wide link below, so it stays separately tappable. */}
+          {composer.bio_link && (
+            <span className="relative z-10">
+              <ExternalLink href={composer.bio_link}>Biography</ExternalLink>
+            </span>
+          )}
         </div>
       </div>
       {worksHref ? (
-        <Link href={worksHref} className="btn-primary shrink-0 self-start px-4 py-2 text-sm sm:self-auto">
-          {composer.cello_works} {composer.cello_works === 1 ? 'work' : 'works'}
-          <FaArrowRight className="h-3 w-3" aria-hidden="true" />
-        </Link>
+        <>
+          {/* Phones: the whole row opens the composer's works. */}
+          <Link
+            href={worksHref}
+            className="flex shrink-0 items-center gap-1.5 text-sm font-semibold text-teal-700 after:absolute after:inset-0 sm:hidden"
+          >
+            {works}
+            <FaChevronRight className="h-3 w-3" aria-hidden="true" />
+          </Link>
+          <Link href={worksHref} className="btn-primary hidden shrink-0 px-4 py-2 text-sm sm:inline-flex">
+            {works}
+            <FaArrowRight className="h-3 w-3" aria-hidden="true" />
+          </Link>
+        </>
       ) : (
-        <span className="shrink-0 text-sm text-gray-400">No cello works listed yet</span>
+        <span className="shrink-0 text-right text-sm text-gray-400">
+          <span className="sm:hidden">No works yet</span>
+          <span className="hidden sm:inline">No cello works listed yet</span>
+        </span>
       )}
     </li>
   );
@@ -129,7 +149,7 @@ const ComposersPage: NextPage = () => {
       />
       <PageHeader title="Composers" subtitle="Discover the artists behind the music." />
 
-      <div className="container mx-auto max-w-5xl px-4 py-8">
+      <div className="container mx-auto max-w-5xl px-4 py-5 md:py-8">
         <div className="flex flex-col gap-3 md:flex-row md:items-center">
           <div className="relative flex-1">
             <FaSearch className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" aria-hidden="true" />
@@ -137,20 +157,29 @@ const ComposersPage: NextPage = () => {
               type="search"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && e.currentTarget.blur()}
+              enterKeyHint="search"
               placeholder="Search by name or nationality…"
               aria-label="Search composers by name or nationality"
               className="input pl-11 shadow-sm"
             />
           </div>
+          {/* On phones the count shares a row with the sort menu. */}
           <div className="flex items-center gap-2">
-            <label htmlFor="composer-sort" className="whitespace-nowrap text-sm font-medium text-gray-600">
+            {!loading && !error && (
+              <p className="mr-auto text-sm text-gray-600 md:hidden" aria-live="polite">
+                <span className="font-semibold text-gray-900">{visible.length.toLocaleString()}</span>{' '}
+                {visible.length === 1 ? 'composer' : 'composers'}
+              </p>
+            )}
+            <label htmlFor="composer-sort" className="sr-only whitespace-nowrap text-sm font-medium text-gray-600 md:not-sr-only">
               Sort by
             </label>
             <select
               id="composer-sort"
               value={sort}
               onChange={(e) => setSort(e.target.value as ComposerSort)}
-              className="rounded-lg border border-gray-300 bg-white py-3 pl-3 pr-8 text-sm font-medium focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500"
+              className="rounded-lg border border-gray-300 bg-white py-2 pl-3 pr-8 text-base font-medium focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500 md:py-3 md:text-sm"
             >
               {SORTS.map((option) => (
                 <option key={option.value} value={option.value}>
@@ -162,20 +191,23 @@ const ComposersPage: NextPage = () => {
         </div>
 
         {!loading && !error && (
-          <p className="mt-4 text-sm text-gray-600" aria-live="polite">
+          <p className="mt-4 hidden text-sm text-gray-600 md:block" aria-live="polite">
             <span className="font-semibold text-gray-900">{visible.length.toLocaleString()}</span>{' '}
             {visible.length === 1 ? 'composer' : 'composers'}
           </p>
         )}
 
         {grouped && groups.length > 1 && (
-          <nav aria-label="Jump to letter" className="sticky top-16 z-10 -mx-4 mt-4 overflow-x-auto border-y border-gray-200 bg-gray-50/95 px-4 py-2 backdrop-blur">
-            <ul className="flex gap-1">
+          <nav
+            aria-label="Jump to letter"
+            className="sticky top-14 z-20 -mx-4 mt-4 overflow-x-auto border-y border-gray-200 bg-gray-50/95 px-3 py-1.5 backdrop-blur [scrollbar-width:none] md:top-16 md:px-4 md:py-2 [&::-webkit-scrollbar]:hidden"
+          >
+            <ul className="flex gap-0.5 md:gap-1">
               {groups.map(({ letter }) => (
                 <li key={letter}>
                   <a
                     href={`#letter-${letter}`}
-                    className="block min-w-[2rem] rounded-md px-2 py-1 text-center text-sm font-semibold text-gray-700 hover:bg-gray-200"
+                    className="block min-w-[2.25rem] rounded-md px-2 py-2 text-center text-sm font-semibold text-gray-700 hover:bg-gray-200 active:bg-gray-200 md:min-w-[2rem] md:py-1"
                   >
                     {letter}
                   </a>
@@ -185,7 +217,7 @@ const ComposersPage: NextPage = () => {
           </nav>
         )}
 
-        <div className="mt-6">
+        <div className="mt-4 md:mt-6">
           {error ? (
             <ErrorState message="We couldn't load the composer list. Please try again." onRetry={retry} />
           ) : loading ? (
@@ -204,7 +236,7 @@ const ComposersPage: NextPage = () => {
           ) : (
             <div className="space-y-6">
               {groups.map(({ letter, composers: list }) => (
-                <section key={letter || 'all'} id={letter ? `letter-${letter}` : undefined} className="scroll-mt-32">
+                <section key={letter || 'all'} id={letter ? `letter-${letter}` : undefined} className="scroll-mt-28 md:scroll-mt-32">
                   {letter && <h2 className="mb-2 text-lg font-bold text-gray-500">{letter}</h2>}
                   <ul className="card divide-y divide-gray-100">
                     {list.map((composer) => (

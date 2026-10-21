@@ -57,69 +57,109 @@ function SortableHeader({
   );
 }
 
+/** Phones: one row per piece, with the title, composer and level stacked; the whole row is the link. */
+function CompactList({ pieces }: { pieces: PieceSummary[] }) {
+  return (
+    <ul className="divide-y divide-gray-100 overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm md:hidden">
+      {pieces.map((piece) => {
+        const year = parseYear(piece.composition_year);
+        return (
+          <li key={`${piece.instrument}-${piece.id}`} className="relative flex items-center gap-2 py-1 pl-4 pr-1 active:bg-gray-50">
+            <div className="min-w-0 flex-1 py-2">
+              <Link
+                href={pieceHref(piece.instrument, piece.id)}
+                prefetch={false}
+                className="line-clamp-2 font-semibold leading-snug text-gray-900 after:absolute after:inset-0"
+              >
+                {piece.title}
+              </Link>
+              <p className="mt-0.5 truncate text-sm text-gray-600">
+                {formatComposerName(piece.composer_first_name, piece.composer_last_name)}
+              </p>
+              <div className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-gray-500">
+                <LevelBadge level={piece.level} />
+                <span className="truncate">{[piece.instrumentation.join(', '), year].filter(Boolean).join(' · ')}</span>
+              </div>
+            </div>
+            <SaveButton
+              pieceId={piece.id}
+              instrument={piece.instrument}
+              title={piece.title}
+              className="relative z-10 shrink-0 !bg-transparent !shadow-none"
+            />
+          </li>
+        );
+      })}
+    </ul>
+  );
+}
+
 const MusicListView: React.FC<MusicListViewProps> = ({ pieces, sort, onSortChange }) => {
   return (
-    <div className="overflow-x-auto rounded-xl border border-gray-200 bg-white shadow-sm">
-      <table className="min-w-full text-sm">
-        <thead className="bg-gray-900 text-white">
-          <tr>
-            <SortableHeader field="title" label="Piece" sort={sort} onSortChange={onSortChange} />
-            <SortableHeader field="composer" label="Composer" sort={sort} onSortChange={onSortChange} />
-            <SortableHeader field="level" label="Level" sort={sort} onSortChange={onSortChange} />
-            <th scope="col" className="hidden px-4 py-3 text-left font-semibold md:table-cell">
-              Instrumentation
-            </th>
-            <SortableHeader field="year" label="Year" sort={sort} onSortChange={onSortChange} className="hidden lg:table-cell" />
-            <SortableHeader
-              field="duration"
-              label="Duration"
-              sort={sort}
-              onSortChange={onSortChange}
-              className="hidden lg:table-cell"
-            />
-            <th scope="col" className="w-12 px-2 py-3">
-              <span className="sr-only">Save</span>
-            </th>
-          </tr>
-        </thead>
-        <tbody className="divide-y divide-gray-100">
-          {pieces.map((piece) => (
-            <tr key={`${piece.instrument}-${piece.id}`} className="transition-colors hover:bg-teal-50/50">
-              <td className="max-w-xs px-4 py-3">
-                <Link
-                  href={pieceHref(piece.instrument, piece.id)}
-                  prefetch={false}
-                  className="font-medium text-gray-900 hover:underline"
-                >
-                  {piece.title}
-                </Link>
-              </td>
-              <td className="px-4 py-3 text-gray-700">
-                {formatComposerName(piece.composer_first_name, piece.composer_last_name)}
-              </td>
-              <td className="px-4 py-3">
-                <LevelBadge level={piece.level} />
-              </td>
-              <td className="hidden px-4 py-3 text-gray-700 md:table-cell">{piece.instrumentation.join(', ')}</td>
-              <td className="hidden px-4 py-3 tabular-nums text-gray-700 lg:table-cell">
-                {parseYear(piece.composition_year) ?? '—'}
-              </td>
-              <td className="hidden px-4 py-3 tabular-nums text-gray-700 lg:table-cell">
-                {formatDuration(piece.duration) ?? '—'}
-              </td>
-              <td className="px-2 py-2 text-right">
-                <SaveButton
-                  pieceId={piece.id}
-                  instrument={piece.instrument}
-                  title={piece.title}
-                  className="!bg-transparent !shadow-none hover:!bg-gray-100"
-                />
-              </td>
+    <>
+      <CompactList pieces={pieces} />
+      <div className="hidden overflow-x-auto rounded-xl border border-gray-200 bg-white shadow-sm md:block">
+        <table className="min-w-full text-sm">
+          <thead className="bg-gray-900 text-white">
+            <tr>
+              <SortableHeader field="title" label="Piece" sort={sort} onSortChange={onSortChange} />
+              <SortableHeader field="composer" label="Composer" sort={sort} onSortChange={onSortChange} />
+              <SortableHeader field="level" label="Level" sort={sort} onSortChange={onSortChange} />
+              <th scope="col" className="hidden px-4 py-3 text-left font-semibold md:table-cell">
+                Instrumentation
+              </th>
+              <SortableHeader field="year" label="Year" sort={sort} onSortChange={onSortChange} className="hidden lg:table-cell" />
+              <SortableHeader
+                field="duration"
+                label="Duration"
+                sort={sort}
+                onSortChange={onSortChange}
+                className="hidden lg:table-cell"
+              />
+              <th scope="col" className="w-12 px-2 py-3">
+                <span className="sr-only">Save</span>
+              </th>
             </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
+          </thead>
+          <tbody className="divide-y divide-gray-100">
+            {pieces.map((piece) => (
+              <tr key={`${piece.instrument}-${piece.id}`} className="transition-colors hover:bg-teal-50/50">
+                <td className="max-w-xs px-4 py-3">
+                  <Link
+                    href={pieceHref(piece.instrument, piece.id)}
+                    prefetch={false}
+                    className="font-medium text-gray-900 hover:underline"
+                  >
+                    {piece.title}
+                  </Link>
+                </td>
+                <td className="px-4 py-3 text-gray-700">
+                  {formatComposerName(piece.composer_first_name, piece.composer_last_name)}
+                </td>
+                <td className="px-4 py-3">
+                  <LevelBadge level={piece.level} />
+                </td>
+                <td className="hidden px-4 py-3 text-gray-700 md:table-cell">{piece.instrumentation.join(', ')}</td>
+                <td className="hidden px-4 py-3 tabular-nums text-gray-700 lg:table-cell">
+                  {parseYear(piece.composition_year) ?? '—'}
+                </td>
+                <td className="hidden px-4 py-3 tabular-nums text-gray-700 lg:table-cell">
+                  {formatDuration(piece.duration) ?? '—'}
+                </td>
+                <td className="px-2 py-2 text-right">
+                  <SaveButton
+                    pieceId={piece.id}
+                    instrument={piece.instrument}
+                    title={piece.title}
+                    className="!bg-transparent !shadow-none hover:!bg-gray-100"
+                  />
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </>
   );
 };
 

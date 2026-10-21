@@ -18,7 +18,7 @@ const RecentlyAdded: NextPage = () => {
       />
       <PageHeader title="Recently Added" subtitle="The latest additions to our repertoire database." />
 
-      <div className="container mx-auto px-4 py-8 md:py-12">
+      <div className="container mx-auto px-4 py-5 md:py-12">
         {error ? (
           <ErrorState message="We couldn't load the latest additions. Please try again." onRetry={retry} />
         ) : loading ? (

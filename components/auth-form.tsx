@@ -7,7 +7,7 @@ export function AuthShell({ title, subtitle, children }: { title: string; subtit
   return (
     <>
       <PageHeader title={title} subtitle={subtitle} />
-      <div className="container mx-auto px-4 py-12 md:py-16">
+      <div className="container mx-auto px-4 py-6 md:py-16">
         <div className="mx-auto max-w-md">{children}</div>
       </div>
     </>

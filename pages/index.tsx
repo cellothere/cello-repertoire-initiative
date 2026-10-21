@@ -57,19 +57,20 @@ const Home: NextPage = () => {
           className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(255,255,255,0.15),transparent_45%)]"
           aria-hidden="true"
         />
-        <div className="container relative mx-auto px-4 py-16 text-center md:py-24">
+        <div className="container relative mx-auto px-4 py-12 text-center md:py-24">
           <h1 className="text-4xl font-bold tracking-tight md:text-6xl">Teach. Learn. Perform.</h1>
-          <p className="mx-auto mt-4 max-w-2xl text-lg text-white/90 md:text-xl">
+          <p className="mx-auto mt-3 max-w-2xl text-lg text-white/90 md:mt-4 md:text-xl">
             Discover music that resonates with you and your students.
           </p>
 
-          <form onSubmit={search} role="search" className="mx-auto mt-8 flex max-w-xl gap-2 rounded-2xl bg-white p-2 shadow-2xl">
+          <form onSubmit={search} role="search" className="mx-auto mt-7 flex max-w-xl gap-2 rounded-2xl bg-white p-1.5 shadow-2xl sm:mt-8 sm:p-2">
             <div className="relative flex-1">
               <FaSearch className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" aria-hidden="true" />
               <input
                 type="search"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
+                enterKeyHint="search"
                 placeholder="Search by title or composer"
                 aria-label="Search by title or composer"
                 className="h-full w-full rounded-xl py-3 pl-10 pr-3 text-gray-900 placeholder:text-gray-500 focus:outline-none"
@@ -82,12 +83,12 @@ const Home: NextPage = () => {
           </form>
 
           <div className="mt-6 flex flex-wrap items-center justify-center gap-2 text-sm">
-            <span className="text-white/80">Browse by level:</span>
+            <span className="w-full text-white/80 sm:w-auto">Browse by level:</span>
             {LEVEL_SHORTCUTS.map((shortcut) => (
               <Link
                 key={shortcut.label}
                 href={levelHref(shortcut.levels)}
-                className="rounded-full bg-white/15 px-3 py-1 font-medium text-white ring-1 ring-inset ring-white/25 transition-colors hover:bg-white/25"
+                className="rounded-full bg-white/15 px-4 py-2 font-medium text-white ring-1 ring-inset ring-white/25 transition-colors hover:bg-white/25 active:bg-white/30 sm:px-3 sm:py-1"
               >
                 {shortcut.label}
               </Link>
@@ -96,13 +97,13 @@ const Home: NextPage = () => {
         </div>
       </section>
 
-      <section className="container mx-auto px-4 py-12 md:py-16" aria-label="Explore">
-        <div className="grid gap-6 md:grid-cols-3">
+      <section className="container mx-auto px-4 py-8 md:py-16" aria-label="Explore">
+        <div className="grid gap-4 md:grid-cols-3 md:gap-6">
           {FEATURES.map((feature, index) => (
             <Link
               key={feature.href}
               href={feature.href}
-              className="group relative block aspect-[4/3] overflow-hidden rounded-2xl shadow-lg md:aspect-[3/4]"
+              className="group relative block aspect-[16/9] overflow-hidden rounded-2xl shadow-lg transition-transform active:scale-[0.98] sm:aspect-[2/1] md:aspect-[3/4]"
             >
               <Image
                 src={feature.src}
@@ -113,12 +114,12 @@ const Home: NextPage = () => {
                 className="object-cover transition-transform duration-500 group-hover:scale-105"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 to-transparent" />
-              <div className="absolute inset-x-0 bottom-0 p-6 text-white">
-                <h2 className="flex items-center gap-2 text-2xl font-bold">
+              <div className="absolute inset-x-0 bottom-0 p-4 text-white sm:p-6">
+                <h2 className="flex items-center gap-2 text-xl font-bold sm:text-2xl">
                   {feature.label}
                   <FaArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" aria-hidden="true" />
                 </h2>
-                <p className="mt-1 text-white/85">{feature.description}</p>
+                <p className="mt-0.5 text-sm text-white/85 sm:mt-1 sm:text-base">{feature.description}</p>
               </div>
             </Link>
           ))}
@@ -126,9 +127,9 @@ const Home: NextPage = () => {
       </section>
 
       <section className="border-t border-gray-200 bg-white">
-        <div className="container mx-auto max-w-3xl px-4 py-12 text-center md:py-16">
+        <div className="container mx-auto max-w-3xl px-4 py-10 text-center md:py-16">
           <h2 className="text-2xl font-bold md:text-3xl">Our mission</h2>
-          <p className="mt-4 text-lg leading-relaxed text-gray-700">
+          <p className="mt-3 text-base leading-relaxed text-gray-700 sm:mt-4 sm:text-lg">
             We provide teachers, students, and performers with a searchable database of level-appropriate musical
             literature and teaching resources, featuring works by under-recognized and underrepresented composers.
           </p>

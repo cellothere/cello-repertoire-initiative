@@ -95,8 +95,9 @@ const MusicCard: React.FC<MusicCardProps> = ({
   const year = parseYear(composition_year);
 
   return (
-    <article className="group relative flex h-full flex-col overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm transition duration-200 focus-within:ring-2 focus-within:ring-teal-500 hover:-translate-y-0.5 hover:shadow-lg">
-      <div className="relative aspect-[4/3] overflow-hidden bg-gray-100">
+    <article className="group relative flex h-full flex-col overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm transition duration-200 focus-within:ring-2 focus-within:ring-teal-500 active:scale-[0.98] hover:-translate-y-0.5 hover:shadow-lg">
+      {/* A shorter illustration on phones, so more of each card is the title and level. */}
+      <div className="relative aspect-[3/2] overflow-hidden bg-gray-100 sm:aspect-[4/3]">
         <Image
           src={imageFor(level, instrumentation)}
           alt=""
@@ -108,7 +109,7 @@ const MusicCard: React.FC<MusicCardProps> = ({
       </div>
 
       <div className="flex flex-1 flex-col p-3 sm:p-4">
-        <h3 className="line-clamp-3 break-words font-semibold leading-snug text-gray-900">
+        <h3 className="line-clamp-3 break-words text-[0.9375rem] font-semibold leading-snug text-gray-900 sm:text-base">
           {/* The link's ::after covers the whole card, making it all clickable. Prefetch on hover
               only, rather than fetching data for every card that scrolls into view. */}
           <Link
@@ -122,13 +123,13 @@ const MusicCard: React.FC<MusicCardProps> = ({
         <p className="mt-1 truncate text-sm text-gray-600">
           {formatComposerName(composer_first_name, composer_last_name)}
         </p>
-        <div className="mt-auto flex flex-wrap items-center gap-x-2 gap-y-1 pt-3">
+        <div className="mt-auto flex flex-wrap items-center gap-x-2 gap-y-1 pt-2.5 sm:pt-3">
           <LevelBadge level={level} />
           {year && <span className="text-xs text-gray-500">{year}</span>}
         </div>
       </div>
 
-      <SaveButton pieceId={id} instrument={instrument} title={title} className="absolute right-2 top-2 z-10" />
+      <SaveButton pieceId={id} instrument={instrument} title={title} className="absolute right-1.5 top-1.5 z-10 sm:right-2 sm:top-2" />
     </article>
   );
 };

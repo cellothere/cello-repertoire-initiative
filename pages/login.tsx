@@ -40,7 +40,7 @@ export default function LoginPage() {
         {loading || user ? (
           <PageSpinner />
         ) : (
-          <form onSubmit={handleSubmit} className="card space-y-6 p-8 shadow-xl">
+          <form onSubmit={handleSubmit} className="card space-y-6 p-5 shadow-xl sm:p-8">
             {error && <FormAlert tone="error">{error}</FormAlert>}
 
             <div className="flex flex-col">
