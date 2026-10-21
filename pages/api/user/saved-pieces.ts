@@ -1,121 +1,81 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
-import clientPromise from '@/lib/mongodb';
-import { requireAuth } from '@/lib/auth-middleware';
+import { getDb } from '@/lib/mongodb';
+import { allowMethods } from '@/lib/api';
+import { getUsersCollection, isUnauthorized, requireAuth, type SavedPiece } from '@/lib/auth-middleware';
+import { collectionFor, isInstrument, type Instrument } from '@/lib/instruments';
+import { getPiecesByRefs } from '@/lib/repertoire';
 
-interface SavedPiece {
-  pieceId: number;
-  instrument: string;
-  savedAt: Date;
-}
+const MAX_SAVED_PIECES = 1000;
 
-interface User {
-  id: number;
-  email: string;
-  username: string;
-  passwordHash: string;
-  createdAt: Date;
-  updatedAt: Date;
-  savedPieces: SavedPiece[];
+/** Entries saved before instruments were tracked reliably belong to the cello catalogue. */
+const instrumentOf = (saved: Partial<SavedPiece>): Instrument =>
+  isInstrument(saved.instrument) ? saved.instrument : 'cello';
+
+function parseBody(req: NextApiRequest): { pieceId: number; instrument: Instrument } | null {
+  const { pieceId, instrument = 'cello' } = req.body ?? {};
+  const id = Number(pieceId);
+  if (!Number.isInteger(id) || id < 0 || !isInstrument(instrument)) return null;
+  return { pieceId: id, instrument };
 }
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  if (!allowMethods(req, res, ['GET', 'POST', 'DELETE'])) return;
+  res.setHeader('Cache-Control', 'private, no-store');
+
   try {
     const user = await requireAuth(req);
-    const client = await clientPromise;
-    const db = client.db('repertoire');
-    const usersCollection = db.collection<User>('users');
+    const users = await getUsersCollection();
 
-    // GET: Return all saved pieces with full details
     if (req.method === 'GET') {
-      const pieceIds = user.savedPieces.map(sp => sp.pieceId);
-
-      if (pieceIds.length === 0) {
-        return res.status(200).json({ pieces: [] });
-      }
-
-      // Aggregate to get piece details from all instrument collections
-      const collections = ['cello_pieces', 'violin_pieces', 'viola_pieces', 'bass_pieces'];
-      const pieces: any[] = [];
-
-      for (const collectionName of collections) {
-        const piecesData = await db.collection(collectionName).aggregate([
-          { $match: { id: { $in: pieceIds }, disabled: false } },
-          {
-            $lookup: {
-              from: 'composers',
-              localField: 'composer_id',
-              foreignField: 'id',
-              as: 'composerDetails'
-            }
-          },
-          { $unwind: { path: '$composerDetails', preserveNullAndEmptyArrays: true } }
-        ]).toArray();
-
-        pieces.push(...piecesData);
-      }
-
+      const refs = [...user.savedPieces]
+        .sort((a, b) => new Date(b.savedAt).getTime() - new Date(a.savedAt).getTime())
+        .map((saved) => ({ pieceId: saved.pieceId, instrument: instrumentOf(saved) }));
+      const pieces = refs.length > 0 ? await getPiecesByRefs(refs) : [];
       return res.status(200).json({ pieces });
     }
 
-    // POST: Save a piece
+    const target = parseBody(req);
+    if (!target) {
+      return res.status(400).json({ error: 'A valid pieceId and instrument are required' });
+    }
+    const { pieceId, instrument } = target;
+
     if (req.method === 'POST') {
-      const { pieceId, instrument } = req.body;
-
-      if (!pieceId || !instrument) {
-        return res.status(400).json({ error: 'pieceId and instrument are required' });
+      if (user.savedPieces.length >= MAX_SAVED_PIECES) {
+        return res.status(400).json({ error: `You can save up to ${MAX_SAVED_PIECES} pieces` });
       }
 
-      // Add piece to savedPieces array (idempotent with $addToSet)
-      const result = await usersCollection.findOneAndUpdate(
-        { id: user.id },
-        {
-          $addToSet: {
-            savedPieces: {
-              pieceId,
-              instrument,
-              savedAt: new Date()
-            }
-          },
-          $set: { updatedAt: new Date() }
-        },
-        { returnDocument: 'after' }
-      );
-
-      return res.status(200).json({
-        success: true,
-        savedPieces: result?.savedPieces || []
-      });
-    }
-
-    // DELETE: Unsave a piece
-    if (req.method === 'DELETE') {
-      const { pieceId } = req.body;
-
-      if (!pieceId) {
-        return res.status(400).json({ error: 'pieceId is required' });
+      const exists = await (await getDb())
+        .collection(collectionFor(instrument))
+        .findOne({ id: pieceId }, { projection: { _id: 1 } });
+      if (!exists) {
+        return res.status(404).json({ error: 'Piece not found' });
       }
 
-      // Remove piece from savedPieces array
-      const result = await usersCollection.findOneAndUpdate(
+      // Only push when this piece isn't already saved, so repeated clicks can't create duplicates.
+      await users.updateOne(
+        { id: user.id, savedPieces: { $not: { $elemMatch: { pieceId, instrument } } } },
+        {
+          $push: { savedPieces: { pieceId, instrument, savedAt: new Date() } },
+          $set: { updatedAt: new Date() },
+        }
+      );
+    } else {
+      // `null` also matches legacy entries that were saved without an instrument.
+      const instruments = instrument === 'cello' ? ['cello', null] : [instrument];
+      await users.updateOne(
         { id: user.id },
         {
-          $pull: {
-            savedPieces: { pieceId }
-          },
-          $set: { updatedAt: new Date() }
-        },
-        { returnDocument: 'after' }
+          $pull: { savedPieces: { pieceId, instrument: { $in: instruments } } as never },
+          $set: { updatedAt: new Date() },
+        }
       );
-
-      return res.status(200).json({
-        success: true,
-        savedPieces: result?.savedPieces || []
-      });
     }
 
-    return res.status(405).json({ error: 'Method not allowed' });
+    const updated = await users.findOne({ id: user.id }, { projection: { savedPieces: 1 } });
+    return res.status(200).json({ success: true, savedPieces: updated?.savedPieces ?? [] });
   } catch (error) {
-    if (error instanceof Error && error.message.includes('Unauthorized')) {
+    if (isUnauthorized(error)) {
       return res.status(401).json({ error: 'Unauthorized' });
     }
     console.error('Saved pieces error:', error);

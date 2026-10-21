@@ -1,0 +1,242 @@
+import type { Document } from 'mongodb';
+import { getDb } from './mongodb';
+import { INSTRUMENTS, collectionFor, type Instrument } from './instruments';
+import type { ComposerSummary, PieceDetail, PieceSummary, Resource } from './types';
+
+// ---------------------------------------------------------------------------
+// Normalisers: the collections were filled by hand, so be lenient about types.
+// ---------------------------------------------------------------------------
+
+const str = (value: unknown): string =>
+  typeof value === 'string' ? value.trim() : value == null ? '' : String(value);
+
+const strArray = (value: unknown): string[] => {
+  const items = Array.isArray(value) ? value : value == null ? [] : [value];
+  return items.map(str).filter(Boolean);
+};
+
+const firstUrl = (value: unknown): string | null => strArray(value).find((v) => /^https?:\/\//.test(v)) ?? null;
+
+const composerLookup: Document[] = [
+  { $lookup: { from: 'composers', localField: 'composer_id', foreignField: 'id', as: 'composerDetails' } },
+  { $unwind: '$composerDetails' },
+];
+
+const summaryProjection = {
+  _id: 1,
+  id: 1,
+  title: 1,
+  level: 1,
+  instrumentation: 1,
+  composition_year: 1,
+  duration: 1,
+  technique_focus: 1,
+  tags: 1,
+  instrument: 1,
+  composer: '$composerDetails.composer_full_name',
+  composer_first_name: '$composerDetails.composer_first_name',
+  composer_last_name: '$composerDetails.composer_last_name',
+  nationality: '$composerDetails.nationality',
+  composer_tags: '$composerDetails.tags',
+};
+
+function toSummary(doc: Document, instrument: Instrument): PieceSummary {
+  return {
+    id: Number(doc.id),
+    instrument,
+    title: str(doc.title),
+    composer: str(doc.composer),
+    composer_first_name: str(doc.composer_first_name),
+    composer_last_name: str(doc.composer_last_name),
+    level: str(doc.level) || 'Unknown',
+    instrumentation: strArray(doc.instrumentation),
+    nationality: strArray(doc.nationality),
+    composition_year: str(doc.composition_year),
+    duration: str(doc.duration),
+    technique_focus: strArray(doc.technique_focus),
+    tags: strArray(doc.tags),
+    composer_tags: strArray(doc.composer_tags),
+  };
+}
+
+function dedupeById<T extends { id: number }>(items: T[]): T[] {
+  const seen = new Set<number>();
+  return items.filter((item) => !seen.has(item.id) && seen.add(item.id));
+}
+
+// ---------------------------------------------------------------------------
+// Queries
+// ---------------------------------------------------------------------------
+
+/** All enabled pieces for an instrument whose composer is also enabled. */
+export async function listPieces(instrument: Instrument): Promise<PieceSummary[]> {
+  const db = await getDb();
+  const docs = await db
+    .collection(collectionFor(instrument))
+    .aggregate([
+      { $match: { disabled: false } },
+      ...composerLookup,
+      { $match: { 'composerDetails.disabled': false } },
+      { $project: summaryProjection },
+    ])
+    .toArray();
+  return dedupeById(docs.map((doc) => toSummary(doc, instrument)));
+}
+
+/** The newest pieces across every instrument collection. */
+export async function listRecentlyAdded(limit = 12): Promise<PieceSummary[]> {
+  const db = await getDb();
+  const branch = (instrument: Instrument): Document[] => [
+    { $match: { disabled: false } },
+    { $addFields: { instrument } },
+  ];
+  const [first, ...rest] = INSTRUMENTS;
+
+  // Sort and limit on the raw collections first so the composer lookup only runs on `limit` docs.
+  const docs = await db
+    .collection(collectionFor(first))
+    .aggregate([
+      ...branch(first),
+      ...rest.map((instrument) => ({
+        $unionWith: { coll: collectionFor(instrument), pipeline: branch(instrument) },
+      })),
+      { $sort: { _id: -1 } },
+      { $limit: limit * 2 },
+      ...composerLookup,
+      { $match: { 'composerDetails.disabled': false } },
+      { $limit: limit },
+      { $project: summaryProjection },
+    ])
+    .toArray();
+
+  return docs.map((doc) => ({
+    ...toSummary(doc, doc.instrument as Instrument),
+    added_at: doc._id?.getTimestamp?.().toISOString(),
+  }));
+}
+
+/** Specific pieces, used for a user's saved list. Results keep the order of `refs`. */
+export async function getPiecesByRefs(
+  refs: { pieceId: number; instrument: Instrument }[]
+): Promise<PieceSummary[]> {
+  const db = await getDb();
+  const byInstrument = new Map<Instrument, number[]>();
+  for (const { pieceId, instrument } of refs) {
+    byInstrument.set(instrument, [...(byInstrument.get(instrument) ?? []), pieceId]);
+  }
+
+  const results = await Promise.all(
+    Array.from(byInstrument, async ([instrument, ids]) => {
+      const docs = await db
+        .collection(collectionFor(instrument))
+        .aggregate([
+          { $match: { id: { $in: ids }, disabled: false } },
+          ...composerLookup,
+          { $project: summaryProjection },
+        ])
+        .toArray();
+      return docs.map((doc) => toSummary(doc, instrument));
+    })
+  );
+
+  const lookup = new Map(results.flat().map((piece) => [`${piece.instrument}:${piece.id}`, piece]));
+  return refs
+    .map(({ pieceId, instrument }) => lookup.get(`${instrument}:${pieceId}`))
+    .filter((piece): piece is PieceSummary => Boolean(piece));
+}
+
+export async function getPieceDetail(instrument: Instrument, id: number): Promise<PieceDetail | null> {
+  const db = await getDb();
+  const doc = await db
+    .collection(collectionFor(instrument))
+    .aggregate([
+      { $match: { id, disabled: { $ne: true } } },
+      { $limit: 1 },
+      { $lookup: { from: 'composers', localField: 'composer_id', foreignField: 'id', as: 'composerDetails' } },
+      { $unwind: { path: '$composerDetails', preserveNullAndEmptyArrays: true } },
+    ])
+    .next();
+
+  if (!doc) return null;
+
+  return {
+    id: Number(doc.id),
+    instrument,
+    title: str(doc.title) || 'Untitled',
+    composition_year: str(doc.composition_year),
+    level: str(doc.level) || 'Unknown',
+    instrumentation: strArray(doc.instrumentation),
+    publisher_info: str(doc.publisher_info),
+    description: str(doc.description),
+    technical_overview: str(doc.technical_overview),
+    technique_focus: strArray(doc.technique_focus),
+    where_to_buy_or_download: strArray(doc.where_to_buy_or_download),
+    audio_link: strArray(doc.audio_link),
+    duration: str(doc.duration),
+    composer: {
+      full_name: str(doc.composerDetails?.composer_full_name) || 'Unknown Composer',
+      bio_link: firstUrl(doc.composerDetails?.bio_link),
+    },
+  };
+}
+
+export async function listComposers(): Promise<ComposerSummary[]> {
+  const db = await getDb();
+  const [composers, counts] = await Promise.all([
+    db
+      .collection('composers')
+      .find(
+        { composer_full_name: { $nin: [null, ''] }, disabled: false },
+        {
+          projection: {
+            _id: 0,
+            id: 1,
+            composer_full_name: 1,
+            composer_first_name: 1,
+            composer_last_name: 1,
+            born: 1,
+            died: 1,
+            nationality: 1,
+            tags: 1,
+            bio_link: 1,
+          },
+        }
+      )
+      .toArray(),
+    db
+      .collection(collectionFor('cello'))
+      .aggregate<{ _id: number; count: number }>([
+        { $match: { disabled: false } },
+        { $group: { _id: '$composer_id', count: { $sum: 1 } } },
+      ])
+      .toArray(),
+  ]);
+
+  const worksByComposer = new Map(counts.map(({ _id, count }) => [_id, count]));
+
+  return dedupeById(
+    composers.map((doc) => ({
+      id: Number(doc.id),
+      composer_full_name: str(doc.composer_full_name),
+      composer_first_name: str(doc.composer_first_name),
+      composer_last_name: str(doc.composer_last_name),
+      born: str(doc.born),
+      died: str(doc.died),
+      nationality: strArray(doc.nationality),
+      tags: strArray(doc.tags),
+      bio_link: firstUrl(doc.bio_link),
+      cello_works: worksByComposer.get(doc.id) ?? 0,
+    }))
+  );
+}
+
+export async function listResources(): Promise<Resource[]> {
+  const db = await getDb();
+  const docs = await db.collection('resources').find({ disabled: false }).sort({ title: 1 }).toArray();
+  return docs.map((doc) => ({
+    _id: String(doc._id),
+    title: str(doc.title),
+    description: str(doc.description),
+    url: str(doc.url),
+  }));
+}

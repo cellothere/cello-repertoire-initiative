@@ -1,9 +1,15 @@
 import type { NextApiRequest } from 'next';
-import clientPromise from './mongodb';
+import { getDb } from './mongodb';
 import { verifyToken } from './jwt';
+import type { Instrument } from './instruments';
+
+export interface SavedPiece {
+  pieceId: number;
+  instrument: Instrument;
+  savedAt: Date;
+}
 
 export interface User {
-  _id: any;
   id: number;
   email: string;
   username: string;
@@ -13,10 +19,8 @@ export interface User {
   savedPieces: SavedPiece[];
 }
 
-export interface SavedPiece {
-  pieceId: number;
-  instrument: string;
-  savedAt: Date;
+export async function getUsersCollection() {
+  return (await getDb()).collection<User>('users');
 }
 
 /**
@@ -27,7 +31,6 @@ export interface SavedPiece {
  * @throws Error if not authenticated or user not found
  */
 export async function requireAuth(req: NextApiRequest): Promise<User> {
-  // Extract token from cookie
   const token = req.cookies.token;
 
   if (!token) {
@@ -35,19 +38,14 @@ export async function requireAuth(req: NextApiRequest): Promise<User> {
   }
 
   try {
-    // Verify token
     const payload = verifyToken(token);
-
-    // Fetch user from database
-    const client = await clientPromise;
-    const db = client.db('repertoire');
-    const user = await db.collection<User>('users').findOne({ id: payload.userId });
+    const user = await (await getUsersCollection()).findOne({ id: payload.userId });
 
     if (!user) {
       throw new Error('User not found');
     }
 
-    return user;
+    return { ...user, savedPieces: user.savedPieces ?? [] };
   } catch (error) {
     if (error instanceof Error) {
       throw new Error(`Unauthorized: ${error.message}`);
@@ -69,3 +67,6 @@ export async function getAuthUser(req: NextApiRequest): Promise<User | null> {
     return null;
   }
 }
+
+export const isUnauthorized = (error: unknown): boolean =>
+  error instanceof Error && error.message.startsWith('Unauthorized');

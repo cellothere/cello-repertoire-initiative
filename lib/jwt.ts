@@ -36,7 +36,7 @@ export function verifyToken(token: string): TokenPayload {
 
   try {
     return jwt.verify(token, JWT_SECRET) as TokenPayload;
-  } catch (error) {
+  } catch {
     throw new Error('Invalid or expired token');
   }
 }

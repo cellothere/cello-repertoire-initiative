@@ -1,35 +1,30 @@
-import { MongoClient } from 'mongodb';
-
-const uri = process.env.MONGODB_URI as string; // Your MongoDB connection string
-const options = {};
+import { MongoClient, type Db } from 'mongodb';
 
 declare global {
-  var _mongoClientPromise: Promise<MongoClient>;
+  // Preserved across HMR reloads in development so we don't open a new pool on every edit.
+  var _mongoClientPromise: Promise<MongoClient> | undefined;
 }
 
-class Singleton {
-  private static _instance: Singleton;
-  private client: MongoClient;
-  private clientPromise: Promise<MongoClient>;
-  private constructor() {
-    this.client = new MongoClient(uri, options);
-    this.clientPromise = this.client.connect();
-    if (process.env.NODE_ENV === 'development') {
-      // In development mode, use a global variable so that the value
-      // is preserved across module reloads caused by HMR (Hot Module Replacement).
-      global._mongoClientPromise = this.clientPromise;
+/**
+ * Lazily connect on first use rather than at import time, so that importing this
+ * module (e.g. during `next build`) never opens a connection or throws when the
+ * env var is missing.
+ */
+export function getMongoClient(): Promise<MongoClient> {
+  if (!global._mongoClientPromise) {
+    const uri = process.env.MONGODB_URI;
+    if (!uri) {
+      return Promise.reject(new Error('MONGODB_URI is not defined in environment variables'));
     }
+    global._mongoClientPromise = new MongoClient(uri).connect().catch((error) => {
+      // Allow the next request to retry instead of caching a failed connection forever.
+      global._mongoClientPromise = undefined;
+      throw error;
+    });
   }
-
-  public static get instance() {
-    if (!this._instance) {
-      this._instance = new Singleton();
-    }
-    return this._instance.clientPromise;
-  }
+  return global._mongoClientPromise;
 }
-const clientPromise = Singleton.instance;
 
-// Export a module-scoped MongoClient promise. By doing this in a
-// separate module, the client can be shared across functions.
-export default clientPromise;
+export async function getDb(): Promise<Db> {
+  return (await getMongoClient()).db('repertoire');
+}

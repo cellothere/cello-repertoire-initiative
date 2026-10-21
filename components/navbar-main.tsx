@@ -1,446 +1,341 @@
-import { useState, useEffect, useRef } from "react";
-import {
-  Dropdown,
-  Link,
-  DropdownTrigger,
-  DropdownMenu,
-  DropdownItem,
-  Button,
-} from "@heroui/react";
-import { RxHamburgerMenu } from "react-icons/rx";
-import { FaSearch, FaUserCircle, FaSignInAlt } from "react-icons/fa";
-import { useRouter } from "next/router";
-import Image from "next/image";
-import { useAuth } from "@/contexts/AuthContext";
+import { useEffect, useId, useRef, useState, type ReactNode } from 'react';
+import Link from 'next/link';
+import Image from 'next/image';
+import { useRouter } from 'next/router';
+import { FaChevronDown, FaHeart, FaSearch, FaSignInAlt, FaUserCircle } from 'react-icons/fa';
+import { RxHamburgerMenu } from 'react-icons/rx';
+import { IoClose } from 'react-icons/io5';
+import { useAuth } from '@/contexts/AuthContext';
+
+interface NavLink {
+  href: string;
+  label: string;
+  description?: string;
+}
+
+export const MUSIC_LINKS: NavLink[] = [
+  { href: '/cello-music', label: 'Cello Music', description: 'Search and filter the full catalogue' },
+  { href: '/featured-databases', label: 'Featured Databases', description: 'Women, non-binary, Black & Indigenous composers' },
+  { href: '/recently-added', label: 'Recently Added', description: 'The newest additions' },
+  { href: '/composers', label: 'Composers', description: 'Browse every composer' },
+];
+
+export const MORE_LINKS: NavLink[] = [
+  { href: '/about-us', label: 'Our Mission' },
+  { href: '/resources', label: 'Resource Catalog' },
+  { href: '/contribute', label: 'Contribute' },
+  { href: '/contact', label: 'Contact Us' },
+];
+
+/** Close when clicking outside `ref` or pressing Escape. */
+function useDismiss(ref: React.RefObject<HTMLElement | null>, open: boolean, close: () => void) {
+  useEffect(() => {
+    if (!open) return;
+    const onPointer = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) close();
+    };
+    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && close();
+    document.addEventListener('mousedown', onPointer);
+    document.addEventListener('keydown', onKey);
+    return () => {
+      document.removeEventListener('mousedown', onPointer);
+      document.removeEventListener('keydown', onKey);
+    };
+  }, [ref, open, close]);
+}
+
+function Dropdown({
+  label,
+  active,
+  align = 'left',
+  children,
+  buttonClassName = '',
+}: {
+  label: ReactNode;
+  active?: boolean;
+  align?: 'left' | 'right';
+  children: ReactNode;
+  buttonClassName?: string;
+}) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+  const closeTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
+  const id = useId();
+  const router = useRouter();
+
+  useDismiss(ref, open, () => setOpen(false));
+  useEffect(() => {
+    const close = () => setOpen(false);
+    router.events.on('routeChangeStart', close);
+    return () => router.events.off('routeChangeStart', close);
+  }, [router.events]);
+
+  return (
+    <div
+      ref={ref}
+      className="relative"
+      onMouseEnter={() => {
+        clearTimeout(closeTimer.current);
+        setOpen(true);
+      }}
+      onMouseLeave={() => {
+        closeTimer.current = setTimeout(() => setOpen(false), 150);
+      }}
+    >
+      <button
+        type="button"
+        onClick={() => setOpen((value) => !value)}
+        aria-expanded={open}
+        aria-controls={id}
+        className={`flex items-center gap-1.5 rounded-lg px-3 py-2 font-semibold transition-colors hover:bg-gray-100 ${
+          active ? 'text-teal-700' : 'text-gray-800'
+        } ${buttonClassName}`}
+      >
+        {label}
+        <FaChevronDown className={`h-3 w-3 transition-transform ${open ? 'rotate-180' : ''}`} aria-hidden="true" />
+      </button>
+      {open && (
+        <div id={id} className={`absolute top-full z-50 pt-2 ${align === 'right' ? 'right-0' : 'left-0'}`}>
+          <div className="min-w-[15rem] animate-fade-in overflow-hidden rounded-xl border border-gray-200 bg-white py-2 shadow-xl">
+            {children}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function DropdownLink({ link, current }: { link: NavLink; current: boolean }) {
+  return (
+    <Link
+      href={link.href}
+      aria-current={current ? 'page' : undefined}
+      className={`block px-4 py-2 transition-colors hover:bg-gray-50 ${current ? 'bg-teal-50' : ''}`}
+    >
+      <span className={`block font-medium ${current ? 'text-teal-800' : 'text-gray-900'}`}>{link.label}</span>
+      {link.description && <span className="block text-sm text-gray-500">{link.description}</span>}
+    </Link>
+  );
+}
+
+function SearchForm({ autoFocus, onSubmitted, className = '' }: { autoFocus?: boolean; onSubmitted?: () => void; className?: string }) {
+  const router = useRouter();
+  const [query, setQuery] = useState('');
+
+  const submit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const trimmed = query.trim();
+    if (!trimmed) return;
+    router.push(`/cello-music?q=${encodeURIComponent(trimmed)}`);
+    setQuery('');
+    onSubmitted?.();
+  };
+
+  return (
+    <form onSubmit={submit} role="search" className={`relative ${className}`}>
+      <FaSearch className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-gray-400" aria-hidden="true" />
+      <input
+        type="search"
+        value={query}
+        onChange={(e) => setQuery(e.target.value)}
+        placeholder="Search pieces or composers…"
+        aria-label="Search pieces or composers"
+        autoFocus={autoFocus}
+        className="w-full rounded-full border border-gray-300 bg-gray-50 py-2 pl-9 pr-4 text-sm text-gray-900 transition-colors placeholder:text-gray-500 focus:border-teal-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-teal-500"
+      />
+    </form>
+  );
+}
 
 const NavbarMain = () => {
   const router = useRouter();
   const { user, loading: authLoading, logout } = useAuth();
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
+  const mobileRef = useRef<HTMLDivElement>(null);
 
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [isMobileUserMenuOpen, setIsMobileUserMenuOpen] = useState(false);
-  const [isMusicHovered, setisMusicHovered] = useState(false);
-  const [isAboutHovered, setisAboutHovered] = useState(false);
-  const [isUserHovered, setIsUserHovered] = useState(false);
-  const [isSearchOpen, setIsSearchOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
-
-  // Detect mobile view
-  const [isMobileView, setIsMobileView] = useState(false);
-
-  // Create refs for the menu containers
-  const menuRef = useRef<HTMLDivElement>(null);
-  const mobileUserMenuRef = useRef<HTMLDivElement>(null);
-
+  useDismiss(mobileRef, mobileMenuOpen, () => setMobileMenuOpen(false));
   useEffect(() => {
-    const handleResize = () => {
-      setIsMobileView(window.innerWidth <= 768); // Adjust the breakpoint as needed
+    const close = () => {
+      setMobileMenuOpen(false);
+      setMobileSearchOpen(false);
     };
+    router.events.on('routeChangeStart', close);
+    return () => router.events.off('routeChangeStart', close);
+  }, [router.events]);
 
-    handleResize(); // Check on initial render
-    window.addEventListener("resize", handleResize); // Update on window resize
-
-    return () => {
-      window.removeEventListener("resize", handleResize); // Clean up on component unmount
-    };
-  }, []);
-
-  // Close the menu if a click happens outside of the menuRef
-  useEffect(() => {
-    if (!isMenuOpen) return;
-
-    const handleClickOutside = (event: MouseEvent) => {
-      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
-        setIsMenuOpen(false);
-      }
-    };
-
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, [isMenuOpen]);
-
-  // Close the mobile user menu if a click happens outside
-  useEffect(() => {
-    if (!isMobileUserMenuOpen) return;
-
-    const handleClickOutside = (event: MouseEvent) => {
-      if (mobileUserMenuRef.current && !mobileUserMenuRef.current.contains(event.target as Node)) {
-        setIsMobileUserMenuOpen(false);
-      }
-    };
-
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, [isMobileUserMenuOpen]);
-
-  const toggleMenu = () => {
-    setIsMenuOpen((prev) => !prev);
-  };
-
-  const toggleSearch = () => {
-    if (isSearchOpen && searchQuery.trim()) {
-      // Perform search when the search input is already open and has content
-      router.push(`/search-results?query=${encodeURIComponent(searchQuery.trim())}`);
-    } else {
-      setIsSearchOpen((prev) => !prev);
-    }
-  };
-
-  const handleSearch = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    if (searchQuery.trim()) {
-      router.push(`/search-results?query=${encodeURIComponent(searchQuery.trim())}`);
-    }
-  };
-
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter" && searchQuery.trim()) {
-      // Perform search when "Enter" key is pressed
-      router.push(`/search-results?query=${encodeURIComponent(searchQuery.trim())}`);
-    }
-  };
+  const isCurrent = (href: string) => router.pathname === href;
+  const musicActive = MUSIC_LINKS.some((link) => isCurrent(link.href)) || router.pathname.endsWith('-piece/[id]');
+  const moreActive = MORE_LINKS.some((link) => isCurrent(link.href));
+  const loginHref = `/login${router.pathname === '/login' ? '' : `?redirect=${encodeURIComponent(router.asPath)}`}`;
 
   return (
-    <header className="bg-gray-100 text-black p-4 flex items-center justify-between relative z-50">
-      {/* Logo Section */}
-      <div className="flex items-center">
-        <div className="flex-shrink-0">
-          <Link href="/">
-            <Image 
-              src="/assets/altLogo.png" 
-              alt="Logo" 
-              width={100} // Adjust width as needed
-              height={64} // Adjust height as needed to match your design (h-16 ≈ 64px)
-              className="h-16 w-auto" 
-            />
-          </Link>
-        </div>
-        <Link href="/" id="navName" className="hidden md:inline">
-          <span className="ml-8 text-xl font-bold bg-clip-text text-transparent bg-gradient-to-br">
+    <header ref={mobileRef} className="sticky top-0 z-40 border-b border-gray-200 bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/80">
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-lg focus:bg-black focus:px-4 focus:py-2 focus:text-white"
+      >
+        Skip to content
+      </a>
+      <div className="container mx-auto flex h-16 items-center gap-4 px-4">
+        <Link href="/" className="flex shrink-0 items-center gap-3" aria-label="Cello Repertoire Initiative home">
+          <Image src="/assets/altLogo.png" alt="" width={40} height={39} priority className="h-10 w-10" />
+          <span className="hidden bg-brand-gradient bg-clip-text text-lg font-bold leading-tight text-transparent xl:inline">
             Cello Repertoire Initiative
           </span>
         </Link>
-      </div>
 
-      {/* Desktop Search Section */}
-      <div className="flex-grow max-w-lg mx-4 hidden md:block" id="searchMenu">
-        <form onSubmit={handleSearch} className="flex">
-          {/* Relative container for input and clear button */}
-          <div className="relative flex-grow">
-            <input
-              type="text"
-              placeholder="Find music, composers, and resources..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full p-2 pr-10 rounded bg-gray-300 border border-gray-600 text-black"
-            />
-            {searchQuery && (
-              <button
-                type="button"
-                onClick={() => {
-                  setSearchQuery("");
-                  setIsSearchOpen(false);
-                }}
-                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-black hover:text-gray-500 transition"
-                aria-label="Clear search"
-              >
-                ✕
-              </button>
-            )}
-          </div>
-          {/* Submit button */}
-          <button
-            type="submit"
-            className="bg-black text-white px-4 rounded ml-2 hover:bg-teal-600 transition flex items-center justify-center"
-          >
-            <FaSearch />
-          </button>
-        </form>
-      </div>
+        {/* Desktop navigation */}
+        <nav className="hidden items-center gap-1 md:flex" aria-label="Main">
+          <Dropdown label="Music" active={musicActive}>
+            {MUSIC_LINKS.map((link) => (
+              <DropdownLink key={link.href} link={link} current={isCurrent(link.href)} />
+            ))}
+          </Dropdown>
+          <Dropdown label="More" active={moreActive}>
+            {MORE_LINKS.map((link) => (
+              <DropdownLink key={link.href} link={link} current={isCurrent(link.href)} />
+            ))}
+          </Dropdown>
+        </nav>
 
-      {/* Mobile Menu Section */}
-      <div className="md:hidden flex items-center relative">
-        {isSearchOpen && (
-          <div className="flex relative w-full">
-            <input
-              type="text"
-              placeholder="Search..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              onKeyDown={handleKeyDown} // Trigger search on "Enter"
-              className="w-full p-2 rounded bg-gray-300 border border-gray-600 text-black"
-            />
-            {searchQuery && (
-              <button
-                type="button"
-                onClick={() => {
-                  setSearchQuery("");
-                  setIsSearchOpen(false);
-                }}
-                className="absolute right-1 top-2 mr-2 text-black hover:text-gray-500 transition"
-                aria-label="Clear search"
-              >
-                ✕
-              </button>
-            )}
-          </div>
-        )}
-        <button
-          onClick={toggleSearch}
-          className="bg-transparent text-black p-2 mx-2"
-          aria-label="Toggle Search"
-        >
-          {router.pathname !== "/search-results" && <FaSearch size={25} />}
-        </button>
-        {!isSearchOpen && (
-          <>
-            {!authLoading && (
-              user ? (
-                <button
-                  onClick={() => setIsMobileUserMenuOpen((prev) => !prev)}
-                  className="bg-black text-white p-2 rounded-full mr-2"
-                  aria-label="User menu"
-                >
-                  <FaUserCircle size={24} />
-                </button>
-              ) : (
-                <Link href="/login" className="text-black font-bold mr-2 flex items-center gap-1">
-                  <FaSignInAlt size={24} />
-                </Link>
-              )
-            )}
-            <Button
-              variant="flat"
-              onClick={toggleMenu}
-              aria-label="Toggle Menu"
-              className="bg-black text-white font-bold py-2 px-2 rounded mx-2"
+        <SearchForm className="ml-auto hidden w-full max-w-sm md:block" />
+
+        <div className="hidden shrink-0 items-center md:flex">
+          {authLoading ? (
+            <div className="h-9 w-24" aria-hidden="true" />
+          ) : user ? (
+            <Dropdown
+              align="right"
+              label={
+                <>
+                  <FaUserCircle className="h-6 w-6" aria-hidden="true" />
+                  <span className="max-w-[8rem] truncate">{user.username}</span>
+                </>
+              }
+              active={['/account', '/saved-pieces'].includes(router.pathname)}
             >
-              <RxHamburgerMenu />
-            </Button>
-          </>
-        )}
+              <DropdownLink
+                link={{ href: '/saved-pieces', label: `Saved pieces (${user.savedPieces.length})` }}
+                current={isCurrent('/saved-pieces')}
+              />
+              <DropdownLink link={{ href: '/account', label: 'Account settings' }} current={isCurrent('/account')} />
+              <div className="my-1 border-t border-gray-100" />
+              <button
+                type="button"
+                onClick={() => logout()}
+                className="block w-full px-4 py-2 text-left font-medium text-red-600 transition-colors hover:bg-red-50"
+              >
+                Log out
+              </button>
+            </Dropdown>
+          ) : (
+            <Link href={loginHref} className="btn-primary px-4 py-2 text-sm">
+              <FaSignInAlt aria-hidden="true" />
+              Sign in
+            </Link>
+          )}
+        </div>
 
-        {/* Hamburger menu for navigation items */}
-        {isMenuOpen && (
-          <div
-            ref={menuRef}
-            className="z-50 mt-1 absolute top-16 items-center right-0 bg-white w-60 border border-gray-400 rounded shadow-lg flex flex-col"
+        {/* Mobile controls */}
+        <div className="ml-auto flex items-center gap-1 md:hidden">
+          <button
+            type="button"
+            onClick={() => {
+              setMobileSearchOpen((value) => !value);
+              setMobileMenuOpen(false);
+            }}
+            aria-expanded={mobileSearchOpen}
+            aria-label="Search"
+            className="rounded-lg p-2.5 text-gray-800 hover:bg-gray-100"
           >
-            <Link href="/cello-music">
-              <button className="w-full py-2 px-4 text-left hover:bg-gray-200">
-                Cello Music
-              </button>
+            <FaSearch className="h-5 w-5" />
+          </button>
+          {user && (
+            <Link href="/saved-pieces" aria-label="Saved pieces" className="rounded-lg p-2.5 text-gray-800 hover:bg-gray-100">
+              <FaHeart className="h-5 w-5" />
             </Link>
-            <Link href="/recently-added">
-              <button className="w-full py-2 px-4 text-left hover:bg-gray-200">
-                Recently Added
-              </button>
-            </Link>
-            <Link href="/featured-databases">
-              <button className="w-full py-2 px-4 text-left hover:bg-gray-200">
-                Featured Databases
-              </button>
-            </Link>
-            <Link href="/composers">
-              <button className="w-full py-2 px-4 text-left hover:bg-gray-200">
-                Composer List
-              </button>
-            </Link>
-            <Link href="/contact">
-              <button className="w-full py-2 px-4 text-left hover:bg-gray-200">
-                Contact
-              </button>
-            </Link>
-            <Link href="/about-us">
-              <button className="w-full py-2 px-4 text-left hover:bg-gray-200">
-                About
-              </button>
-            </Link>
-          </div>
-        )}
+          )}
+          <button
+            type="button"
+            onClick={() => {
+              setMobileMenuOpen((value) => !value);
+              setMobileSearchOpen(false);
+            }}
+            aria-expanded={mobileMenuOpen}
+            aria-controls="mobile-menu"
+            aria-label={mobileMenuOpen ? 'Close menu' : 'Open menu'}
+            className="rounded-lg bg-black p-2.5 text-white"
+          >
+            {mobileMenuOpen ? <IoClose className="h-5 w-5" /> : <RxHamburgerMenu className="h-5 w-5" />}
+          </button>
+        </div>
+      </div>
 
-        {/* Mobile user menu */}
-        {isMobileUserMenuOpen && (
-          <div
-            ref={mobileUserMenuRef}
-            className="z-50 mt-1 absolute top-16 items-center right-0 bg-white w-60 border border-gray-400 rounded shadow-lg flex flex-col"
-          >
-            {!authLoading && user ? (
+      {mobileSearchOpen && (
+        <div className="border-t border-gray-200 px-4 py-3 md:hidden">
+          <SearchForm autoFocus onSubmitted={() => setMobileSearchOpen(false)} />
+        </div>
+      )}
+
+      {mobileMenuOpen && (
+        <nav
+          id="mobile-menu"
+          aria-label="Main"
+          className="max-h-[calc(100vh-4rem)] animate-fade-in overflow-y-auto border-t border-gray-200 bg-white px-4 pb-6 pt-2 shadow-lg md:hidden"
+        >
+          {[
+            { heading: 'Music', links: MUSIC_LINKS },
+            { heading: 'More', links: MORE_LINKS },
+          ].map(({ heading, links }) => (
+            <div key={heading} className="py-2">
+              <p className="px-3 pb-1 text-xs font-semibold uppercase tracking-wide text-gray-500">{heading}</p>
+              {links.map((link) => (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  aria-current={isCurrent(link.href) ? 'page' : undefined}
+                  className={`block rounded-lg px-3 py-2.5 font-medium ${
+                    isCurrent(link.href) ? 'bg-teal-50 text-teal-800' : 'text-gray-900 hover:bg-gray-50'
+                  }`}
+                >
+                  {link.label}
+                </Link>
+              ))}
+            </div>
+          ))}
+          <div className="border-t border-gray-200 pt-3">
+            {user ? (
               <>
-                <Link href="/account">
-                  <button
-                    onClick={() => setIsMobileUserMenuOpen(false)}
-                    className="w-full py-2 px-4 text-left hover:bg-gray-200"
-                  >
-                    Account Settings
-                  </button>
+                <p className="px-3 pb-1 text-xs font-semibold uppercase tracking-wide text-gray-500">
+                  Signed in as {user.username}
+                </p>
+                <Link href="/saved-pieces" className="block rounded-lg px-3 py-2.5 font-medium text-gray-900 hover:bg-gray-50">
+                  Saved pieces ({user.savedPieces.length})
                 </Link>
-                <Link href="/saved-pieces">
-                  <button
-                    onClick={() => setIsMobileUserMenuOpen(false)}
-                    className="w-full py-2 px-4 text-left hover:bg-gray-200"
-                  >
-                    Saved Pieces
-                  </button>
+                <Link href="/account" className="block rounded-lg px-3 py-2.5 font-medium text-gray-900 hover:bg-gray-50">
+                  Account settings
                 </Link>
-                <div className="w-full border-t border-gray-300"></div>
                 <button
+                  type="button"
                   onClick={() => {
                     logout();
-                    setIsMobileUserMenuOpen(false);
+                    setMobileMenuOpen(false);
                   }}
-                  className="w-full py-2 px-4 text-left hover:bg-gray-200 text-red-600 font-medium"
+                  className="block w-full rounded-lg px-3 py-2.5 text-left font-medium text-red-600 hover:bg-red-50"
                 >
-                  Logout
+                  Log out
                 </button>
               </>
             ) : (
-              <Link href="/login">
-                <button
-                  onClick={() => setIsMobileUserMenuOpen(false)}
-                  className="w-full py-2 px-4 text-left hover:bg-gray-200 text-purple-600 font-medium"
-                >
-                </button>
+              <Link href={loginHref} className="btn-primary w-full">
+                <FaSignInAlt aria-hidden="true" />
+                Sign in
               </Link>
             )}
           </div>
-        )}
-      </div>
-
-      {/* Desktop Navigation */}
-      <nav className="hidden md:flex">
-        {/* Music Dropdown */}
-        <Dropdown
-          onMouseEnter={() => setisMusicHovered(true)}
-          onMouseLeave={() => setisMusicHovered(false)}
-          isOpen={isMusicHovered}
-          className="bg-white font-sans w-50"
-        >
-          <DropdownTrigger>
-            <Button
-              className="bg-black text-white hover:bg-teal-600 font-bold py-2 px-4 rounded mx-2"
-              onMouseEnter={() => setisMusicHovered(true)}
-              onMouseLeave={() => setisMusicHovered(false)}
-            >
-              <Link href="/cello-music">Music</Link>
-            </Button>
-          </DropdownTrigger>
-          <DropdownMenu
-            aria-label="Music Options"
-            className="custom-dropdown-menu"
-            onMouseEnter={() => setisMusicHovered(true)}
-            onMouseLeave={() => setisMusicHovered(false)}
-          >
-            <DropdownItem key="CelloMusicSelection" className="custom-dropdown-item text-black p-2">
-              <Link href="/cello-music">Cello Music</Link>
-            </DropdownItem>
-            <DropdownItem key="RecentlyAdded" className="custom-dropdown-item text-black p-2">
-              <Link href="/recently-added">Recently Added</Link>
-            </DropdownItem>
-            <DropdownItem key="FeaturedDatabases" className="custom-dropdown-item text-black p-2">
-              <Link href="/featured-databases">Featured Databases</Link>
-            </DropdownItem>
-            <DropdownItem key="ComposerSelection" className="custom-dropdown-item text-black p-2">
-              <Link href="/composers">Composer List</Link>
-            </DropdownItem>
-          </DropdownMenu>
-        </Dropdown>
-        {/* About Dropdown */}
-        <Dropdown
-          onMouseEnter={() => setisAboutHovered(true)}
-          onMouseLeave={() => setisAboutHovered(false)}
-          isOpen={isAboutHovered}
-          className="bg-white font-sans w-45"
-        >
-          <DropdownTrigger>
-            <Button
-              className="bg-black text-white hover:bg-teal-600 font-bold py-2 px-4 rounded mx-2"
-              onMouseEnter={() => setisAboutHovered(true)}
-              onMouseLeave={() => setisAboutHovered(false)}
-            >
-              More
-            </Button>
-          </DropdownTrigger>
-          <DropdownMenu
-            aria-label="About Options"
-            className="custom-dropdown-menu"
-            onMouseEnter={() => setisAboutHovered(true)}
-            onMouseLeave={() => setisAboutHovered(false)}
-          >
-            <DropdownItem key="OurMission" className="custom-dropdown-item text-black p-2">
-              <Link href="/about-us">Our Mission</Link>
-            </DropdownItem>
-            <DropdownItem key="ContactUs" className="custom-dropdown-item text-black p-2">
-              <Link href="/contact">Contact Us</Link>
-            </DropdownItem>
-            <DropdownItem key="Contribute" className="custom-dropdown-item text-black p-2">
-              <Link href="/contribute">Contribute</Link>
-            </DropdownItem>
-            <DropdownItem key="OtherResources" className="custom-dropdown-item text-black p-2">
-              <Link href="/resources">Resource Catalog</Link>
-            </DropdownItem>
-          </DropdownMenu>
-        </Dropdown>
-        {/* User/Login Section */}
-        {!authLoading && (
-          user ? (
-            <Dropdown
-              onMouseEnter={() => setIsUserHovered(true)}
-              onMouseLeave={() => setIsUserHovered(false)}
-              isOpen={isUserHovered}
-              className="bg-white font-sans w-45"
-            >
-              <DropdownTrigger>
-                <Button
-                  className="bg-black text-white hover:shadow-lg font-bold p-2 rounded-full mx-2"
-                  onMouseEnter={() => setIsUserHovered(true)}
-                  onMouseLeave={() => setIsUserHovered(false)}
-                  isIconOnly
-                  aria-label="User menu"
-                >
-                  <FaUserCircle size={24} />
-                </Button>
-              </DropdownTrigger>
-              <DropdownMenu
-                aria-label="User Options"
-                className="custom-dropdown-menu"
-                onMouseEnter={() => setIsUserHovered(true)}
-                onMouseLeave={() => setIsUserHovered(false)}
-              >
-                <DropdownItem
-                  key="MyAccount"
-                  className="custom-dropdown-item text-black p-2"
-                  onClick={() => router.push('/account')}
-                >
-                  Account Settings
-                </DropdownItem>
-                <DropdownItem
-                  key="SavedPieces"
-                  className="custom-dropdown-item text-black p-2"
-                  onClick={() => router.push('/saved-pieces')}
-                >
-                  Saved Pieces
-                </DropdownItem>
-                <DropdownItem
-                  key="Logout"
-                  className="custom-dropdown-item text-red-600 p-2"
-                  onClick={() => logout()}
-                >
-                  Logout
-                </DropdownItem>
-              </DropdownMenu>
-            </Dropdown>
-          ) : (
-            <Link href="/login" className="text-black font-bold mx-2 hover:underline flex items-center gap-1">
-              <FaSignInAlt size={20} />
-            </Link>
-          )
-        )}
-      </nav>
+        </nav>
+      )}
     </header>
   );
 };
