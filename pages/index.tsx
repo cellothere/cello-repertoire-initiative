@@ -1,121 +1,146 @@
+import { useState } from 'react';
 import { NextPage } from 'next';
-import Head from 'next/head';
-import NavbarMain from '@/components/navbar-main';
-import { FaArrowRight } from 'react-icons/fa';
-import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { Analytics } from "@vercel/analytics/react";
-import { SpeedInsights } from "@vercel/speed-insights/next";
+import { useRouter } from 'next/router';
+import { FaArrowRight, FaSearch } from 'react-icons/fa';
+import { SpeedInsights } from '@vercel/speed-insights/next';
+import Seo from '@/components/seo';
 
-// Define static image data outside the component
-const mobileImages = [
-  { href: '/cello-music', src: '/assets/cellist3.png', label: 'Cello Music' },
-  { href: '/featured-databases', src: '/assets/whatsNew.png', label: "Featured Databases", subLabel: '' },
-  { href: '/contribute', src: '/assets/contribute.png', label: 'Contribute', subLabel: 'Suggest an addition to our catalog' }
+const FEATURES = [
+  {
+    href: '/cello-music',
+    src: '/assets/cellist3.png',
+    label: 'Cello Music',
+    description: 'Search the catalogue by level, instrumentation, composer and more.',
+  },
+  {
+    href: '/featured-databases',
+    src: '/assets/whatsNew.png',
+    label: 'Featured Databases',
+    description: 'Music by women, non-binary, Black and Indigenous composers.',
+  },
+  {
+    href: '/contribute',
+    src: '/assets/contribute.png',
+    label: 'Contribute',
+    description: 'Suggest a piece or teaching resource for our catalogue.',
+  },
 ];
 
-const desktopImages = [
-  { href: '/featured-databases', src: '/assets/whatsNew.png', label: "Featured Databases", subLabel: '' },
-  { href: '/cello-music', src: '/assets/cellist3.png', label: 'Cello Music' },
-  { href: '/contribute', src: '/assets/contribute.png', label: 'Contribute', subLabel: 'Suggest an addition to our catalog' }
+const LEVEL_SHORTCUTS = [
+  { label: 'Beginner', levels: ['Early Beginner', 'Beginner', 'Late Beginner'] },
+  { label: 'Intermediate', levels: ['Early Intermediate', 'Intermediate', 'Late Intermediate'] },
+  { label: 'Advanced', levels: ['Early Advanced', 'Advanced'] },
+  { label: 'Professional', levels: ['Professional'] },
 ];
 
-// Custom hook for detecting mobile view
-function useIsMobile() {
-  const [isMobile, setIsMobile] = useState(false);
-  useEffect(() => {
-    const mql = window.matchMedia('(max-width: 768px)');
-    setIsMobile(mql.matches);
-    const handleChange = (e: MediaQueryListEvent) => setIsMobile(e.matches);
-    mql.addEventListener('change', handleChange);
-    return () => mql.removeEventListener('change', handleChange);
-  }, []);
-  return isMobile;
-}
+const levelHref = (levels: string[]) =>
+  `/cello-music?${levels.map((level) => `level=${encodeURIComponent(level)}`).join('&')}`;
 
 const Home: NextPage = () => {
-  const isMobileView = useIsMobile();
-  const [contentVisible, setContentVisible] = useState(false);
+  const router = useRouter();
+  const [query, setQuery] = useState('');
 
-  // Use a short timeout for a potential animation effect (adjust if needed)
-  useEffect(() => {
-    const timer = setTimeout(() => setContentVisible(true), 0);
-    return () => clearTimeout(timer);
-  }, []);
+  const search = (e: React.FormEvent) => {
+    e.preventDefault();
+    const trimmed = query.trim();
+    router.push(trimmed ? `/cello-music?q=${encodeURIComponent(trimmed)}` : '/cello-music');
+  };
 
   return (
-    <div>
-      <Head>
-        <title>Cello Repertoire Initiative</title>
-        <meta name="description" content="Discover music that resonates with you and your students." />
-      </Head>
-      <NavbarMain />
-      <main
-        className={`p-8 flex flex-col items-center justify-center ${isMobileView ? 'mobile-view' : ''} ${contentVisible ? 'move-up' : ''}`}
-        style={{ marginTop: isMobileView ? '30px' : '0' }}
-      >
-        <h1 className={`text-4xl font-mono font-bold mb-4 text-center ${isMobileView ? 'mobile-title' : ''}`}>
-          Teach. Learn. Perform.
-        </h1>
-        <p className="text-center mb-5">
-          Discover music that resonates with you and your students.
-        </p>
-        <Link href="/cello-music">
-          <button className="bg-black text-white px-6 py-3 rounded-lg transition-transform hover:scale-110 mt-2 mb-6">
-            Find music <FaArrowRight className="inline-block ml-2" />
-          </button>
-        </Link>
+    <>
+      <Seo description="Discover music that resonates with you and your students: a searchable database of level-appropriate cello repertoire featuring under-recognized and underrepresented composers." />
 
-        {contentVisible && (
-          <div id="images-container" className={`flex ${isMobileView ? 'flex-col space-y-6' : 'space-x-6 flex-row justify-center'}`}>
-            {(isMobileView ? mobileImages : desktopImages).map(({ href, src, label, subLabel }, index) => (
-              <Link key={index} href={href}>
-                <div className={`relative ${isMobileView ? '' : 'hover:scale-105'} duration-300`}>
-                  <Image 
-                    src={src}
-                    alt={label}
-                    width={320}  // Adjust width as needed
-                    height={480} // Adjust height as needed
-                    className={`w-80 h-120 rounded-lg transition-opacity duration-300 ${isMobileView ? '' : 'hover:opacity-75'}`}
-                  />
-                  <div className={`absolute inset-0 flex flex-col items-center justify-center bg-black ${isMobileView ? 'bg-opacity-20' : 'bg-opacity-50 opacity-0 hover:opacity-100'} transition-opacity duration-300`}>
-                    <p className="text-white text-lg font-bold">{label}</p>
-                    {subLabel && <p className="text-sm font-bold text-white">{subLabel}</p>}
-                  </div>
-                </div>
+      <section className="relative overflow-hidden bg-brand-gradient text-white">
+        <div
+          className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(255,255,255,0.15),transparent_45%)]"
+          aria-hidden="true"
+        />
+        <div className="container relative mx-auto px-4 py-16 text-center md:py-24">
+          <h1 className="text-4xl font-bold tracking-tight md:text-6xl">Teach. Learn. Perform.</h1>
+          <p className="mx-auto mt-4 max-w-2xl text-lg text-white/90 md:text-xl">
+            Discover music that resonates with you and your students.
+          </p>
+
+          <form onSubmit={search} role="search" className="mx-auto mt-8 flex max-w-xl gap-2 rounded-2xl bg-white p-2 shadow-2xl">
+            <div className="relative flex-1">
+              <FaSearch className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" aria-hidden="true" />
+              <input
+                type="search"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder="Search by title or composer"
+                aria-label="Search by title or composer"
+                className="h-full w-full rounded-xl py-3 pl-10 pr-3 text-gray-900 placeholder:text-gray-500 focus:outline-none"
+              />
+            </div>
+            <button type="submit" className="btn-primary rounded-xl px-4 sm:px-5" aria-label="Find music">
+              <span className="hidden sm:inline">Find music</span>
+              <FaArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
+            </button>
+          </form>
+
+          <div className="mt-6 flex flex-wrap items-center justify-center gap-2 text-sm">
+            <span className="text-white/80">Browse by level:</span>
+            {LEVEL_SHORTCUTS.map((shortcut) => (
+              <Link
+                key={shortcut.label}
+                href={levelHref(shortcut.levels)}
+                className="rounded-full bg-white/15 px-3 py-1 font-medium text-white ring-1 ring-inset ring-white/25 transition-colors hover:bg-white/25"
+              >
+                {shortcut.label}
               </Link>
             ))}
           </div>
-        )}
+        </div>
+      </section>
 
-        <Analytics />
-        <SpeedInsights />
-      </main>
+      <section className="container mx-auto px-4 py-12 md:py-16" aria-label="Explore">
+        <div className="grid gap-6 md:grid-cols-3">
+          {FEATURES.map((feature, index) => (
+            <Link
+              key={feature.href}
+              href={feature.href}
+              className="group relative block aspect-[4/3] overflow-hidden rounded-2xl shadow-lg md:aspect-[3/4]"
+            >
+              <Image
+                src={feature.src}
+                alt=""
+                fill
+                priority={index === 0}
+                sizes="(min-width: 768px) 33vw, 100vw"
+                className="object-cover transition-transform duration-500 group-hover:scale-105"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 to-transparent" />
+              <div className="absolute inset-x-0 bottom-0 p-6 text-white">
+                <h2 className="flex items-center gap-2 text-2xl font-bold">
+                  {feature.label}
+                  <FaArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" aria-hidden="true" />
+                </h2>
+                <p className="mt-1 text-white/85">{feature.description}</p>
+              </div>
+            </Link>
+          ))}
+        </div>
+      </section>
 
-      <style jsx>{`
-        .move-up {
-          transform: translateY(-1%);
-          transition: transform 1.5s ease-in-out;
-        }
+      <section className="border-t border-gray-200 bg-white">
+        <div className="container mx-auto max-w-3xl px-4 py-12 text-center md:py-16">
+          <h2 className="text-2xl font-bold md:text-3xl">Our mission</h2>
+          <p className="mt-4 text-lg leading-relaxed text-gray-700">
+            We provide teachers, students, and performers with a searchable database of level-appropriate musical
+            literature and teaching resources, featuring works by under-recognized and underrepresented composers.
+          </p>
+          <Link href="/about-us" className="mt-6 inline-flex items-center gap-2 font-semibold text-teal-700 hover:underline">
+            Learn more about us
+            <FaArrowRight className="h-3 w-3" aria-hidden="true" />
+          </Link>
+        </div>
+      </section>
 
-        .mobile-title {
-          white-space: pre-wrap;
-        }
-
-        @media (max-width: 768px) {
-          .mobile-title {
-            text-align: center;
-            line-height: 1.2;
-          }
-
-          #images-container {
-            flex-direction: column;
-            gap: 1.5rem;
-          }
-        }
-      `}</style>
-    </div>
+      <SpeedInsights />
+    </>
   );
 };
 

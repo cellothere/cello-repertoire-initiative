@@ -1,9 +1,10 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
-import Head from 'next/head';
-import NavbarMain from '@/components/navbar-main';
-import { useAuth } from '@/contexts/AuthContext';
+import Seo from '@/components/seo';
+import { AuthShell, PageSpinner, SubmitButton } from '@/components/auth-form';
+import { FormAlert } from '@/components/state-messages';
+import { safeRedirect, useAuth } from '@/contexts/AuthContext';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -13,89 +14,37 @@ export default function LoginPage() {
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Redirect if already logged in
+  const redirect = safeRedirect(router.query.redirect);
+
+  // Already signed in (or just signed in): continue to where the visitor was going.
   useEffect(() => {
-    if (!loading && user) {
-      const redirect = (router.query.redirect as string) || '/cello-music';
-      router.push(redirect);
-    }
-  }, [user, loading, router]);
+    if (!loading && user) router.replace(redirect);
+  }, [user, loading, router, redirect]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     setIsSubmitting(true);
-
     try {
       await login(email, password);
-
-      // Check for pending save
-      const pendingSave = sessionStorage.getItem('pendingSave');
-      if (pendingSave) {
-        try {
-          const { pieceId, instrument } = JSON.parse(pendingSave);
-          await fetch('/api/user/saved-pieces', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ pieceId, instrument })
-          });
-          sessionStorage.removeItem('pendingSave');
-        } catch (err) {
-          console.error('Failed to save pending piece:', err);
-        }
-      }
-
-      // Redirect
-      const redirect = (router.query.redirect as string) || '/cello-music';
-      router.push(redirect);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Login failed');
-    } finally {
       setIsSubmitting(false);
     }
   };
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gray-100">
-        <NavbarMain />
-        <div className="flex items-center justify-center min-h-[50vh]">
-          <div className="text-lg">Loading...</div>
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div className="min-h-screen bg-gray-100 text-gray-900">
-      <Head>
-        <title>Login | Cello Repertoire Initiative</title>
-        <meta name="description" content="Login to your Cello Repertoire Initiative account" />
-      </Head>
-      <NavbarMain />
-
-      {/* Gradient Header */}
-      <header className="relative py-16 bg-gradient-to-br from-purple-600 via-purple-500 to-pink-500 text-center text-white overflow-hidden">
-        <div className="absolute inset-0 bg-white/5 backdrop-blur-3xl"></div>
-        <div className="relative z-10">
-          <h1 className="text-5xl md:text-6xl mb-3 font-bold tracking-tight">Login</h1>
-          <p className="text-purple-100 text-lg max-w-2xl mx-auto px-4">
-            Welcome back! Sign in to access your saved pieces.
-          </p>
-        </div>
-      </header>
-
-      <main className="container mx-auto px-4 py-12">
-        <div className="max-w-md mx-auto">
-          <form onSubmit={handleSubmit} className="space-y-6 bg-white shadow-lg rounded-xl p-8">
-            {error && (
-              <div className="p-3 bg-red-100 border border-red-400 text-red-700 rounded-lg text-sm">
-                {error}
-              </div>
-            )}
+    <>
+      <Seo title="Sign in" path="/login" noindex />
+      <AuthShell title="Sign in" subtitle="Welcome back! Sign in to access your saved pieces.">
+        {loading || user ? (
+          <PageSpinner />
+        ) : (
+          <form onSubmit={handleSubmit} className="card space-y-6 p-8 shadow-xl">
+            {error && <FormAlert tone="error">{error}</FormAlert>}
 
             <div className="flex flex-col">
-              <label htmlFor="email" className="font-semibold text-gray-900 mb-2">
+              <label htmlFor="email" className="label">
                 Email
               </label>
               <input
@@ -104,13 +53,15 @@ export default function LoginPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                className="px-4 py-3 border border-gray-300 rounded-lg w-full focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                autoComplete="email"
+                disabled={isSubmitting}
+                className="input"
                 placeholder="your@email.com"
               />
             </div>
 
             <div className="flex flex-col">
-              <label htmlFor="password" className="font-semibold text-gray-900 mb-2">
+              <label htmlFor="password" className="label">
                 Password
               </label>
               <input
@@ -119,28 +70,29 @@ export default function LoginPage() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
-                className="px-4 py-3 border border-gray-300 rounded-lg w-full focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                autoComplete="current-password"
+                disabled={isSubmitting}
+                className="input"
                 placeholder="••••••••"
               />
             </div>
 
-            <button
-              type="submit"
-              disabled={isSubmitting}
-              className="w-full bg-gradient-to-br from-purple-600 to-pink-500 text-white py-3 px-6 rounded-lg font-semibold hover:shadow-lg hover:scale-105 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {isSubmitting ? 'Logging in...' : 'Login'}
-            </button>
+            <SubmitButton busy={isSubmitting} busyLabel="Signing in…">
+              Sign in
+            </SubmitButton>
 
-            <div className="text-center text-sm text-gray-600">
-              Don't have an account?{' '}
-              <Link href={`/register${router.query.redirect ? `?redirect=${router.query.redirect}` : ''}`} className="text-purple-600 hover:text-purple-700 font-medium hover:underline">
-                Register here
+            <p className="text-center text-sm text-gray-600">
+              Don&apos;t have an account?{' '}
+              <Link
+                href={{ pathname: '/register', query: router.query.redirect ? { redirect } : {} }}
+                className="font-medium text-teal-700 hover:underline"
+              >
+                Create one
               </Link>
-            </div>
+            </p>
           </form>
-        </div>
-      </main>
-    </div>
+        )}
+      </AuthShell>
+    </>
   );
 }

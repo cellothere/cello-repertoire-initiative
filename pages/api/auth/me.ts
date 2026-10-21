@@ -1,28 +1,27 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { getAuthUser } from '@/lib/auth-middleware';
+import { allowMethods } from '@/lib/api';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  if (req.method !== 'GET') {
-    return res.status(405).json({ error: 'Method not allowed' });
-  }
+  if (!allowMethods(req, res, ['GET'])) return;
+
+  res.setHeader('Cache-Control', 'private, no-store');
 
   try {
-    // Try to get authenticated user (returns null if not authenticated)
     const user = await getAuthUser(req);
 
     if (!user) {
       return res.status(200).json({ user: null });
     }
 
-    // Return user data (without password hash)
     return res.status(200).json({
       user: {
         id: user.id,
         email: user.email,
         username: user.username,
         createdAt: user.createdAt,
-        savedPieces: user.savedPieces
-      }
+        savedPieces: user.savedPieces,
+      },
     });
   } catch (error) {
     console.error('Me endpoint error:', error);

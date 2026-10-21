@@ -1,74 +1,96 @@
-import React from 'react';
-import Dialog from '@mui/material/Dialog';
-import DialogTitle from '@mui/material/DialogTitle';
-import DialogContent from '@mui/material/DialogContent';
-import DialogActions from '@mui/material/DialogActions';
-import Button from '@mui/material/Button';
-import IconButton from '@mui/material/IconButton';
-import CloseIcon from '@mui/icons-material/Close';
-import { Box, Typography } from '@mui/material';
+import React, { useEffect, useMemo, useRef } from 'react';
+import { IoClose } from 'react-icons/io5';
+import { modalLevelText } from '@/utils/modalLevelTexts';
+import { baseLevel } from '@/utils/musicUtils';
 
 interface LevelModalProps {
   open: boolean;
   onClose: () => void;
   level: string;
-  tooltipContent: string;
 }
 
-// Helper function to format the tooltip text by italicizing section headers.
-const formatTooltipContent = (content: string) => {
-  return content.split('\n').map((line, index) => {
-    const trimmed = line.trim();
-    if (trimmed === '') {
-      return <br key={index} />;
-    }
-    // Check for known headers and render them italicized.
-    if (/^(Left Hand:|Right Hand:|Bow Strokes:|Rhythm & Musicality:)/i.test(trimmed)) {
-      return (
-        <Typography key={index} variant="body1" component="p">
-          <em>{trimmed}</em>
-        </Typography>
-      );
-    }
-    return (
-      <Typography key={index} variant="body1" component="p">
-        {line}
-      </Typography>
-    );
-  });
-};
+interface Section {
+  heading: string | null;
+  bullets: string[];
+}
 
-const LevelModal: React.FC<LevelModalProps> = ({ open, onClose, level, tooltipContent }) => {
-  // Remove any "(Book ...)" text from the level for display purposes.
-  const cleanLevel = level.replace(/\s*\(.*\)/, '');
-  
+/** The rubric text is "Heading:" lines followed by "• item" lines; turn it into sections. */
+function parseRubric(content: string): Section[] {
+  const sections: Section[] = [];
+  for (const raw of content.split('\n')) {
+    const line = raw.trim();
+    if (!line) continue;
+    if (/^[^•].*:$/.test(line)) {
+      sections.push({ heading: line.slice(0, -1), bullets: [] });
+      continue;
+    }
+    if (sections.length === 0) sections.push({ heading: null, bullets: [] });
+    sections[sections.length - 1].bullets.push(line.replace(/^•\s*/, ''));
+  }
+  return sections;
+}
+
+/** Explains what a level means, using the native <dialog> for focus trapping and Escape handling. */
+const LevelModal: React.FC<LevelModalProps> = ({ open, onClose, level }) => {
+  const dialogRef = useRef<HTMLDialogElement>(null);
+  const cleanLevel = baseLevel(level);
+
+  const sections = useMemo(() => {
+    const text = modalLevelText[cleanLevel as keyof typeof modalLevelText] ?? modalLevelText.default;
+    return parseRubric(text);
+  }, [cleanLevel]);
+
+  useEffect(() => {
+    const dialog = dialogRef.current;
+    if (!dialog) return;
+    if (open && !dialog.open) dialog.showModal();
+    if (!open && dialog.open) dialog.close();
+  }, [open]);
+
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
-      <DialogTitle sx={{ fontWeight: 'bold', m: 0, p: 2 }}>
-        {`"${cleanLevel}" Rubric`}
-        <IconButton
-          aria-label="close"
-          onClick={onClose}
-          sx={{
-            position: 'absolute',
-            right: 8,
-            top: 8,
-            color: (theme) => theme.palette.grey[500],
-          }}
-        >
-          <CloseIcon />
-        </IconButton>
-      </DialogTitle>
-      <Box sx={{ borderTop: '2px solid lightgray', mx: 3, my: 2 }} />
-      <DialogContent>
-        {formatTooltipContent(tooltipContent)}
-      </DialogContent>
-      <DialogActions sx={{ justifyContent: 'center', p: 2 }}>
-        <Button variant="outlined" onClick={onClose}>
-          Close
-        </Button>
-      </DialogActions>
-    </Dialog>
+    <dialog
+      ref={dialogRef}
+      onClose={onClose}
+      onClick={(event) => {
+        // A click on the dialog element itself (not its contents) is a click on the backdrop.
+        if (event.target === dialogRef.current) onClose();
+      }}
+      aria-labelledby="level-modal-title"
+      className="w-[min(36rem,calc(100%-2rem))] rounded-2xl p-0 text-gray-900 shadow-2xl backdrop:bg-black/50"
+    >
+      <div className="flex max-h-[85vh] flex-col">
+        <div className="flex items-start justify-between gap-4 border-b border-gray-200 px-6 py-4">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-wide text-teal-700">Level rubric</p>
+            <h2 id="level-modal-title" className="text-xl font-bold">
+              {cleanLevel}
+            </h2>
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            className="rounded-full p-1.5 text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-900"
+            aria-label="Close"
+          >
+            <IoClose className="h-6 w-6" />
+          </button>
+        </div>
+
+        <div className="space-y-5 overflow-y-auto px-6 py-5">
+          {sections.map((section, index) => (
+            <section key={index}>
+              {section.heading && <h3 className="mb-2 font-semibold text-gray-900">{section.heading}</h3>}
+              <ul className="list-disc space-y-1 pl-5 text-sm leading-relaxed text-gray-700 marker:text-teal-600">
+                {section.bullets.map((bullet, i) => (
+                  <li key={i}>{bullet}</li>
+                ))}
+              </ul>
+            </section>
+          ))}
+          <p className="text-xs italic text-gray-500">Levels are approximate guides, not strict requirements.</p>
+        </div>
+      </div>
+    </dialog>
   );
 };
 

@@ -1,18 +1,26 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
+  poweredByHeader: false,
 
-  // Only lint these directories (so "Linting and checking validity of types" is fast)
-  eslint: {
-    dirs: ['pages', 'components', 'lib'],
-    // If you need to completely skip ESLint during `next build`, uncomment:
-    // ignoreDuringBuilds: true,
+  async redirects() {
+    return [
+      // Search now lives on the Cello Music page. Query strings are passed through,
+      // and the page understands the old `?query=` parameter.
+      { source: '/search-results', destination: '/cello-music', permanent: true },
+      { source: '/coming-soon', destination: '/', permanent: false },
+    ];
   },
 
-  // You can also (temporarily) bypass TS errors on build by uncommenting:
-  // typescript: {
-  //   ignoreBuildErrors: true,
-  // },
+  async headers() {
+    return [
+      {
+        // Illustrations rarely change; let browsers and the CDN cache them for a week.
+        source: '/assets/:path*',
+        headers: [{ key: 'Cache-Control', value: 'public, max-age=604800, stale-while-revalidate=86400' }],
+      },
+    ];
+  },
 };
 
 module.exports = nextConfig;

@@ -1,53 +1,42 @@
 import Link from 'next/link';
-import { useRouter } from 'next/router';
-import { FaUsers, FaBookOpen } from 'react-icons/fa';
-import { MdLibraryMusic } from "react-icons/md";
+import { MORE_LINKS, MUSIC_LINKS } from './navbar-main';
 
 const Footer = () => {
-  const router = useRouter();
-  const isFeaturedPage = router.pathname === '/featured-databases';
-
   return (
-    <footer className={`footer w-full text-white relative ${isFeaturedPage ? 'bg-black' : ''}`}>
-      {/* Navigation Buttons */}
-      <div className="flex flex-row items-center justify-center p-4">
-        <Link href="/composers">
-          <button className="flex flex-col items-center my-2 mx-2 lg:mx-12 hover:opacity-80">
-            <FaUsers size={34} />
-            <span className="mt-1 text-xs">Composer Database</span>
-          </button>
-        </Link>
-        <Link href="/featured-databases">
-          <button className="flex flex-col items-center my-2 mx-2 lg:mx-12 hover:opacity-80">
-            <MdLibraryMusic size={34} />
-            <span className="mt-1 text-xs">Featured Databases</span>
-          </button>
-        </Link>
-        <Link href="/resources">
-          <button className="flex flex-col items-center my-2 mx-2 lg:mx-12 hover:opacity-80">
-            <FaBookOpen size={34} />
-            <span className="mt-1 text-xs">Resource Catalog</span>
-          </button>
-        </Link>
+    <footer className="bg-gray-950 text-gray-400">
+      <div className="container mx-auto grid gap-10 px-4 py-12 md:grid-cols-[2fr_1fr_1fr]">
+        <div>
+          <p className="bg-brand-gradient bg-clip-text text-lg font-bold text-transparent brightness-150">
+            Cello Repertoire Initiative
+          </p>
+          <p className="mt-3 max-w-sm text-sm leading-relaxed">
+            A searchable database of level-appropriate repertoire and teaching resources, featuring under-recognized and
+            underrepresented composers.
+          </p>
+        </div>
+        {[
+          { heading: 'Explore', links: MUSIC_LINKS },
+          { heading: 'Organization', links: MORE_LINKS },
+        ].map(({ heading, links }) => (
+          <nav key={heading} aria-label={heading}>
+            <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-white">{heading}</h2>
+            <ul className="space-y-2 text-sm">
+              {links.map((link) => (
+                <li key={link.href}>
+                  <Link href={link.href} className="transition-colors hover:text-white">
+                    {link.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </nav>
+        ))}
       </div>
-      
-      {/* Copyright */}
-      <div className="text-center text-xs font-mono py-2">
-        © {new Date().getFullYear()} Cello Repertoire Initiative - All Rights Reserved
+      <div className="border-t border-white/10">
+        <p className="container mx-auto px-4 py-5 text-xs">
+          © {new Date().getFullYear()} Cello Repertoire Initiative. All rights reserved.
+        </p>
       </div>
-      
-      {/* Shaded border using a pseudo-element */}
-      <style jsx>{`
-        .footer::before {
-          content: "";
-          position: absolute;
-          top: -8px;
-          left: 0;
-          width: 100%;
-          height: 8px;
-          background: linear-gradient(to bottom, rgba(0, 0, 0, 0.25), transparent);
-        }
-      `}</style>
     </footer>
   );
 };

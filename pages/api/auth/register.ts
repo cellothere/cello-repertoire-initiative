@@ -1,102 +1,73 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
-import clientPromise from '@/lib/mongodb';
+import { getDb } from '@/lib/mongodb';
 import { hashPassword } from '@/lib/password';
 import { generateToken } from '@/lib/jwt';
+import { allowMethods, setAuthCookie, USERNAME_PATTERN, USERNAME_RULES } from '@/lib/api';
+import { getUsersCollection } from '@/lib/auth-middleware';
 
 interface Counter {
   _id: string;
   seq: number;
 }
 
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' });
-  }
+  if (!allowMethods(req, res, ['POST'])) return;
 
   try {
-    const { email, username, password } = req.body;
+    const { email: rawEmail, username: rawUsername, password } = req.body ?? {};
 
-    // Validation
-    if (!email || !username || !password) {
+    if (typeof rawEmail !== 'string' || typeof rawUsername !== 'string' || typeof password !== 'string') {
       return res.status(400).json({ error: 'Email, username, and password are required' });
     }
 
-    // Email validation
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
+    const email = rawEmail.trim().toLowerCase();
+    const username = rawUsername.trim();
+
+    if (!email || !username || !password) {
+      return res.status(400).json({ error: 'Email, username, and password are required' });
+    }
+    if (!EMAIL_PATTERN.test(email)) {
       return res.status(400).json({ error: 'Invalid email format' });
     }
-
-    // Username validation (3-20 chars, alphanumeric + underscore)
-    const usernameRegex = /^[a-zA-Z0-9_]{3,20}$/;
-    if (!usernameRegex.test(username)) {
-      return res.status(400).json({ error: 'Username must be 3-20 characters and contain only letters, numbers, and underscores' });
+    if (!USERNAME_PATTERN.test(username)) {
+      return res.status(400).json({ error: USERNAME_RULES });
     }
-
-    // Password validation (min 8 chars)
     if (password.length < 8) {
       return res.status(400).json({ error: 'Password must be at least 8 characters' });
     }
 
-    const client = await clientPromise;
-    const db = client.db('repertoire');
-    const usersCollection = db.collection('users');
+    const users = await getUsersCollection();
 
-    // Check if email already exists
-    const existingEmail = await usersCollection.findOne({ email: email.toLowerCase() });
-    if (existingEmail) {
+    if (await users.findOne({ email }, { projection: { _id: 1 } })) {
       return res.status(400).json({ error: 'Email already registered' });
     }
-
-    // Check if username already exists
-    const existingUsername = await usersCollection.findOne({ username });
-    if (existingUsername) {
+    if (await users.findOne({ username }, { projection: { _id: 1 } })) {
       return res.status(400).json({ error: 'Username already taken' });
     }
 
-    // Get next sequential ID
-    const countersCollection = db.collection<Counter>('counters');
-    const counterResult = await countersCollection.findOneAndUpdate(
-      { _id: 'userId' },
-      { $inc: { seq: 1 } },
-      { returnDocument: 'after', upsert: true }
-    );
+    const counter = await (await getDb())
+      .collection<Counter>('counters')
+      .findOneAndUpdate({ _id: 'userId' }, { $inc: { seq: 1 } }, { returnDocument: 'after', upsert: true });
+    const userId = counter?.seq || 1;
 
-    const userId = counterResult?.seq || 1;
-
-    // Hash password
-    const passwordHash = await hashPassword(password);
-
-    // Create user
-    const newUser = {
+    const now = new Date();
+    await users.insertOne({
       id: userId,
-      email: email.toLowerCase(),
+      email,
       username,
-      passwordHash,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-      savedPieces: []
-    };
+      passwordHash: await hashPassword(password),
+      createdAt: now,
+      updatedAt: now,
+      savedPieces: [],
+    });
 
-    await usersCollection.insertOne(newUser);
+    setAuthCookie(res, generateToken(userId, email));
 
-    // Generate JWT
-    const token = generateToken(userId, email.toLowerCase());
-
-    // Set httpOnly cookie
-    res.setHeader(
-      'Set-Cookie',
-      `token=${token}; HttpOnly; ${process.env.NODE_ENV === 'production' ? 'Secure;' : ''} SameSite=Strict; Path=/; Max-Age=${60 * 60 * 24 * 7}`
-    );
-
-    // Return user data (without password hash)
     return res.status(201).json({
       success: true,
-      user: {
-        id: userId,
-        email: newUser.email,
-        username: newUser.username
-      }
+      user: { id: userId, email, username },
     });
   } catch (error) {
     console.error('Registration error:', error);
