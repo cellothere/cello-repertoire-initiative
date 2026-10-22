@@ -42,6 +42,7 @@ const summaryProjection = {
   title: 1,
   level: 1,
   instrumentation: 1,
+  arrangers: 1,
   composition_year: 1,
   duration: 1,
   technique_focus: 1,
@@ -88,6 +89,7 @@ function toSummary(doc: Document, instrument: Instrument): PieceSummary {
     composer_last_name: lead?.last_name ?? '',
     level: str(doc.level) || 'Unknown',
     instrumentation: strArray(doc.instrumentation),
+    arrangers: strArray(doc.arrangers),
     nationality: union(composers.map((c) => strArray(c.nationality))),
     composition_year: str(doc.composition_year),
     duration: str(doc.duration),
@@ -210,6 +212,7 @@ export async function getPieceDetail(instrument: Instrument, id: number): Promis
     where_to_buy_or_download: strArray(doc.where_to_buy_or_download),
     audio_link: strArray(doc.audio_link),
     duration: str(doc.duration),
+    arrangers: strArray(doc.arrangers),
     composers: composerDocs(doc, { enabledOnly: false }).map((c) => ({
       id: Number(c.id),
       full_name: str(c.composer_full_name) || 'Unknown Composer',
