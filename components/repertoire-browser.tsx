@@ -111,7 +111,7 @@ export default function RepertoireBrowser({ instrument, apiPath, path }: Reperto
     () =>
       pieces.map((piece) => ({
         piece,
-        text: normalizeForSearch(`${piece.title} ${piece.composer}`),
+        text: normalizeForSearch(`${piece.title} ${piece.composers.map((c) => c.full_name).join(' ')}`),
         level: baseLevel(piece.level),
         year: parseYear(piece.composition_year),
         categories: instrumentationCategories(piece.instrumentation, instrument),
@@ -149,7 +149,7 @@ export default function RepertoireBrowser({ instrument, apiPath, path }: Reperto
       .filter(
         (entry) =>
           tokens.every((token) => entry.text.includes(token)) &&
-          (composers.size === 0 || composers.has(entry.piece.composer)) &&
+          (composers.size === 0 || entry.piece.composers.some((c) => composers.has(c.full_name))) &&
           (levels.size === 0 || levels.has(entry.level)) &&
           (countries.size === 0 || entry.piece.nationality.some((n) => countries.has(n))) &&
           (f.instrumentation.length === 0 ||
@@ -166,8 +166,8 @@ export default function RepertoireBrowser({ instrument, apiPath, path }: Reperto
     const composers = new Map<string, string>();
     const countries = new Set<string>();
     for (const piece of pieces) {
-      if (piece.composer && !composers.has(piece.composer)) {
-        composers.set(piece.composer, formatComposerName(piece.composer_first_name, piece.composer_last_name));
+      for (const c of piece.composers) {
+        if (c.full_name && !composers.has(c.full_name)) composers.set(c.full_name, formatComposerName(c.first_name, c.last_name));
       }
       piece.nationality.forEach((n) => countries.add(n));
     }

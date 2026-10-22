@@ -4,7 +4,7 @@ import SaveButton from './save-button';
 import LevelBadge from './level-badge';
 import { pieceHref } from '@/lib/instruments';
 import type { PieceSummary, SortKey } from '@/lib/types';
-import { formatComposerName, formatDuration, parseYear } from '@/utils/musicUtils';
+import { formatComposers, formatDuration, parseYear } from '@/utils/musicUtils';
 
 interface MusicListViewProps {
   pieces: PieceSummary[];
@@ -73,9 +73,7 @@ function CompactList({ pieces }: { pieces: PieceSummary[] }) {
               >
                 {piece.title}
               </Link>
-              <p className="mt-0.5 truncate text-sm text-gray-600">
-                {formatComposerName(piece.composer_first_name, piece.composer_last_name)}
-              </p>
+              <p className="mt-0.5 line-clamp-2 text-sm text-gray-600">{formatComposers(piece.composers)}</p>
               <div className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-gray-500">
                 <LevelBadge level={piece.level} />
                 <span className="truncate">{[piece.instrumentation.join(', '), year].filter(Boolean).join(' · ')}</span>
@@ -133,9 +131,7 @@ const MusicListView: React.FC<MusicListViewProps> = ({ pieces, sort, onSortChang
                     {piece.title}
                   </Link>
                 </td>
-                <td className="px-4 py-3 text-gray-700">
-                  {formatComposerName(piece.composer_first_name, piece.composer_last_name)}
-                </td>
+                <td className="px-4 py-3 text-gray-700">{formatComposers(piece.composers)}</td>
                 <td className="px-4 py-3">
                   <LevelBadge level={piece.level} />
                 </td>
