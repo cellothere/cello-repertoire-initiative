@@ -21,6 +21,8 @@ export interface PieceSummary {
   composer_last_name: string;
   level: string;
   instrumentation: string[];
+  /** Arranger credits, so a search for the arranger's name finds the piece. */
+  arrangers: string[];
   /** Combined across all of the piece's composers. */
   nationality: string[];
   composition_year: string;
@@ -47,6 +49,8 @@ export interface PieceDetail {
   where_to_buy_or_download: string[];
   audio_link: string[];
   duration: string;
+  /** Who arranged it, when the piece is an arrangement; shown under the composer line. */
+  arrangers: string[];
   /** Lead composer first. Empty when the composer record is missing. */
   composers: {
     id: number;

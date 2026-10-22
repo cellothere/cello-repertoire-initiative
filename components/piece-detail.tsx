@@ -34,6 +34,8 @@ export default function PieceDetailPage({ piece }: { piece: PieceDetail }) {
   const listingPath = LISTING_PATHS[piece.instrument];
   const composers = piece.composers.length ? piece.composers : [{ id: 0, full_name: 'Unknown Composer', bio_link: null }];
   const byLine = joinNames(composers.map((c) => c.full_name));
+  // "Arrangement by the composer." and similar notes aren't names; show only real arranger credits.
+  const arrangers = piece.arrangers.filter((name) => !/\s(by|the)\s|\.$/.test(name));
   // One "more by" link per composer; pieces with a missing composer record get none.
   const worksLinks = piece.composers
     .map((c) => ({ composer: c, href: composerWorksHref(piece.instrument, c.full_name) }))
@@ -129,6 +131,7 @@ export default function PieceDetailPage({ piece }: { piece: PieceDetail }) {
                 )}
               </span>
             ))}
+            {arrangers.length > 0 && <span className="text-gray-400"> · arranged by {joinNames(arrangers)}</span>}
           </p>
 
           {/* Phones get the key facts up top; wider screens have the Details card beside the description. */}

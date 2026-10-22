@@ -111,7 +111,7 @@ export default function RepertoireBrowser({ instrument, apiPath, path }: Reperto
     () =>
       pieces.map((piece) => ({
         piece,
-        text: normalizeForSearch(`${piece.title} ${piece.composers.map((c) => c.full_name).join(' ')}`),
+        text: normalizeForSearch(`${piece.title} ${piece.composers.map((c) => c.full_name).join(' ')} ${piece.arrangers.join(' ')}`),
         level: baseLevel(piece.level),
         year: parseYear(piece.composition_year),
         categories: instrumentationCategories(piece.instrumentation, instrument),
