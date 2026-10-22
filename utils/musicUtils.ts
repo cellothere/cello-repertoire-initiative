@@ -76,6 +76,14 @@ export const formatComposerName = (first: string | undefined, last: string | und
   return `${l}, ${f}`;
 };
 
+/** Every composer of a piece as "Last, First", lead first: "Blackwell, Kathy & Blackwell, David". */
+export const formatComposers = (composers: { first_name: string; last_name: string }[]): string =>
+  composers.length ? composers.map((c) => formatComposerName(c.first_name, c.last_name)).join(' & ') : 'Unknown';
+
+/** Names joined for prose: "Kathy Blackwell and David Blackwell". */
+export const joinNames = (names: string[]): string =>
+  names.length <= 1 ? (names[0] ?? '') : `${names.slice(0, -1).join(', ')} and ${names[names.length - 1]}`;
+
 export const hostnameOf = (url: string): string | null => {
   try {
     return new URL(url).hostname.replace(/^www\./, '');

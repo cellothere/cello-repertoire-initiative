@@ -1,7 +1,7 @@
 import type { Document } from 'mongodb';
 import { getDb } from './mongodb';
 import { INSTRUMENTS, collectionFor, type Instrument } from './instruments';
-import type { ComposerSummary, PieceDetail, PieceSummary, Resource } from './types';
+import type { ComposerRef, ComposerSummary, PieceDetail, PieceSummary, Resource } from './types';
 
 // ---------------------------------------------------------------------------
 // Normalisers: the collections were filled by hand, so be lenient about types.
@@ -17,10 +17,24 @@ const strArray = (value: unknown): string[] => {
 
 const firstUrl = (value: unknown): string | null => strArray(value).find((v) => /^https?:\/\//.test(v)) ?? null;
 
+// Pieces list their composers in `composer_ids` (lead first); documents written before co-written
+// works were supported have only `composer_id`.
+const composerIdsField: Document = {
+  $addFields: {
+    composerIds: {
+      $cond: [{ $gt: [{ $size: { $ifNull: ['$composer_ids', []] } }, 0] }, '$composer_ids', ['$composer_id']],
+    },
+  },
+};
+
+// With an array localField, $lookup matches every composer whose id is in the list.
 const composerLookup: Document[] = [
-  { $lookup: { from: 'composers', localField: 'composer_id', foreignField: 'id', as: 'composerDetails' } },
-  { $unwind: '$composerDetails' },
+  composerIdsField,
+  { $lookup: { from: 'composers', localField: 'composerIds', foreignField: 'id', as: 'composerDetails' } },
 ];
+
+/** At least one of the piece's composers is enabled. */
+const enabledComposerMatch: Document = { $match: { 'composerDetails.disabled': false } };
 
 const summaryProjection = {
   _id: 1,
@@ -33,29 +47,53 @@ const summaryProjection = {
   technique_focus: 1,
   tags: 1,
   instrument: 1,
-  composer: '$composerDetails.composer_full_name',
-  composer_first_name: '$composerDetails.composer_first_name',
-  composer_last_name: '$composerDetails.composer_last_name',
-  nationality: '$composerDetails.nationality',
-  composer_tags: '$composerDetails.tags',
+  composerIds: 1,
+  'composerDetails.id': 1,
+  'composerDetails.composer_full_name': 1,
+  'composerDetails.composer_first_name': 1,
+  'composerDetails.composer_last_name': 1,
+  'composerDetails.nationality': 1,
+  'composerDetails.tags': 1,
+  'composerDetails.bio_link': 1,
+  'composerDetails.disabled': 1,
 };
 
+/** The looked-up composer documents in the piece's own order (lead first); the lookup doesn't keep it. */
+function composerDocs(doc: Document, { enabledOnly }: { enabledOnly: boolean }): Document[] {
+  const ids: number[] = (Array.isArray(doc.composerIds) ? doc.composerIds : []).map(Number);
+  const details: Document[] = Array.isArray(doc.composerDetails) ? doc.composerDetails : [];
+  const byId = new Map(details.map((c) => [Number(c.id), c]));
+  const ordered = Array.from(new Set(ids), (id) => byId.get(id)).filter((c): c is Document => Boolean(c));
+  return enabledOnly ? ordered.filter((c) => c.disabled !== true) : ordered;
+}
+
+const union = (lists: string[][]): string[] => Array.from(new Set(lists.flat()));
+
 function toSummary(doc: Document, instrument: Instrument): PieceSummary {
+  const composers = composerDocs(doc, { enabledOnly: true });
+  const refs: ComposerRef[] = composers.map((c) => ({
+    id: Number(c.id),
+    full_name: str(c.composer_full_name),
+    first_name: str(c.composer_first_name),
+    last_name: str(c.composer_last_name),
+  }));
+  const lead = refs[0];
   return {
     id: Number(doc.id),
     instrument,
     title: str(doc.title),
-    composer: str(doc.composer),
-    composer_first_name: str(doc.composer_first_name),
-    composer_last_name: str(doc.composer_last_name),
+    composers: refs,
+    composer: lead?.full_name ?? '',
+    composer_first_name: lead?.first_name ?? '',
+    composer_last_name: lead?.last_name ?? '',
     level: str(doc.level) || 'Unknown',
     instrumentation: strArray(doc.instrumentation),
-    nationality: strArray(doc.nationality),
+    nationality: union(composers.map((c) => strArray(c.nationality))),
     composition_year: str(doc.composition_year),
     duration: str(doc.duration),
     technique_focus: strArray(doc.technique_focus),
     tags: strArray(doc.tags),
-    composer_tags: strArray(doc.composer_tags),
+    composer_tags: union(composers.map((c) => strArray(c.tags))),
   };
 }
 
@@ -68,7 +106,7 @@ function dedupeById<T extends { id: number }>(items: T[]): T[] {
 // Queries
 // ---------------------------------------------------------------------------
 
-/** All enabled pieces for an instrument whose composer is also enabled. */
+/** All enabled pieces for an instrument that have at least one enabled composer. */
 export async function listPieces(instrument: Instrument): Promise<PieceSummary[]> {
   const db = await getDb();
   const docs = await db
@@ -76,7 +114,7 @@ export async function listPieces(instrument: Instrument): Promise<PieceSummary[]
     .aggregate([
       { $match: { disabled: false } },
       ...composerLookup,
-      { $match: { 'composerDetails.disabled': false } },
+      enabledComposerMatch,
       { $project: summaryProjection },
     ])
     .toArray();
@@ -103,7 +141,7 @@ export async function listRecentlyAdded(limit = 12): Promise<PieceSummary[]> {
       { $sort: { _id: -1 } },
       { $limit: limit * 2 },
       ...composerLookup,
-      { $match: { 'composerDetails.disabled': false } },
+      enabledComposerMatch,
       { $limit: limit },
       { $project: summaryProjection },
     ])
@@ -152,8 +190,7 @@ export async function getPieceDetail(instrument: Instrument, id: number): Promis
     .aggregate([
       { $match: { id, disabled: { $ne: true } } },
       { $limit: 1 },
-      { $lookup: { from: 'composers', localField: 'composer_id', foreignField: 'id', as: 'composerDetails' } },
-      { $unwind: { path: '$composerDetails', preserveNullAndEmptyArrays: true } },
+      ...composerLookup,
     ])
     .next();
 
@@ -173,10 +210,11 @@ export async function getPieceDetail(instrument: Instrument, id: number): Promis
     where_to_buy_or_download: strArray(doc.where_to_buy_or_download),
     audio_link: strArray(doc.audio_link),
     duration: str(doc.duration),
-    composer: {
-      full_name: str(doc.composerDetails?.composer_full_name) || 'Unknown Composer',
-      bio_link: firstUrl(doc.composerDetails?.bio_link),
-    },
+    composers: composerDocs(doc, { enabledOnly: false }).map((c) => ({
+      id: Number(c.id),
+      full_name: str(c.composer_full_name) || 'Unknown Composer',
+      bio_link: firstUrl(c.bio_link),
+    })),
   };
 }
 
@@ -207,7 +245,9 @@ export async function listComposers(): Promise<ComposerSummary[]> {
       .collection(collectionFor('cello'))
       .aggregate<{ _id: number; count: number }>([
         { $match: { disabled: false } },
-        { $group: { _id: '$composer_id', count: { $sum: 1 } } },
+        composerIdsField,
+        { $unwind: '$composerIds' },
+        { $group: { _id: '$composerIds', count: { $sum: 1 } } },
       ])
       .toArray(),
   ]);

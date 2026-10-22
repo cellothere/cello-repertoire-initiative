@@ -5,12 +5,9 @@ import SaveButton from './save-button';
 import LevelBadge from './level-badge';
 import { pieceHref } from '@/lib/instruments';
 import type { PieceSummary } from '@/lib/types';
-import { formatComposerName, parseYear } from '@/utils/musicUtils';
+import { formatComposers, parseYear } from '@/utils/musicUtils';
 
-type MusicCardProps = Pick<
-  PieceSummary,
-  'id' | 'instrument' | 'title' | 'composer_first_name' | 'composer_last_name' | 'level' | 'instrumentation' | 'composition_year'
-> & {
+type MusicCardProps = Pick<PieceSummary, 'id' | 'instrument' | 'title' | 'composers' | 'level' | 'instrumentation' | 'composition_year'> & {
   /** Load the image eagerly; use for the first few cards above the fold. */
   priority?: boolean;
 };
@@ -85,8 +82,7 @@ const MusicCard: React.FC<MusicCardProps> = ({
   id,
   instrument,
   title,
-  composer_first_name,
-  composer_last_name,
+  composers,
   level,
   instrumentation,
   composition_year,
@@ -120,9 +116,7 @@ const MusicCard: React.FC<MusicCardProps> = ({
             {title}
           </Link>
         </h3>
-        <p className="mt-1 truncate text-sm text-gray-600">
-          {formatComposerName(composer_first_name, composer_last_name)}
-        </p>
+        <p className="mt-1 line-clamp-2 text-sm text-gray-600">{formatComposers(composers)}</p>
         <div className="mt-auto flex flex-wrap items-center gap-x-2 gap-y-1 pt-2.5 sm:pt-3">
           <LevelBadge level={level} />
           {year && <span className="text-xs text-gray-500">{year}</span>}

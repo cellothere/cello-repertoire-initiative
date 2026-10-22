@@ -1,20 +1,33 @@
 import type { Instrument } from './instruments';
 
+/** A composer as attached to a piece. Co-written works list several, lead composer first. */
+export interface ComposerRef {
+  id: number;
+  full_name: string;
+  first_name: string;
+  last_name: string;
+}
+
 /** The fields needed to list, filter and sort a piece. Shared by the API and the UI. */
 export interface PieceSummary {
   id: number;
   instrument: Instrument;
   title: string;
+  /** Every composer of the piece, lead first. */
+  composers: ComposerRef[];
+  /** The lead composer, used for sorting. */
   composer: string;
   composer_first_name: string;
   composer_last_name: string;
   level: string;
   instrumentation: string[];
+  /** Combined across all of the piece's composers. */
   nationality: string[];
   composition_year: string;
   duration: string;
   technique_focus: string[];
   tags: string[];
+  /** Combined across all of the piece's composers. */
   composer_tags: string[];
   /** ISO date derived from the document's ObjectId; only set by the recently-added endpoint. */
   added_at?: string;
@@ -34,10 +47,12 @@ export interface PieceDetail {
   where_to_buy_or_download: string[];
   audio_link: string[];
   duration: string;
-  composer: {
+  /** Lead composer first. Empty when the composer record is missing. */
+  composers: {
+    id: number;
     full_name: string;
     bio_link: string | null;
-  };
+  }[];
 }
 
 export interface ComposerSummary {

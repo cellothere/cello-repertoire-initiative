@@ -11,7 +11,7 @@ import YouTubeEmbed from './youtube-embed';
 import Linkify, { ExternalLink } from './linkify';
 import { INSTRUMENT_LABELS, LISTING_PATHS, composerWorksHref, pieceHref } from '@/lib/instruments';
 import type { PieceDetail } from '@/lib/types';
-import { formatDuration, hostnameOf, parseYear, youtubeId } from '@/utils/musicUtils';
+import { formatDuration, hostnameOf, joinNames, parseYear, youtubeId } from '@/utils/musicUtils';
 
 function Card({ title, children, className = '' }: { title: string; children: ReactNode; className?: string }) {
   return (
@@ -32,7 +32,12 @@ export default function PieceDetailPage({ piece }: { piece: PieceDetail }) {
 
   const instrumentLabel = INSTRUMENT_LABELS[piece.instrument];
   const listingPath = LISTING_PATHS[piece.instrument];
-  const worksHref = composerWorksHref(piece.instrument, piece.composer.full_name);
+  const composers = piece.composers.length ? piece.composers : [{ id: 0, full_name: 'Unknown Composer', bio_link: null }];
+  const byLine = joinNames(composers.map((c) => c.full_name));
+  // One "more by" link per composer; pieces with a missing composer record get none.
+  const worksLinks = piece.composers
+    .map((c) => ({ composer: c, href: composerWorksHref(piece.instrument, c.full_name) }))
+    .filter((link): link is { composer: (typeof composers)[number]; href: string } => Boolean(link.href));
   const year = parseYear(piece.composition_year);
   const duration = formatDuration(piece.duration);
   const videoId = useMemo(() => piece.audio_link.map(youtubeId).find(Boolean) ?? null, [piece.audio_link]);
@@ -74,11 +79,11 @@ export default function PieceDetailPage({ piece }: { piece: PieceDetail }) {
   return (
     <>
       <Seo
-        title={`${piece.title} by ${piece.composer.full_name}`}
+        title={`${piece.title} by ${byLine}`}
         path={pieceHref(piece.instrument, piece.id)}
         description={
           summarize(piece.description) ||
-          `${piece.title} by ${piece.composer.full_name}: a ${piece.level.toLowerCase()} level piece for ${piece.instrumentation.join(', ').toLowerCase() || instrumentLabel.toLowerCase()}.`
+          `${piece.title} by ${byLine}: a ${piece.level.toLowerCase()} level piece for ${piece.instrumentation.join(', ').toLowerCase() || instrumentLabel.toLowerCase()}.`
         }
       />
 
@@ -107,18 +112,23 @@ export default function PieceDetailPage({ piece }: { piece: PieceDetail }) {
 
           <p className="mt-2 text-lg text-gray-300 md:mt-3">
             by{' '}
-            {piece.composer.bio_link ? (
-              <a
-                href={piece.composer.bio_link}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="font-semibold text-white underline decoration-white/30 underline-offset-4 hover:decoration-white"
-              >
-                {piece.composer.full_name}
-              </a>
-            ) : (
-              <span className="font-semibold text-white">{piece.composer.full_name}</span>
-            )}
+            {composers.map((composer, index) => (
+              <span key={composer.id}>
+                {index > 0 && (index === composers.length - 1 ? ' and ' : ', ')}
+                {composer.bio_link ? (
+                  <a
+                    href={composer.bio_link}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="font-semibold text-white underline decoration-white/30 underline-offset-4 hover:decoration-white"
+                  >
+                    {composer.full_name}
+                  </a>
+                ) : (
+                  <span className="font-semibold text-white">{composer.full_name}</span>
+                )}
+              </span>
+            ))}
           </p>
 
           {/* Phones get the key facts up top; wider screens have the Details card beside the description. */}
@@ -150,15 +160,16 @@ export default function PieceDetailPage({ piece }: { piece: PieceDetail }) {
               variant="full"
               className="shrink-0 justify-center py-2.5 sm:py-2"
             />
-            {worksHref && (
+            {worksLinks.map(({ composer, href }) => (
               <Link
-                href={worksHref}
+                key={composer.id}
+                href={href}
                 className="-ml-2 inline-flex w-full items-center gap-2 rounded-lg px-2 py-2 font-semibold text-teal-300 transition-colors hover:bg-white/10 hover:text-teal-200 sm:ml-0 sm:w-auto sm:px-4"
               >
-                More by this composer
+                {worksLinks.length > 1 ? `More by ${composer.full_name}` : 'More by this composer'}
                 <FaArrowRight className="h-3 w-3" aria-hidden="true" />
               </Link>
-            )}
+            ))}
           </div>
         </div>
       </header>

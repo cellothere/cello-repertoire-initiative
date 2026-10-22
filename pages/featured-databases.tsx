@@ -38,7 +38,7 @@ const CATEGORIES = [
     label: 'Black Composers',
     matches: (piece: PieceSummary) =>
       piece.composer_tags.includes('Black') ||
-      (piece.composer === 'Traditional' &&
+      (piece.composers.some((c) => c.full_name === 'Traditional') &&
         (piece.tags.includes('Black Spiritual') || piece.tags.includes('Black Spirtuals'))),
   },
   {
