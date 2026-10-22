@@ -10,6 +10,7 @@ export const indigenousKeywords = [
     "karuk", "modoc", "salish", "shoshone", "utes", "nez perce", "lac seul first nation", "cheyenne", "arapaho", "tuscarora", 
     "catawba", "nanticoke", "tahltan", "sechelt", "kwakwaka'wakw", "nuu-chah-nulth", "dena’ina",
     "siksika", "tsaahl", "chumash", "tongva", "Mohawk Kaniènkeha", "gabrielino", "cahuilla", "shinnecock", "wampanoag", "Algonquin-Anishinaabe",
+    "métis", "metis", "odawa", "mohican", "wolastoqiyik", "mi'kmaw", "anishinaabeg", "dene", "cree-métis",
 
     // South America
     "mapuche", "quechua", "aymara", "guaraní", "yanomami", "tupi", "wounaan", "asháninka", "shipibo", 
@@ -18,7 +19,8 @@ export const indigenousKeywords = [
     // Australia & Oceania
     "aboriginal", "indigenous australian", "arrernte", "noongar", "pitjantjatjara", "wiradjuri", 
     "koori", "murri", "palawa", "yorta yorta", "walpiri", "tiwi", "bundjalung", "torres strait islander",
-    "maori", "moriori", "samoan", "tongan", "fijian", "hawaiian", "kanaka maoli", "chamorro", "marshallese", 
+    "kalkadunga", "dharug", "yuin", "ngiyampaa", "gamilaraay", "yuwaalaraay", "biripi", "gumbaynggirr", "warlpiri",
+    "maori", "māori", "ngāi", "ngāti", "ngati", "kāi tahu", "kai tahu", "moriori", "samoan", "tongan", "fijian", "hawaiian", "kanaka maoli", "chamorro", "marshallese", 
     "palauan", "tahitian", "rapanui", "banaban", "navigators islanders","kanaka maoli",
 
     // Asia
@@ -31,7 +33,7 @@ export const indigenousKeywords = [
     "tuareg", "akan", "yoruba", "igbo", "hausa", "bantu", "fang", "fulani", "wolof",
 
     // Europe
-    "sámi", "laplander", "basque", "tatar", "komi", "mari", "udmurt", "yakut", "nenets", "chuvash",
+    "sámi", "sami", "saami", "laplander", "basque", "tatar", "komi", "mari", "udmurt", "yakut", "nenets", "chuvash",
 
     // General terms
     "first nations", "north america first nations", "native american", "indigenous", "aborigine", "tribal", "first peoples", 
