@@ -13,7 +13,7 @@ const prefersReducedMotion = () =>
  * - the new page fades up a few pixels into place.
  * Filter and sort changes only touch the query string, so they get neither.
  */
-export default function RouteTransitions({ contentRef }: { contentRef: RefObject<HTMLElement> }) {
+export default function RouteTransitions({ contentRef }: { contentRef: RefObject<HTMLElement | null> }) {
   const router = useRouter();
   const [progress, setProgress] = useState<number | null>(null);
   const timers = useRef<{ show?: number; trickle?: number; hide?: number }>({});
