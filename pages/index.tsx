@@ -18,7 +18,7 @@ const FEATURES = [
     href: '/featured-databases',
     src: '/assets/whatsNew.png',
     label: 'Featured Databases',
-    description: 'Music by women, non-binary, Black and Indigenous composers.',
+    description: 'Music by women, queer, Black and Indigenous composers.',
   },
   {
     href: '/contribute',
