@@ -31,11 +31,11 @@
 
 @layer components {
   .btn-primary {
-    @apply inline-flex items-center justify-center gap-2 rounded-lg bg-black px-5 py-2.5 font-semibold text-white transition-colors duration-200 hover:bg-teal-600 disabled:cursor-not-allowed disabled:bg-gray-400;
+    @apply inline-flex items-center justify-center gap-2 rounded-lg bg-black px-5 py-2.5 font-semibold text-white transition duration-200 active:scale-[0.97] hover:bg-teal-600 disabled:cursor-not-allowed disabled:bg-gray-400;
   }
 
   .btn-secondary {
-    @apply inline-flex items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white px-5 py-2.5 font-semibold text-gray-800 transition-colors duration-200 hover:border-gray-400 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50;
+    @apply inline-flex items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white px-5 py-2.5 font-semibold text-gray-800 transition duration-200 active:scale-[0.97] hover:border-gray-400 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50;
   }
 
   .input {
@@ -53,6 +53,95 @@
   .chip {
     @apply inline-flex items-center gap-1 rounded-full bg-gray-100 px-3 py-1 text-sm font-medium text-gray-800;
   }
+
+  /* Loading placeholder: a soft highlight sweeping across. background-attachment: fixed keeps every
+     placeholder on the page in step, so the sweep reads as one light passing over the layout. */
+  .skeleton {
+    background-color: #e5e7eb;
+    background-image: linear-gradient(100deg, #e5e7eb 30%, #f3f4f6 50%, #e5e7eb 70%);
+    background-size: 200vw 100%;
+    background-attachment: fixed;
+    animation: skeleton-sweep 1.6s linear infinite;
+  }
+
+  /* Content arriving: rises a few pixels and fades in. Set --i on each item for a short ripple;
+     only the first dozen are staggered so long lists don't keep you waiting. */
+  .reveal {
+    animation: reveal 520ms cubic-bezier(0.16, 1, 0.3, 1) both;
+    animation-delay: calc(min(var(--i, 0), 12) * 32ms);
+  }
+}
+
+@keyframes skeleton-sweep {
+  from { background-position: 100vw 0; }
+  to { background-position: -100vw 0; }
+}
+
+@keyframes reveal {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: none; }
+}
+
+/* ---------- Dialogs: animate both ways ----------
+   The open state eases in from @starting-style; closing transitions back while display and overlay
+   are held with allow-discrete. Browsers without support simply open and close instantly. */
+.dialog-sheet,
+.dialog-sheet::backdrop {
+  transition-property: transform, opacity, background-color, overlay, display;
+  transition-duration: 220ms;
+  transition-timing-function: cubic-bezier(0.4, 0, 1, 1);
+  transition-behavior: allow-discrete;
+}
+.dialog-sheet { transform: translateY(100%); }
+.dialog-sheet::backdrop { background-color: rgb(0 0 0 / 0); }
+.dialog-sheet[open],
+.dialog-sheet[open]::backdrop {
+  transition-duration: 420ms;
+  transition-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+}
+.dialog-sheet[open] { transform: none; }
+.dialog-sheet[open]::backdrop { background-color: rgb(0 0 0 / 0.45); }
+@starting-style {
+  .dialog-sheet[open] { transform: translateY(100%); }
+  .dialog-sheet[open]::backdrop { background-color: rgb(0 0 0 / 0); }
+}
+
+/* From sm up, the level rubric is a centred dialog that grows in instead of a sheet. */
+@media (min-width: 640px) {
+  .dialog-sheet.dialog-pop-sm { transform: translateY(8px) scale(0.96); opacity: 0; }
+  .dialog-sheet.dialog-pop-sm[open] { transform: none; opacity: 1; }
+  @starting-style {
+    .dialog-sheet.dialog-pop-sm[open] { transform: translateY(8px) scale(0.96); opacity: 0; }
+  }
+}
+
+/* ---------- Route progress bar ---------- */
+.route-progress {
+  position: fixed;
+  inset: 0 0 auto;
+  top: env(safe-area-inset-top, 0px);
+  z-index: 70;
+  height: 3px;
+  pointer-events: none;
+  transform-origin: left;
+  background: linear-gradient(90deg, #623d88, #36c190);
+  box-shadow: 0 0 10px rgb(54 193 144 / 0.55);
+  transition: transform 400ms cubic-bezier(0.16, 1, 0.3, 1), opacity 300ms ease;
+}
+
+/* People who ask their device for less motion get instant changes everywhere. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after,
+  *::backdrop {
+    animation-duration: 0.01ms !important;
+    animation-delay: 0ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  .skeleton { background-image: none; }
 }
 
 /* rc-slider brand colours */

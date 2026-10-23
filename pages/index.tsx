@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { NextPage } from 'next';
 import Link from 'next/link';
-import Image from 'next/image';
+import FadeImage from '@/components/fade-image';
 import { useRouter } from 'next/router';
 import { FaArrowRight, FaSearch } from 'react-icons/fa';
 import { SpeedInsights } from '@vercel/speed-insights/next';
@@ -103,15 +103,16 @@ const Home: NextPage = () => {
             <Link
               key={feature.href}
               href={feature.href}
-              className="group relative block aspect-[16/9] overflow-hidden rounded-2xl shadow-lg transition-transform active:scale-[0.98] sm:aspect-[2/1] md:aspect-[3/4]"
+              style={{ '--i': index } as React.CSSProperties}
+              className="reveal group relative block aspect-[16/9] overflow-hidden rounded-2xl bg-slate-800 shadow-lg transition-transform duration-300 ease-out-expo active:scale-[0.98] sm:aspect-[2/1] md:aspect-[3/4]"
             >
-              <Image
+              <FadeImage
                 src={feature.src}
                 alt=""
                 fill
                 priority={index === 0}
                 sizes="(min-width: 768px) 33vw, 100vw"
-                className="object-cover transition-transform duration-500 group-hover:scale-105"
+                className="object-cover group-hover:scale-105"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 to-transparent" />
               <div className="absolute inset-x-0 bottom-0 p-4 text-white sm:p-6">

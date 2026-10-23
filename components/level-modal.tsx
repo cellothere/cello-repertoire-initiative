@@ -57,7 +57,7 @@ const LevelModal: React.FC<LevelModalProps> = ({ open, onClose, level }) => {
       }}
       aria-labelledby="level-modal-title"
       // Phones: a sheet that slides up from the bottom. Wider screens: a centred dialog.
-      className="m-0 mt-auto w-full max-w-none animate-slide-up rounded-t-2xl p-0 text-gray-900 shadow-2xl backdrop:bg-black/50 sm:m-auto sm:w-[min(36rem,calc(100%-2rem))] sm:animate-none sm:rounded-2xl"
+      className="dialog-sheet dialog-pop-sm m-0 mt-auto w-full max-w-none rounded-t-2xl p-0 text-gray-900 shadow-2xl sm:m-auto sm:w-[min(36rem,calc(100%-2rem))] sm:rounded-2xl"
     >
       <div className="flex max-h-[85dvh] flex-col">
         <div className="flex items-start justify-between gap-4 border-b border-gray-200 px-5 py-4 sm:px-6">

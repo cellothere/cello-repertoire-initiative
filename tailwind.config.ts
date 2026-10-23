@@ -33,11 +33,33 @@ const config: Config = {
           from: { transform: 'translateY(100%)' },
           to: { transform: 'translateY(0)' },
         },
+        'slide-out-right': {
+          from: { transform: 'translateX(0)' },
+          to: { transform: 'translateX(100%)' },
+        },
+        'fade-out': {
+          from: { opacity: '1' },
+          to: { opacity: '0' },
+        },
+        'heart-pop': {
+          '0%': { transform: 'scale(1)' },
+          '30%': { transform: 'scale(1.4)' },
+          '55%': { transform: 'scale(0.88)' },
+          '80%': { transform: 'scale(1.08)' },
+          '100%': { transform: 'scale(1)' },
+        },
+      },
+      transitionTimingFunction: {
+        // A long, soft deceleration: quick to respond, gentle to settle.
+        'out-expo': 'cubic-bezier(0.16, 1, 0.3, 1)',
       },
       animation: {
-        'slide-in-right': 'slide-in-right 200ms ease-out',
-        'fade-in': 'fade-in 150ms ease-out',
-        'slide-up': 'slide-up 220ms ease-out',
+        'slide-in-right': 'slide-in-right 420ms cubic-bezier(0.16, 1, 0.3, 1)',
+        'slide-out-right': 'slide-out-right 220ms cubic-bezier(0.4, 0, 1, 1) forwards',
+        'fade-in': 'fade-in 200ms ease-out',
+        'fade-out': 'fade-out 220ms ease-in forwards',
+        'slide-up': 'slide-up 380ms cubic-bezier(0.16, 1, 0.3, 1)',
+        'heart-pop': 'heart-pop 520ms cubic-bezier(0.34, 1.56, 0.64, 1)',
       },
     },
   },

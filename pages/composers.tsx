@@ -148,6 +148,14 @@ function LetterBar({ letters }: { letters: string[] }) {
             <li key={letter}>
               <a
                 href={`#letter-${letter}`}
+                onClick={(event) => {
+                  // Glide to the letter instead of jumping; the hash still updates for sharing.
+                  const target = document.getElementById(`letter-${letter}`);
+                  if (!target || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+                  event.preventDefault();
+                  target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                  history.replaceState(history.state, '', `#letter-${letter}`);
+                }}
                 className="block min-w-[2.25rem] rounded-md px-2 py-2 text-center text-sm font-semibold text-gray-700 hover:bg-gray-200 active:bg-gray-200 md:min-w-[2rem] md:py-1"
               >
                 {letter}
@@ -282,8 +290,8 @@ const ComposersPage: NextPage = () => {
             <div className="card divide-y divide-gray-100" aria-busy="true" aria-label="Loading composers">
               {Array.from({ length: 8 }, (_, i) => (
                 <div key={i} className="space-y-2 p-5">
-                  <div className="h-5 w-1/3 animate-pulse rounded bg-gray-200" />
-                  <div className="h-4 w-1/4 animate-pulse rounded bg-gray-200" />
+                  <div className="skeleton h-5 w-1/3 rounded" />
+                  <div className="skeleton h-4 w-1/4 rounded" />
                 </div>
               ))}
             </div>
@@ -293,8 +301,13 @@ const ComposersPage: NextPage = () => {
             </EmptyState>
           ) : (
             <div className="space-y-6">
-              {groups.map(({ letter, composers: list }) => (
-                <section key={letter || 'all'} id={letter ? `letter-${letter}` : undefined} className="scroll-mt-28 md:scroll-mt-32">
+              {groups.map(({ letter, composers: list }, index) => (
+                <section
+                  key={letter || 'all'}
+                  id={letter ? `letter-${letter}` : undefined}
+                  style={{ '--i': index } as React.CSSProperties}
+                  className="reveal scroll-mt-28 md:scroll-mt-32"
+                >
                   {letter && <h2 className="mb-2 text-lg font-bold text-gray-500">{letter}</h2>}
                   <ul className="card divide-y divide-gray-100">
                     {list.map((composer) => (

@@ -15,11 +15,13 @@ export function CardSkeletonGrid({ count = 8 }: { count?: number }) {
     <div className={GRID_CLASSES} aria-busy="true" aria-label="Loading pieces">
       {Array.from({ length: count }, (_, i) => (
         <div key={i} className="overflow-hidden rounded-xl border border-gray-200 bg-white">
-          <div className="aspect-[3/2] animate-pulse bg-gray-200 sm:aspect-[4/3]" />
-          <div className="space-y-2 p-3 sm:p-4">
-            <div className="h-4 w-4/5 animate-pulse rounded bg-gray-200" />
-            <div className="h-3 w-1/2 animate-pulse rounded bg-gray-200" />
-            <div className="h-5 w-20 animate-pulse rounded bg-gray-200 pt-2" />
+          {/* Same shape as a real card: a strip on phones, the picture from sm up. */}
+          <div className="skeleton h-1.5 sm:hidden" />
+          <div className="skeleton hidden aspect-[4/3] sm:block" />
+          <div className="space-y-2.5 p-3 sm:p-4">
+            <div className="skeleton h-4 w-4/5 rounded" />
+            <div className="skeleton h-3 w-1/2 rounded" />
+            <div className="skeleton mt-4 h-5 w-24 rounded-md" />
           </div>
         </div>
       ))}
@@ -31,7 +33,7 @@ export function PieceGrid({ pieces }: { pieces: PieceSummary[] }) {
   return (
     <div className={GRID_CLASSES}>
       {pieces.map((piece, index) => (
-        <MusicCard key={`${piece.instrument}-${piece.id}`} {...piece} priority={index < 4} />
+        <MusicCard key={`${piece.instrument}-${piece.id}`} {...piece} priority={index < 4} index={index} />
       ))}
     </div>
   );
