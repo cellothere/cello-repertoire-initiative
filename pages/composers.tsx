@@ -1,7 +1,7 @@
-import { useDeferredValue, useMemo, useState } from 'react';
+import { useDeferredValue, useEffect, useMemo, useRef, useState } from 'react';
 import { NextPage } from 'next';
 import Link from 'next/link';
-import { FaArrowRight, FaChevronRight, FaSearch, FaUsers } from 'react-icons/fa';
+import { FaArrowRight, FaChevronLeft, FaChevronRight, FaSearch, FaUsers } from 'react-icons/fa';
 import Seo from '@/components/seo';
 import PageHeader from '@/components/page-header';
 import { ExternalLink } from '@/components/linkify';
@@ -106,6 +106,82 @@ function ComposerRow({ composer }: { composer: ComposerSummary }) {
   );
 }
 
+/**
+ * The sticky A–Z bar. On phones it is wider than the screen, so a fade and an arrow show at whichever
+ * edge has more letters, and tapping the arrow scrolls the bar along.
+ */
+function LetterBar({ letters }: { letters: string[] }) {
+  const scroller = useRef<HTMLDivElement>(null);
+  const [more, setMore] = useState({ left: false, right: false });
+
+  useEffect(() => {
+    const el = scroller.current;
+    if (!el) return;
+    const update = () =>
+      setMore({ left: el.scrollLeft > 2, right: el.scrollLeft + el.clientWidth < el.scrollWidth - 2 });
+    update();
+    el.addEventListener('scroll', update, { passive: true });
+    const observer = new ResizeObserver(update);
+    observer.observe(el);
+    return () => {
+      el.removeEventListener('scroll', update);
+      observer.disconnect();
+    };
+  }, [letters.length]);
+
+  const nudge = (direction: 1 | -1) => {
+    const el = scroller.current;
+    el?.scrollBy({ left: direction * el.clientWidth * 0.7, behavior: 'smooth' });
+  };
+
+  return (
+    <nav
+      aria-label="Jump to letter"
+      className="sticky top-14 z-20 -mx-4 mt-4 border-y border-gray-200 bg-gray-50/95 backdrop-blur md:top-16"
+    >
+      <div
+        ref={scroller}
+        className="overflow-x-auto px-3 py-1.5 [scrollbar-width:none] md:px-4 md:py-2 [&::-webkit-scrollbar]:hidden"
+      >
+        <ul className="flex gap-0.5 md:gap-1">
+          {letters.map((letter) => (
+            <li key={letter}>
+              <a
+                href={`#letter-${letter}`}
+                className="block min-w-[2.25rem] rounded-md px-2 py-2 text-center text-sm font-semibold text-gray-700 hover:bg-gray-200 active:bg-gray-200 md:min-w-[2rem] md:py-1"
+              >
+                {letter}
+              </a>
+            </li>
+          ))}
+        </ul>
+      </div>
+      {more.left && (
+        <button
+          type="button"
+          onClick={() => nudge(-1)}
+          aria-label="Earlier letters"
+          tabIndex={-1}
+          className="absolute inset-y-0 left-0 flex w-12 items-center justify-start bg-gradient-to-r from-gray-50 via-gray-50/90 to-transparent pl-2 text-gray-500"
+        >
+          <FaChevronLeft className="h-3 w-3" aria-hidden="true" />
+        </button>
+      )}
+      {more.right && (
+        <button
+          type="button"
+          onClick={() => nudge(1)}
+          aria-label="More letters"
+          tabIndex={-1}
+          className="absolute inset-y-0 right-0 flex w-12 items-center justify-end bg-gradient-to-l from-gray-50 via-gray-50/90 to-transparent pr-2 text-gray-500"
+        >
+          <FaChevronRight className="h-3 w-3" aria-hidden="true" />
+        </button>
+      )}
+    </nav>
+  );
+}
+
 const ComposersPage: NextPage = () => {
   const { data, error, loading, retry } = useJson<ComposerSummary[]>('/api/composers');
   const composers = data ?? NO_COMPOSERS;
@@ -197,25 +273,7 @@ const ComposersPage: NextPage = () => {
           </p>
         )}
 
-        {grouped && groups.length > 1 && (
-          <nav
-            aria-label="Jump to letter"
-            className="sticky top-14 z-20 -mx-4 mt-4 overflow-x-auto border-y border-gray-200 bg-gray-50/95 px-3 py-1.5 backdrop-blur [scrollbar-width:none] md:top-16 md:px-4 md:py-2 [&::-webkit-scrollbar]:hidden"
-          >
-            <ul className="flex gap-0.5 md:gap-1">
-              {groups.map(({ letter }) => (
-                <li key={letter}>
-                  <a
-                    href={`#letter-${letter}`}
-                    className="block min-w-[2.25rem] rounded-md px-2 py-2 text-center text-sm font-semibold text-gray-700 hover:bg-gray-200 active:bg-gray-200 md:min-w-[2rem] md:py-1"
-                  >
-                    {letter}
-                  </a>
-                </li>
-              ))}
-            </ul>
-          </nav>
-        )}
+        {grouped && groups.length > 1 && <LetterBar letters={groups.map(({ letter }) => letter)} />}
 
         <div className="mt-4 md:mt-6">
           {error ? (

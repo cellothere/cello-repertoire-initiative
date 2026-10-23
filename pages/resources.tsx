@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { NextPage } from 'next';
 import { FaBookOpen, FaSearch } from 'react-icons/fa';
 import { FiExternalLink } from 'react-icons/fi';
@@ -8,6 +8,57 @@ import { EmptyState, ErrorState } from '@/components/state-messages';
 import { useJson } from '@/lib/use-json';
 import type { Resource } from '@/lib/types';
 import { hostnameOf, normalizeForSearch } from '@/utils/musicUtils';
+
+/**
+ * One resource. On phones the description is cut to three lines with a "Read more" toggle, since some
+ * run to a full screen. The title's link is stretched over the card, so the card stays one big tap
+ * target while the toggle (a button, which can't sit inside a link) works on its own.
+ */
+function ResourceCard({ resource }: { resource: Resource }) {
+  const textRef = useRef<HTMLParagraphElement>(null);
+  const [expanded, setExpanded] = useState(false);
+  const [clamped, setClamped] = useState(false);
+
+  // Show the toggle only when the text really is cut, rechecking when the width changes.
+  useEffect(() => {
+    const el = textRef.current;
+    if (!el || expanded) return;
+    const measure = () => setClamped(el.scrollHeight > el.clientHeight + 1);
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [expanded, resource.description]);
+
+  return (
+    <div className="card group relative flex h-full flex-col p-4 transition focus-within:ring-2 focus-within:ring-teal-500 active:scale-[0.98] hover:-translate-y-0.5 hover:shadow-lg sm:p-6">
+      <h2 className="text-lg font-semibold text-gray-900 group-hover:underline">
+        <a href={resource.url} target="_blank" rel="noopener noreferrer" className="after:absolute after:inset-0 focus:outline-none">
+          {resource.title}
+        </a>
+      </h2>
+      <p ref={textRef} className={`mt-2 leading-relaxed text-gray-600 ${expanded ? '' : 'max-sm:line-clamp-3'}`}>
+        {resource.description}
+      </p>
+      <div className="mt-auto flex items-center justify-between gap-3 pt-3 sm:pt-4">
+        <span className="inline-flex min-w-0 items-center gap-1.5 text-sm font-medium text-teal-700">
+          <span className="truncate">{hostnameOf(resource.url) ?? 'Visit website'}</span>
+          <FiExternalLink className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+        </span>
+        {(clamped || expanded) && (
+          <button
+            type="button"
+            onClick={() => setExpanded((open) => !open)}
+            aria-expanded={expanded}
+            className="relative z-10 -my-1.5 -mr-2 shrink-0 rounded-md px-2 py-1.5 text-sm font-semibold text-gray-700 underline decoration-gray-300 underline-offset-2 active:bg-gray-100 sm:hidden"
+          >
+            {expanded ? 'Show less' : 'Read more'}
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
 
 const Resources: NextPage = () => {
   const { data, error, loading, retry } = useJson<Resource[]>('/api/resources');
@@ -65,20 +116,8 @@ const Resources: NextPage = () => {
           ) : (
             <ul className="grid gap-3 sm:gap-6 md:grid-cols-2 lg:grid-cols-3">
               {visible.map((resource) => (
-                <li key={resource._id}>
-                  <a
-                    href={resource.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="card group flex h-full flex-col p-5 transition active:scale-[0.98] hover:-translate-y-0.5 hover:shadow-lg sm:p-6"
-                  >
-                    <h2 className="text-lg font-semibold text-gray-900 group-hover:underline">{resource.title}</h2>
-                    <p className="mt-2 flex-grow leading-relaxed text-gray-600">{resource.description}</p>
-                    <span className="mt-4 inline-flex items-center gap-1.5 text-sm font-medium text-teal-700">
-                      {hostnameOf(resource.url) ?? 'Visit website'}
-                      <FiExternalLink className="h-3.5 w-3.5" aria-hidden="true" />
-                    </span>
-                  </a>
+                <li key={resource._id} className="min-w-0">
+                  <ResourceCard resource={resource} />
                 </li>
               ))}
             </ul>

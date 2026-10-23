@@ -7,10 +7,27 @@ const TONES: Record<string, string> = {
   professional: 'bg-rose-50 text-rose-800 ring-rose-600/20',
 };
 
-function toneFor(level: string): string {
+/** Solid colour per tier, for the strip that replaces the card illustration on phones. */
+const STRIPS: Record<string, string> = {
+  beginner: 'bg-emerald-400',
+  intermediate: 'bg-sky-400',
+  advanced: 'bg-violet-400',
+  professional: 'bg-rose-400',
+};
+
+function tierOf(level: string): string | undefined {
   const lower = baseLevel(level).toLowerCase();
-  const tier = Object.keys(TONES).find((key) => lower.includes(key));
+  return Object.keys(TONES).find((key) => lower.includes(key));
+}
+
+function toneFor(level: string): string {
+  const tier = tierOf(level);
   return tier ? TONES[tier] : 'bg-gray-100 text-gray-700 ring-gray-500/20';
+}
+
+export function levelStripClass(level: string): string {
+  const tier = tierOf(level);
+  return tier ? STRIPS[tier] : 'bg-gray-300';
 }
 
 export default function LevelBadge({ level, className = '' }: { level: string; className?: string }) {

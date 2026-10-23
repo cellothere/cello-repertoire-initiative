@@ -2,7 +2,7 @@ import { memo } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import SaveButton from './save-button';
-import LevelBadge from './level-badge';
+import LevelBadge, { levelStripClass } from './level-badge';
 import { pieceHref } from '@/lib/instruments';
 import type { PieceSummary } from '@/lib/types';
 import { formatComposers, parseYear } from '@/utils/musicUtils';
@@ -92,8 +92,10 @@ const MusicCard: React.FC<MusicCardProps> = ({
 
   return (
     <article className="group relative flex h-full flex-col overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm transition duration-200 focus-within:ring-2 focus-within:ring-teal-500 active:scale-[0.98] hover:-translate-y-0.5 hover:shadow-lg">
-      {/* A shorter illustration on phones, so more of each card is the title and level. */}
-      <div className="relative aspect-[3/2] overflow-hidden bg-gray-100 sm:aspect-[4/3]">
+      {/* Phones get a thin strip in the level's colour instead of the illustration, which is the
+          same drawing on most cards and took half of each one; about twice as many pieces fit per screen. */}
+      <div className={`h-1.5 sm:hidden ${levelStripClass(level)}`} aria-hidden="true" />
+      <div className="relative hidden aspect-[4/3] overflow-hidden bg-gray-100 sm:block">
         <Image
           src={imageFor(level, instrumentation)}
           alt=""
@@ -105,7 +107,7 @@ const MusicCard: React.FC<MusicCardProps> = ({
       </div>
 
       <div className="flex flex-1 flex-col p-3 sm:p-4">
-        <h3 className="line-clamp-3 break-words text-[0.9375rem] font-semibold leading-snug text-gray-900 sm:text-base">
+        <h3 className="line-clamp-3 break-words pr-7 text-[0.9375rem] font-semibold leading-snug text-gray-900 sm:pr-0 sm:text-base">
           {/* The link's ::after covers the whole card, making it all clickable. Prefetch on hover
               only, rather than fetching data for every card that scrolls into view. */}
           <Link
@@ -123,7 +125,7 @@ const MusicCard: React.FC<MusicCardProps> = ({
         </div>
       </div>
 
-      <SaveButton pieceId={id} instrument={instrument} title={title} className="absolute right-1.5 top-1.5 z-10 sm:right-2 sm:top-2" />
+      <SaveButton pieceId={id} instrument={instrument} title={title} className="absolute right-1 top-2.5 z-10 max-sm:bg-transparent max-sm:shadow-none sm:right-2 sm:top-2" />
     </article>
   );
 };
