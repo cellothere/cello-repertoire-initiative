@@ -29,8 +29,8 @@ const CATEGORIES = [
     matches: (piece: PieceSummary) => piece.composer_tags.includes('Woman'),
   },
   {
-    slug: 'non-binary',
-    label: 'Non-Binary Composers',
+    slug: 'queer',
+    label: 'Queer Composers',
     matches: (piece: PieceSummary) => piece.composer_tags.includes('LGBTQIA+'),
   },
   {
@@ -56,8 +56,10 @@ const FeaturedDatabases: NextPage = () => {
   const { data, error, loading, retry } = useJson<PieceSummary[]>('/api/celloMusic');
   const pieces = data ?? NO_PIECES;
 
-  // The category lives in the URL so each database has a shareable link.
-  const category: CategorySlug = CATEGORIES.find((c) => c.slug === router.query.category)?.slug ?? 'women';
+  // The category lives in the URL so each database has a shareable link. Old ?category=non-binary
+  // links (the database's earlier name) still open the queer database.
+  const requested = router.query.category === 'non-binary' ? 'queer' : router.query.category;
+  const category: CategorySlug = CATEGORIES.find((c) => c.slug === requested)?.slug ?? 'women';
   const [sort, setSort] = useState<SortKey>('level-asc');
   const [view, setView] = useState<ViewMode>('grid');
   const [page, setPage] = useState(1);
@@ -80,7 +82,7 @@ const FeaturedDatabases: NextPage = () => {
       <Seo
         title="Featured Databases"
         path="/featured-databases"
-        description="Explore curated databases of cello music by women, non-binary, Black, and Indigenous composers."
+        description="Explore curated databases of cello music by women, queer, Black, and Indigenous composers."
       />
       <PageHeader title="Featured Databases" subtitle="Curated collections celebrating composers from all backgrounds.">
         {/* Swipeable on phones. */}

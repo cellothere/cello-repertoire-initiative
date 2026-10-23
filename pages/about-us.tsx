@@ -9,7 +9,7 @@ const NEXT_STEPS = [
   {
     href: '/featured-databases',
     title: 'Explore featured databases',
-    body: 'Music by women, non-binary, Black and Indigenous composers.',
+    body: 'Music by women, queer, Black and Indigenous composers.',
   },
   { href: '/contribute', title: 'Contribute a piece', body: 'Know something we are missing? Tell us about it.' },
 ];
