@@ -1,6 +1,6 @@
 import { memo } from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
+import FadeImage from './fade-image';
 import SaveButton from './save-button';
 import LevelBadge, { levelStripClass } from './level-badge';
 import { pieceHref } from '@/lib/instruments';
@@ -10,6 +10,8 @@ import { formatComposers, parseYear } from '@/utils/musicUtils';
 type MusicCardProps = Pick<PieceSummary, 'id' | 'instrument' | 'title' | 'composers' | 'level' | 'instrumentation' | 'composition_year'> & {
   /** Load the image eagerly; use for the first few cards above the fold. */
   priority?: boolean;
+  /** Position in the grid, for the ripple as cards arrive. */
+  index?: number;
 };
 
 /** Pick an illustration matching the piece's level and instrumentation. */
@@ -87,22 +89,26 @@ const MusicCard: React.FC<MusicCardProps> = ({
   instrumentation,
   composition_year,
   priority = false,
+  index = 0,
 }) => {
   const year = parseYear(composition_year);
 
   return (
-    <article className="group relative flex h-full flex-col overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm transition duration-200 focus-within:ring-2 focus-within:ring-teal-500 active:scale-[0.98] hover:-translate-y-0.5 hover:shadow-lg">
+    <article
+      style={{ '--i': index } as React.CSSProperties}
+      className="reveal group relative flex h-full flex-col overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm transition duration-300 ease-out-expo focus-within:ring-2 focus-within:ring-teal-500 active:scale-[0.98] hover:-translate-y-1 hover:shadow-xl"
+    >
       {/* Phones get a thin strip in the level's colour instead of the illustration, which is the
           same drawing on most cards and took half of each one; about twice as many pieces fit per screen. */}
       <div className={`h-1.5 sm:hidden ${levelStripClass(level)}`} aria-hidden="true" />
       <div className="relative hidden aspect-[4/3] overflow-hidden bg-gray-100 sm:block">
-        <Image
+        <FadeImage
           src={imageFor(level, instrumentation)}
           alt=""
           fill
           priority={priority}
           sizes="(min-width: 1280px) 240px, (min-width: 1024px) 30vw, (min-width: 640px) 33vw, 50vw"
-          className="object-cover transition-transform duration-300 group-hover:scale-105"
+          className="object-cover group-hover:scale-105"
         />
       </div>
 

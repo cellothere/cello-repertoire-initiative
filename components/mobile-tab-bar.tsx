@@ -132,7 +132,14 @@ export default function MobileTabBar() {
                   }}
                   className={tabClass(active)}
                 >
-                  <Icon className="h-6 w-6" aria-hidden="true" />
+                  {/* A soft pill grows behind the current tab's icon. */}
+                  <span
+                    className={`flex h-7 w-14 items-center justify-center rounded-full transition duration-300 ease-out-expo ${
+                      active ? 'scale-100 bg-teal-50' : 'scale-90 bg-transparent'
+                    }`}
+                  >
+                    <Icon className="h-6 w-6" aria-hidden="true" />
+                  </span>
                   {tab.label}
                 </Link>
               </li>
@@ -146,7 +153,13 @@ export default function MobileTabBar() {
               aria-expanded={moreOpen}
               className={`w-full ${tabClass(moreOpen || !tabActive)}`}
             >
-              {moreOpen || !tabActive ? <HiBars3 className="h-6 w-6" aria-hidden="true" /> : <HiOutlineBars3 className="h-6 w-6" aria-hidden="true" />}
+              <span
+                className={`flex h-7 w-14 items-center justify-center rounded-full transition duration-300 ease-out-expo ${
+                  moreOpen || !tabActive ? 'scale-100 bg-teal-50' : 'scale-90 bg-transparent'
+                }`}
+              >
+                {moreOpen || !tabActive ? <HiBars3 className="h-6 w-6" aria-hidden="true" /> : <HiOutlineBars3 className="h-6 w-6" aria-hidden="true" />}
+              </span>
               More
             </button>
           </li>
@@ -161,7 +174,7 @@ export default function MobileTabBar() {
           if (event.target === sheetRef.current) setMoreOpen(false);
         }}
         aria-label="More"
-        className="m-0 mt-auto w-full max-w-none animate-slide-up rounded-t-2xl bg-white p-0 text-gray-900 shadow-2xl backdrop:bg-black/40"
+        className="dialog-sheet m-0 mt-auto w-full max-w-none rounded-t-2xl bg-white p-0 text-gray-900 shadow-2xl"
       >
         <div className="max-h-[85dvh] overflow-y-auto overscroll-contain px-3 pb-[max(1rem,env(safe-area-inset-bottom))]">
           <div className="sticky top-0 z-10 flex items-center justify-between bg-white px-3 pb-2 pt-3">

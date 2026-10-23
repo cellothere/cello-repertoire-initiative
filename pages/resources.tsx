@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { NextPage } from 'next';
 import { FaBookOpen, FaSearch } from 'react-icons/fa';
 import { FiExternalLink } from 'react-icons/fi';
@@ -18,6 +18,28 @@ function ResourceCard({ resource }: { resource: Resource }) {
   const textRef = useRef<HTMLParagraphElement>(null);
   const [expanded, setExpanded] = useState(false);
   const [clamped, setClamped] = useState(false);
+  const fromHeight = useRef<number | null>(null);
+
+  // Glide between the clamped and full heights rather than jumping.
+  useLayoutEffect(() => {
+    const el = textRef.current;
+    const from = fromHeight.current;
+    fromHeight.current = null;
+    if (!el || from === null || typeof el.animate !== 'function') return;
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    // A quick second tap: stop the first glide so the target height is the real one.
+    el.getAnimations().forEach((animation) => animation.cancel());
+    const to = el.getBoundingClientRect().height;
+    el.animate([{ height: `${from}px`, overflow: 'hidden' }, { height: `${to}px`, overflow: 'hidden' }], {
+      duration: 380,
+      easing: 'cubic-bezier(0.16, 1, 0.3, 1)',
+    });
+  }, [expanded]);
+
+  const toggle = () => {
+    fromHeight.current = textRef.current?.getBoundingClientRect().height ?? null;
+    setExpanded((open) => !open);
+  };
 
   // Show the toggle only when the text really is cut, rechecking when the width changes.
   useEffect(() => {
@@ -31,7 +53,7 @@ function ResourceCard({ resource }: { resource: Resource }) {
   }, [expanded, resource.description]);
 
   return (
-    <div className="card group relative flex h-full flex-col p-4 transition focus-within:ring-2 focus-within:ring-teal-500 active:scale-[0.98] hover:-translate-y-0.5 hover:shadow-lg sm:p-6">
+    <div className="card group relative flex h-full flex-col p-4 transition focus-within:ring-2 focus-within:ring-teal-500 duration-300 ease-out-expo hover:-translate-y-1 hover:shadow-xl sm:p-6">
       <h2 className="text-lg font-semibold text-gray-900 group-hover:underline">
         <a href={resource.url} target="_blank" rel="noopener noreferrer" className="after:absolute after:inset-0 focus:outline-none">
           {resource.title}
@@ -48,7 +70,7 @@ function ResourceCard({ resource }: { resource: Resource }) {
         {(clamped || expanded) && (
           <button
             type="button"
-            onClick={() => setExpanded((open) => !open)}
+            onClick={toggle}
             aria-expanded={expanded}
             className="relative z-10 -my-1.5 -mr-2 shrink-0 rounded-md px-2 py-1.5 text-sm font-semibold text-gray-700 underline decoration-gray-300 underline-offset-2 active:bg-gray-100 sm:hidden"
           >
@@ -103,9 +125,9 @@ const Resources: NextPage = () => {
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3" aria-busy="true" aria-label="Loading resources">
               {Array.from({ length: 6 }, (_, i) => (
                 <div key={i} className="card space-y-3 p-6">
-                  <div className="h-5 w-2/3 animate-pulse rounded bg-gray-200" />
-                  <div className="h-4 w-full animate-pulse rounded bg-gray-200" />
-                  <div className="h-4 w-5/6 animate-pulse rounded bg-gray-200" />
+                  <div className="skeleton h-5 w-2/3 rounded" />
+                  <div className="skeleton h-4 w-full rounded" />
+                  <div className="skeleton h-4 w-5/6 rounded" />
                 </div>
               ))}
             </div>
@@ -115,8 +137,8 @@ const Resources: NextPage = () => {
             </EmptyState>
           ) : (
             <ul className="grid gap-3 sm:gap-6 md:grid-cols-2 lg:grid-cols-3">
-              {visible.map((resource) => (
-                <li key={resource._id} className="min-w-0">
+              {visible.map((resource, index) => (
+                <li key={resource._id} className="reveal min-w-0" style={{ '--i': index } as React.CSSProperties}>
                   <ResourceCard resource={resource} />
                 </li>
               ))}

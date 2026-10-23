@@ -49,6 +49,10 @@ function FilterDrawer({
   children: React.ReactNode;
 }) {
   const closeRef = useRef<HTMLButtonElement>(null);
+  // Stay mounted while the slide-out plays, then unmount.
+  const [mounted, setMounted] = useState(open);
+  if (open && !mounted) setMounted(true);
+  const closing = mounted && !open;
 
   useEffect(() => {
     if (!open) return;
@@ -65,12 +69,26 @@ function FilterDrawer({
     };
   }, [open, onClose]);
 
-  if (!open) return null;
+  if (!mounted) return null;
 
   return (
-    <div className="fixed inset-0 z-50 lg:hidden" role="dialog" aria-modal="true" aria-labelledby="filter-drawer-title">
-      <div className="absolute inset-0 animate-fade-in bg-black/40" onClick={onClose} aria-hidden="true" />
-      <div className="absolute inset-y-0 right-0 flex w-full animate-slide-in-right flex-col bg-white shadow-2xl sm:max-w-sm">
+    <div
+      className={`fixed inset-0 z-50 lg:hidden ${closing ? 'pointer-events-none' : ''}`}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="filter-drawer-title"
+    >
+      <div
+        className={`absolute inset-0 bg-black/40 ${closing ? 'animate-fade-out' : 'animate-fade-in'}`}
+        onClick={onClose}
+        aria-hidden="true"
+      />
+      <div
+        onAnimationEnd={(event) => event.target === event.currentTarget && closing && setMounted(false)}
+        className={`absolute inset-y-0 right-0 flex w-full flex-col bg-white shadow-2xl sm:max-w-sm ${
+          closing ? 'animate-slide-out-right' : 'animate-slide-in-right'
+        }`}
+      >
         <div className="flex items-center justify-between border-b border-gray-200 px-4 pb-3 pt-[max(0.75rem,env(safe-area-inset-top))]">
           <h2 id="filter-drawer-title" className="text-lg font-bold">
             Filters

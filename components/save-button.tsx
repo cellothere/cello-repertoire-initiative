@@ -17,6 +17,8 @@ export default function SaveButton({ pieceId, instrument, title, variant = 'icon
   const router = useRouter();
   const { user, loading, isPieceSaved, savePiece, unsavePiece } = useAuth();
   const [busy, setBusy] = useState(false);
+  // Pop the heart only when the user saves, not when a saved piece first renders.
+  const [popKey, setPopKey] = useState(0);
   const saved = isPieceSaved(pieceId, instrument);
 
   const handleClick = async (event: React.MouseEvent) => {
@@ -32,7 +34,11 @@ export default function SaveButton({ pieceId, instrument, title, variant = 'icon
 
     setBusy(true);
     try {
-      await (saved ? unsavePiece(pieceId, instrument) : savePiece(pieceId, instrument));
+      if (saved) await unsavePiece(pieceId, instrument);
+      else {
+        setPopKey((k) => k + 1);
+        await savePiece(pieceId, instrument);
+      }
     } catch (error) {
       console.error('Failed to save/unsave piece:', error);
     } finally {
@@ -55,7 +61,7 @@ export default function SaveButton({ pieceId, instrument, title, variant = 'icon
           saved ? 'bg-rose-50 text-rose-700 hover:bg-rose-100' : 'bg-white text-gray-900 hover:bg-gray-100'
         } ${className}`}
       >
-        <Icon className={saved ? 'text-rose-500' : ''} aria-hidden="true" />
+        <Icon key={popKey} className={saved ? `text-rose-500 ${popKey ? 'animate-heart-pop' : ''}` : ''} aria-hidden="true" />
         {saved ? 'Saved' : 'Save'}
       </button>
     );
@@ -71,7 +77,11 @@ export default function SaveButton({ pieceId, instrument, title, variant = 'icon
       title={saved ? 'Remove from saved pieces' : 'Save piece'}
       className={`rounded-full bg-white/90 p-2.5 shadow-md backdrop-blur transition active:scale-90 hover:scale-110 hover:bg-white disabled:opacity-60 sm:p-2 ${className}`}
     >
-      <Icon className={`h-4 w-4 ${saved ? 'text-rose-500' : 'text-gray-700'}`} aria-hidden="true" />
+      <Icon
+        key={popKey}
+        className={`h-4 w-4 ${saved ? `text-rose-500 ${popKey ? 'animate-heart-pop' : ''}` : 'text-gray-700'}`}
+        aria-hidden="true"
+      />
     </button>
   );
 }
