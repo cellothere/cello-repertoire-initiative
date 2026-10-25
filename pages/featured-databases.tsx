@@ -7,48 +7,12 @@ import PieceResults, { CardSkeletonGrid, SortSelect, ViewToggle } from '@/compon
 import { EmptyState, ErrorState } from '@/components/state-messages';
 import { useJson } from '@/lib/use-json';
 import type { PieceSummary, SortKey, ViewMode } from '@/lib/types';
-import { indigenousKeywords } from '@/utils/indigenousKeywords';
+import { COMPOSER_GROUPS, type ComposerGroupSlug } from '@/lib/composer-groups';
 import { sortPieces } from '@/utils/musicUtils';
 
-const escapeRegExp = (value: string) => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+const CATEGORIES = COMPOSER_GROUPS;
 
-// Short keywords (e.g. "moro", "san") must match whole words so that "Moroccan" isn't
-// treated as Indigenous; longer ones match anywhere so "Anishinaabek" still matches.
-const indigenousPatterns = indigenousKeywords.map((keyword) => {
-  const escaped = escapeRegExp(keyword.toLowerCase());
-  return keyword.length <= 4 ? new RegExp(`(^|[^\\p{L}])${escaped}($|[^\\p{L}])`, 'iu') : new RegExp(escaped, 'i');
-});
-
-const isIndigenous = (piece: PieceSummary) =>
-  piece.nationality.some((nationality) => indigenousPatterns.some((pattern) => pattern.test(nationality)));
-
-const CATEGORIES = [
-  {
-    slug: 'women',
-    label: 'Women Composers',
-    matches: (piece: PieceSummary) => piece.composer_tags.includes('Woman'),
-  },
-  {
-    slug: 'queer',
-    label: 'Queer Composers',
-    matches: (piece: PieceSummary) => piece.composer_tags.includes('LGBTQIA+'),
-  },
-  {
-    slug: 'black',
-    label: 'Black Composers',
-    matches: (piece: PieceSummary) =>
-      piece.composer_tags.includes('Black') ||
-      (piece.composers.some((c) => c.full_name === 'Traditional') &&
-        (piece.tags.includes('Black Spiritual') || piece.tags.includes('Black Spirtuals'))),
-  },
-  {
-    slug: 'indigenous',
-    label: 'Indigenous Composers',
-    matches: isIndigenous,
-  },
-] as const;
-
-type CategorySlug = (typeof CATEGORIES)[number]['slug'];
+type CategorySlug = ComposerGroupSlug;
 const NO_PIECES: PieceSummary[] = [];
 
 const FeaturedDatabases: NextPage = () => {

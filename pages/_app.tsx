@@ -7,6 +7,7 @@ import NavbarMain from "@/components/navbar-main";
 import Footer from "@/components/footer";
 import MobileTabBar from "@/components/mobile-tab-bar";
 import RouteTransitions from "@/components/route-transitions";
+import CatalogueAssistant from "@/components/catalogue-assistant";
 import { AuthProvider } from "@/contexts/AuthContext";
 
 export default function App({ Component, pageProps }: AppProps) {
@@ -25,6 +26,7 @@ export default function App({ Component, pageProps }: AppProps) {
         </main>
         <Footer />
         <MobileTabBar />
+        <CatalogueAssistant />
         <Analytics />
       </div>
     </AuthProvider>
