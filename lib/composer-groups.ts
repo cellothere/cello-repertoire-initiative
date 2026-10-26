@@ -13,8 +13,7 @@ const indigenousPatterns = indigenousKeywords.map((keyword) => {
 const isIndigenous = (piece: PieceSummary) =>
   piece.nationality.some((nationality) => indigenousPatterns.some((pattern) => pattern.test(nationality)));
 
-/** The featured databases: which pieces count as by women, queer, Black, Indigenous, or disabled and neurodivergent composers. */
-export const COMPOSER_GROUPS = [
+const GROUPS = [
   {
     slug: 'women',
     label: 'Women Composers',
@@ -48,4 +47,14 @@ export const COMPOSER_GROUPS = [
   },
 ] as const;
 
-export type ComposerGroupSlug = (typeof COMPOSER_GROUPS)[number]['slug'];
+/**
+ * The featured databases: which pieces count as by women, queer, Black, Indigenous, or disabled and neurodivergent
+ * composers. An anthology credited to "Various" joins a database through a piece tag with the database's name
+ * (e.g. "Women Composers").
+ */
+export const COMPOSER_GROUPS = GROUPS.map((group) => ({
+  ...group,
+  matches: (piece: PieceSummary) => group.matches(piece) || piece.tags.includes(group.label),
+}));
+
+export type ComposerGroupSlug = (typeof GROUPS)[number]['slug'];
