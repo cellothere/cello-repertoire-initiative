@@ -13,7 +13,7 @@ const indigenousPatterns = indigenousKeywords.map((keyword) => {
 const isIndigenous = (piece: PieceSummary) =>
   piece.nationality.some((nationality) => indigenousPatterns.some((pattern) => pattern.test(nationality)));
 
-/** The featured databases: which pieces count as by women, queer, Black or Indigenous composers. */
+/** The featured databases: which pieces count as by women, queer, Black, Indigenous, or disabled and neurodivergent composers. */
 export const COMPOSER_GROUPS = [
   {
     slug: 'women',
@@ -37,6 +37,14 @@ export const COMPOSER_GROUPS = [
     slug: 'indigenous',
     label: 'Indigenous Composers',
     matches: isIndigenous,
+  },
+  {
+    // Composers who identify themselves as disabled or neurodivergent (or, for historical composers, whose
+    // disability was documented in their lifetime); never retrospective diagnoses.
+    slug: 'disabled-neurodivergent',
+    label: 'Disabled & Neurodivergent Composers',
+    matches: (piece: PieceSummary) =>
+      piece.composer_tags.includes('Disabled') || piece.composer_tags.includes('Neurodivergent'),
   },
 ] as const;
 

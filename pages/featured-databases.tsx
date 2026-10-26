@@ -160,7 +160,7 @@ const FeaturedDatabases: NextPage = () => {
       <Seo
         title="Featured Databases"
         path="/featured-databases"
-        description="Explore curated databases of cello music by women, queer, Black, and Indigenous composers, plus free sheet music you can download."
+        description="Explore curated databases of cello music by women, queer, Black, Indigenous, and disabled and neurodivergent composers, plus free sheet music you can download."
       />
       <PageHeader title="Featured Databases" subtitle="Curated collections celebrating composers from all backgrounds.">
         {/* Swipeable on phones. */}

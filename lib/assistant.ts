@@ -320,6 +320,7 @@ const RESOURCE_SYNONYMS = [
   ['women', 'woman', 'female'],
   ['indigenous', 'first nation', 'native', 'aboriginal', 'metis'],
   ['latin', 'latino', 'latina', 'hispanic'],
+  ['disabled', 'disability', 'neurodivergent', 'neurodiversity', 'autism', 'autistic', 'adhd', 'deaf', 'blind', 'accessible'],
 ].map((group) => group.map(stem));
 
 const alternativesFor = (word: string): string[] =>
@@ -388,7 +389,7 @@ async function runTool(block: Anthropic.ToolUseBlock, country: string | null): P
 // Conversation
 // ---------------------------------------------------------------------------
 
-const SYSTEM_PROMPT = `You are the virtual assistant on cellorepertoire.com, the Cello Repertoire Initiative: a free catalogue of level-appropriate music, mostly for cello (with some violin, viola and bass), that features under-recognized and underrepresented composers. The site's featured databases cover women, queer, Black and Indigenous composers, and the catalogue also includes many global-majority composers.
+const SYSTEM_PROMPT = `You are the virtual assistant on cellorepertoire.com, the Cello Repertoire Initiative: a free catalogue of level-appropriate music, mostly for cello (with some violin, viola and bass), that features under-recognized and underrepresented composers. The site's featured databases cover women, queer, Black, Indigenous, and disabled and neurodivergent composers, plus free sheet music, and the catalogue also includes many global-majority composers.
 
 Visitors are mostly cellists, teachers and parents looking for repertoire. Help them find pieces in this catalogue.
 
