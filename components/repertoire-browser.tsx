@@ -32,6 +32,8 @@ interface RepertoireBrowserProps {
 }
 
 const NO_PIECES: PieceSummary[] = [];
+// Below this, a piece count undersells the catalogue, so the header leaves it out.
+const SHOW_PIECE_COUNT_FROM = 1000;
 const collator = new Intl.Collator('en', { sensitivity: 'base' });
 const toOptions = (values: string[]) => values.map((value) => ({ value, label: value }));
 
@@ -267,9 +269,9 @@ export default function RepertoireBrowser({ instrument, apiPath, path }: Reperto
         align="left"
         title={`${label} Music`}
         subtitle={
-          pieces.length > 0
+          pieces.length >= SHOW_PIECE_COUNT_FROM
             ? `Search ${pieces.length.toLocaleString()} pieces by level, instrumentation, composer and more.`
-            : 'Search the catalogue by level, instrumentation, composer and more.'
+            : 'Search pieces by level, instrumentation, composer and more.'
         }
       />
 
