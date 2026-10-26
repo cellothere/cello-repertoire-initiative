@@ -53,6 +53,7 @@ const Home: NextPage = () => {
       <Seo description="Discover music that resonates with you and your students: a searchable database of level-appropriate cello repertoire featuring under-recognized and underrepresented composers." />
 
       <section className="relative overflow-hidden bg-brand-gradient text-white">
+        <div className="hero-waves" aria-hidden="true" />
         <div
           className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(255,255,255,0.15),transparent_45%)]"
           aria-hidden="true"

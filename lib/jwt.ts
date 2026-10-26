@@ -23,12 +23,6 @@ export function generateToken(userId: number, email: string): string {
   return jwt.sign(payload, JWT_SECRET, { expiresIn: JWT_EXPIRY });
 }
 
-/**
- * Verify and decode a JWT token
- * @param token - The JWT token to verify
- * @returns The decoded token payload
- * @throws Error if token is invalid or expired
- */
 export function verifyToken(token: string): TokenPayload {
   if (!JWT_SECRET) {
     throw new Error('JWT_SECRET is not defined in environment variables');
