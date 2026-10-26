@@ -37,6 +37,8 @@ export interface PieceSummary {
   first_published: string;
   /** Each composer's death year (null if living or unknown), for the public-domain check. */
   composer_died: (number | null)[];
+  /** Site path of the edition's cover (e.g. "/covers/charvey/CHP113.jpg"), or '' to use the level illustration. */
+  cover_image: string;
   /** ISO date derived from the document's ObjectId; only set by the recently-added endpoint. */
   added_at?: string;
 }
@@ -57,6 +59,10 @@ export interface PieceDetail {
   duration: string;
   /** Who arranged it, when the piece is an arrangement; shown under the composer line. */
   arrangers: string[];
+  /** Site path of the edition's cover, or '' if there is none. */
+  cover_image: string;
+  /** Who supplied the cover, credited under it (e.g. "C. Harvey Publications"). */
+  cover_credit: string;
   /** Lead composer first. Empty when the composer record is missing. */
   composers: {
     id: number;

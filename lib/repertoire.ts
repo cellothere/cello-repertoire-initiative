@@ -51,6 +51,7 @@ const summaryProjection = {
   instrument: 1,
   free_download: 1,
   first_published: 1,
+  cover_image: 1,
   composerIds: 1,
   'composerDetails.id': 1,
   'composerDetails.composer_full_name': 1,
@@ -104,6 +105,7 @@ function toSummary(doc: Document, instrument: Instrument): PieceSummary {
     first_published: str(doc.first_published),
     // "Traditional" (id 0) has no death year and doesn't hold a copyright.
     composer_died: composers.filter((c) => Number(c.id) !== 0).map((c) => deathYear(c.died)),
+    cover_image: str(doc.cover_image),
   };
 }
 
@@ -221,6 +223,8 @@ export async function getPieceDetail(instrument: Instrument, id: number): Promis
     audio_link: strArray(doc.audio_link),
     duration: str(doc.duration),
     arrangers: strArray(doc.arrangers),
+    cover_image: str(doc.cover_image),
+    cover_credit: str(doc.cover_credit),
     composers: composerDocs(doc, { enabledOnly: false }).map((c) => ({
       id: Number(c.id),
       full_name: str(c.composer_full_name) || 'Unknown Composer',

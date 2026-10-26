@@ -7,7 +7,7 @@ import { pieceHref } from '@/lib/instruments';
 import type { PieceSummary } from '@/lib/types';
 import { formatComposers, parseYear } from '@/utils/musicUtils';
 
-type MusicCardProps = Pick<PieceSummary, 'id' | 'instrument' | 'title' | 'composers' | 'level' | 'instrumentation' | 'composition_year'> & {
+type MusicCardProps = Pick<PieceSummary, 'id' | 'instrument' | 'title' | 'composers' | 'level' | 'instrumentation' | 'composition_year' | 'cover_image'> & {
   /** Load the image eagerly; use for the first few cards above the fold. */
   priority?: boolean;
   /** Position in the grid, for the ripple as cards arrive. */
@@ -88,6 +88,7 @@ const MusicCard: React.FC<MusicCardProps> = ({
   level,
   instrumentation,
   composition_year,
+  cover_image,
   priority = false,
   index = 0,
 }) => {
@@ -102,14 +103,26 @@ const MusicCard: React.FC<MusicCardProps> = ({
           same drawing on most cards and took half of each one; about twice as many pieces fit per screen. */}
       <div className={`h-1.5 sm:hidden ${levelStripClass(level)}`} aria-hidden="true" />
       <div className="relative hidden aspect-[4/3] overflow-hidden bg-gray-100 sm:block">
-        <FadeImage
-          src={imageFor(level, instrumentation)}
-          alt=""
-          fill
-          priority={priority}
-          sizes="(min-width: 1280px) 240px, (min-width: 1024px) 30vw, (min-width: 640px) 33vw, 50vw"
-          className="object-cover group-hover:scale-105"
-        />
+        {cover_image ? (
+          // A portrait book cover, shown whole on a soft backdrop rather than cropped to the frame.
+          <FadeImage
+            src={cover_image}
+            alt=""
+            fill
+            priority={priority}
+            sizes="(min-width: 1280px) 180px, (min-width: 1024px) 22vw, (min-width: 640px) 25vw, 40vw"
+            className="object-contain p-3 drop-shadow-md group-hover:scale-105"
+          />
+        ) : (
+          <FadeImage
+            src={imageFor(level, instrumentation)}
+            alt=""
+            fill
+            priority={priority}
+            sizes="(min-width: 1280px) 240px, (min-width: 1024px) 30vw, (min-width: 640px) 33vw, 50vw"
+            className="object-cover group-hover:scale-105"
+          />
+        )}
       </div>
 
       <div className="flex flex-1 flex-col p-3 sm:p-4">

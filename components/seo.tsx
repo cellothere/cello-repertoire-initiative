@@ -13,10 +13,13 @@ interface SeoProps {
   /** Path for the canonical URL, e.g. "/cello-music". */
   path?: string;
   noindex?: boolean;
+  /** Site path or URL of a page-specific share image, e.g. a book cover. */
+  image?: string;
 }
 
-export default function Seo({ title, description = DEFAULT_DESCRIPTION, path, noindex }: SeoProps) {
+export default function Seo({ title, description = DEFAULT_DESCRIPTION, path, noindex, image }: SeoProps) {
   const fullTitle = title ? `${title} | ${SITE_NAME}` : SITE_NAME;
+  const shareImage = image ? (image.startsWith('/') ? `${SITE_URL}${image}` : image) : DEFAULT_IMAGE;
   const url = path ? `${SITE_URL}${path}` : undefined;
 
   return (
@@ -30,11 +33,11 @@ export default function Seo({ title, description = DEFAULT_DESCRIPTION, path, no
       <meta key="og:description" property="og:description" content={description} />
       <meta key="og:type" property="og:type" content="website" />
       {url && <meta key="og:url" property="og:url" content={url} />}
-      <meta key="og:image" property="og:image" content={DEFAULT_IMAGE} />
+      <meta key="og:image" property="og:image" content={shareImage} />
       <meta key="twitter:card" name="twitter:card" content="summary" />
       <meta key="twitter:title" name="twitter:title" content={fullTitle} />
       <meta key="twitter:description" name="twitter:description" content={description} />
-      <meta key="twitter:image" name="twitter:image" content={DEFAULT_IMAGE} />
+      <meta key="twitter:image" name="twitter:image" content={shareImage} />
     </Head>
   );
 }

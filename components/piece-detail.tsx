@@ -1,4 +1,5 @@
 import { useMemo, useState, type ReactNode } from 'react';
+import Image from 'next/image';
 import Link from 'next/link';
 import { AiFillQuestionCircle } from 'react-icons/ai';
 import { BsFileEarmarkMusicFill } from 'react-icons/bs';
@@ -52,6 +53,24 @@ export default function PieceDetailPage({ piece }: { piece: PieceDetail }) {
     { label: 'Publisher', value: piece.publisher_info },
   ].filter((detail) => detail.value);
 
+  // The edition's cover, shown in the sidebar on wide screens and after the purchase card on phones.
+  const coverFigure = (className: string) =>
+    piece.cover_image ? (
+      <figure className={`card overflow-hidden p-4 sm:p-5 ${className}`}>
+        <Image
+          src={piece.cover_image}
+          alt={`Cover of ${piece.title}`}
+          width={600}
+          height={776}
+          sizes="(min-width: 1024px) 22rem, 14rem"
+          className="mx-auto h-auto w-full max-w-[14rem] rounded-sm shadow-md ring-1 ring-black/5 lg:max-w-[16rem]"
+        />
+        {piece.cover_credit && (
+          <figcaption className="mt-3 text-center text-xs text-gray-500">Cover courtesy of {piece.cover_credit}</figcaption>
+        )}
+      </figure>
+    ) : null;
+
   // Shown in the sidebar on wide screens, and straight after the recording on phones, where the
   // sidebar would otherwise come last.
   const purchaseCard = (className: string) => (
@@ -83,6 +102,7 @@ export default function PieceDetailPage({ piece }: { piece: PieceDetail }) {
       <Seo
         title={`${piece.title} by ${byLine}`}
         path={pieceHref(piece.instrument, piece.id)}
+        image={piece.cover_image || undefined}
         description={
           summarize(piece.description) ||
           `${piece.title} by ${byLine}: a ${piece.level.toLowerCase()} level piece for ${piece.instrumentation.join(', ').toLowerCase() || instrumentLabel.toLowerCase()}.`
@@ -186,6 +206,7 @@ export default function PieceDetailPage({ piece }: { piece: PieceDetail }) {
           )}
 
           {purchaseCard('lg:hidden')}
+          {coverFigure('lg:hidden')}
 
           <Card title="About this piece">
             <p className="whitespace-pre-line break-words leading-relaxed text-gray-700">
@@ -217,6 +238,7 @@ export default function PieceDetailPage({ piece }: { piece: PieceDetail }) {
         </div>
 
         <aside className="space-y-4 sm:space-y-6">
+          {coverFigure('hidden lg:block')}
           {details.length > 0 && (
             <Card title="Details" className="hidden lg:block">
               <dl className="space-y-3">
