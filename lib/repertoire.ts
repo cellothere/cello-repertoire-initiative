@@ -1,4 +1,5 @@
 import type { Document } from 'mongodb';
+import { deathYear } from './copyright';
 import { getDb } from './mongodb';
 import { INSTRUMENTS, collectionFor, type Instrument } from './instruments';
 import type { ComposerRef, ComposerSummary, PieceDetail, PieceSummary, Resource } from './types';
@@ -48,6 +49,8 @@ const summaryProjection = {
   technique_focus: 1,
   tags: 1,
   instrument: 1,
+  free_download: 1,
+  first_published: 1,
   composerIds: 1,
   'composerDetails.id': 1,
   'composerDetails.composer_full_name': 1,
@@ -56,6 +59,7 @@ const summaryProjection = {
   'composerDetails.nationality': 1,
   'composerDetails.tags': 1,
   'composerDetails.bio_link': 1,
+  'composerDetails.died': 1,
   'composerDetails.disabled': 1,
 };
 
@@ -96,6 +100,10 @@ function toSummary(doc: Document, instrument: Instrument): PieceSummary {
     technique_focus: strArray(doc.technique_focus),
     tags: strArray(doc.tags),
     composer_tags: union(composers.map((c) => strArray(c.tags))),
+    free_download: str(doc.free_download),
+    first_published: str(doc.first_published),
+    // "Traditional" (id 0) has no death year and doesn't hold a copyright.
+    composer_died: composers.filter((c) => Number(c.id) !== 0).map((c) => deathYear(c.died)),
   };
 }
 

@@ -1,5 +1,6 @@
 import Anthropic from '@anthropic-ai/sdk';
 import { COMPOSER_GROUPS, type ComposerGroupSlug } from './composer-groups';
+import { isFreeIn } from './copyright';
 import { INSTRUMENTS, INSTRUMENT_LABELS, collectionFor, isInstrument, type Instrument } from './instruments';
 import { getDb } from './mongodb';
 import { getPieceDetail, listPieces, listResources } from './repertoire';
@@ -145,6 +146,12 @@ const TOOLS: Anthropic.Tool[] = [
           items: { type: 'string', enum: techniqueKeywords },
           description: 'Keep pieces whose technique focus includes all of these. Mostly set on student-level pieces.',
         },
+        free_only: {
+          type: 'boolean',
+          description:
+            'Keep only sheet music the visitor can download free where they are: given away by the composer, or ' +
+            'public domain in their country (copyright already accounted for).',
+        },
         sort: {
           type: 'string',
           enum: ['easiest', 'newest'],
@@ -194,6 +201,7 @@ interface SearchInput {
   composer_groups?: string[];
   accompaniment?: string;
   techniques?: string[];
+  free_only?: boolean;
   sort?: string;
 }
 
@@ -218,9 +226,10 @@ function groupsOf(piece: PieceSummary): ComposerGroupSlug[] {
 }
 
 /** What the model sees for each match: enough to choose, little enough to keep the context small. */
-function describe(piece: PieceSummary, addedAt?: number) {
+function describe(piece: PieceSummary, country: string | null, addedAt?: number) {
   return {
     ref: pieceRef(piece),
+    ...(isFreeIn(piece, country) ? { free_download_here: true } : {}),
     ...(addedAt ? { added: new Date(addedAt).toISOString().slice(0, 10) } : {}),
     title: piece.title,
     composers: piece.composers.map((c) => c.full_name).join(' & '),
@@ -254,7 +263,7 @@ function searchWords(text: string | undefined): string[] {
     .map(stem);
 }
 
-async function searchCatalogue(input: SearchInput) {
+async function searchCatalogue(input: SearchInput, country: string | null) {
   const instrument: Instrument = isInstrument(input.instrument) ? input.instrument : 'cello';
   const words = searchWords(input.text);
   const newest = input.sort === 'newest';
@@ -271,6 +280,7 @@ async function searchCatalogue(input: SearchInput) {
     if (levels.length && !levels.some((level) => piece.level.startsWith(level))) return false;
     if (groups.length && !groups.some((group) => group.matches(piece))) return false;
     if (techniques.length && !techniques.every((t) => piece.technique_focus.includes(t))) return false;
+    if (input.free_only && !isFreeIn(piece, country)) return false;
     if (accompaniment) {
       const others = piece.instrumentation.map(normalizeForSearch);
       // Remove one entry for the featured instrument itself, so a cello duet still lists "cello".
@@ -299,7 +309,7 @@ async function searchCatalogue(input: SearchInput) {
   return {
     instrument,
     total_matches: matches.length,
-    pieces: matches.slice(0, MAX_RESULTS).map((piece) => describe(piece, newest ? addedAt(piece) : undefined)),
+    pieces: matches.slice(0, MAX_RESULTS).map((piece) => describe(piece, country, newest ? addedAt(piece) : undefined)),
   };
 }
 
@@ -356,12 +366,12 @@ async function pieceDetails(ref: unknown) {
   };
 }
 
-async function runTool(block: Anthropic.ToolUseBlock): Promise<Anthropic.ToolResultBlockParam> {
+async function runTool(block: Anthropic.ToolUseBlock, country: string | null): Promise<Anthropic.ToolResultBlockParam> {
   const input = (block.input ?? {}) as Record<string, unknown>;
   try {
     const result =
       block.name === 'search_catalogue'
-        ? await searchCatalogue(input as SearchInput)
+        ? await searchCatalogue(input as SearchInput, country)
         : block.name === 'get_piece_details'
           ? await pieceDetails(input.ref)
           : block.name === 'search_resources'
@@ -393,6 +403,7 @@ The site turns each token into a card that links to the piece, so don't repeat t
 - The site also keeps a list of outside resources: organizations, databases, publishers and guides. When a request is about one of the featured groups, a style or tradition, or finding more music in general, also search the resources with one key word (e.g. "queer", "Black", "women", "Indigenous", "jazz") and add one or two that would help, after the music, each on its own line as its token plus a few words on how it helps, e.g.:
 [[resource:82]] Graded repertoire lists from several exam boards.
 Cite only resources the tool returned.
+- When someone wants free sheet music, search with free_only; it already accounts for copyright in the visitor's country. Results marked free_download_here are free for them. The Free Music collection is at /featured-databases?category=free.
 - When someone asks what's new or recently added, search with sort "newest" (with no other filters unless they gave some) and mention when the pieces were added. The /recently-added page shows the latest additions too.
 - Keep replies short and friendly. With suggestions: a sentence of introduction, the list, and at most one follow-up question if it would help narrow things down. Plain text only, no markdown.
 - Levels, easiest to hardest: ${LEVELS.join(', ')}. When someone describes a player ("a second-year student", "a conservatory audition"), map it to levels yourself.
@@ -403,8 +414,11 @@ Cite only resources the tool returned.
 
 const TOKEN_PATTERN = /\[\[([a-z]+:\d+)\]\]/g;
 
-/** Runs one assistant turn: lets Claude search the catalogue, then returns its reply and what it cites. */
-export async function runAssistant(history: AssistantTurn[]): Promise<AssistantReply> {
+/**
+ * Runs one assistant turn: lets Claude search the catalogue, then returns its reply and what it cites.
+ * `country` (ISO code, or null if unknown) decides which public-domain pieces count as free for this visitor.
+ */
+export async function runAssistant(history: AssistantTurn[], country: string | null): Promise<AssistantReply> {
   const client = new Anthropic();
   const messages: Anthropic.MessageParam[] = history.map((turn) => ({ role: turn.role, content: turn.content }));
 
@@ -424,7 +438,7 @@ export async function runAssistant(history: AssistantTurn[]): Promise<AssistantR
     const toolUses = response.content.filter((block): block is Anthropic.ToolUseBlock => block.type === 'tool_use');
     if (response.stop_reason === 'tool_use' && toolUses.length) {
       messages.push({ role: 'assistant', content: response.content });
-      messages.push({ role: 'user', content: await Promise.all(toolUses.map(runTool)) });
+      messages.push({ role: 'user', content: await Promise.all(toolUses.map((block) => runTool(block, country))) });
       continue;
     }
 

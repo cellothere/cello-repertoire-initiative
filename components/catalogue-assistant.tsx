@@ -24,7 +24,7 @@ const TOKEN = /\[\[([a-z]+:\d+)\]\]/g;
 const MAX_LENGTH = 800;
 
 // Site pages the assistant may mention by path; anything else stays plain text.
-const SITE_PATH = /(\/(?:cello-music|violin-music|featured-databases|composers|recently-added|resources|contribute)\b)/;
+const SITE_PATH = /(\/(?:cello-music|violin-music|featured-databases|composers|recently-added|resources|contribute)\b(?:\?category=[a-z-]+)?)/;
 
 function PieceLink({ piece, onNavigate }: { piece: PieceSummary; onNavigate: () => void }) {
   return (

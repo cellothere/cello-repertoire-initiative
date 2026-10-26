@@ -31,6 +31,12 @@ export interface PieceSummary {
   tags: string[];
   /** Combined across all of the piece's composers. */
   composer_tags: string[];
+  /** "public-domain", "from-composer" or ''; see lib/copyright.ts. */
+  free_download: string;
+  /** Four-digit year of first publication, or '' if unpublished or unknown. */
+  first_published: string;
+  /** Each composer's death year (null if living or unknown), for the public-domain check. */
+  composer_died: (number | null)[];
   /** ISO date derived from the document's ObjectId; only set by the recently-added endpoint. */
   added_at?: string;
 }

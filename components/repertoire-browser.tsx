@@ -277,7 +277,7 @@ export default function RepertoireBrowser({ instrument, apiPath, path }: Reperto
 
       <div className="container mx-auto px-4 py-4 sm:py-6 lg:flex lg:items-start lg:gap-8">
         <aside className="hidden w-72 shrink-0 lg:block" aria-label="Filters">
-          <div className="sticky top-24 max-h-[calc(100vh-7rem)] overflow-y-auto rounded-2xl border border-gray-200 bg-white px-4 py-2 shadow-sm">
+          <div className="sticky top-24 max-h-[calc(100vh-7rem)] overflow-y-auto overscroll-contain rounded-2xl border border-gray-200 bg-white px-4 py-2 shadow-sm [scrollbar-color:theme(colors.gray.300)_transparent] [scrollbar-width:thin]">
             <div className="flex items-center justify-between border-b border-gray-200 py-2">
               <h2 className="text-lg font-bold">Filters</h2>
               {activeCount > 0 && (

@@ -76,6 +76,10 @@ function Section({
   );
 }
 
+// Long lists show this many options (plus any already ticked) until "Show all" is pressed, so the sidebar
+// never needs a scroll box inside it.
+const SHORT_LIST = 8;
+
 function CheckboxList({
   idPrefix,
   options,
@@ -88,19 +92,25 @@ function CheckboxList({
   options: FilterOption[];
   selected: string[];
   onToggle: (value: string) => void;
-  /** When set, shows a search box and pins selected options to the top. */
+  /** When set, shows a search box. */
   searchLabel?: string;
   renderAfter?: (option: FilterOption) => ReactNode;
 }) {
   const [search, setSearch] = useState('');
+  const [showAll, setShowAll] = useState(false);
   const selectedSet = useMemo(() => new Set(selected), [selected]);
+  // Short lists (e.g. levels) keep their natural order; long ones pin ticked options to the top.
+  const long = options.length > SHORT_LIST + 2;
 
-  const visible = useMemo(() => {
-    if (!searchLabel) return options;
+  const matches = useMemo(() => {
     const needle = normalizeForSearch(search);
-    const matches = needle ? options.filter((o) => normalizeForSearch(o.label).includes(needle)) : options;
-    return [...matches.filter((o) => selectedSet.has(o.value)), ...matches.filter((o) => !selectedSet.has(o.value))];
-  }, [options, search, searchLabel, selectedSet]);
+    const found = needle ? options.filter((o) => normalizeForSearch(o.label).includes(needle)) : options;
+    return long ? [...found.filter((o) => selectedSet.has(o.value)), ...found.filter((o) => !selectedSet.has(o.value))] : found;
+  }, [options, search, long, selectedSet]);
+
+  const shortLength = Math.max(SHORT_LIST, matches.filter((o) => selectedSet.has(o.value)).length);
+  const collapsible = long && matches.length > shortLength + 2;
+  const visible = collapsible && !showAll ? matches.slice(0, shortLength) : matches;
 
   return (
     <div>
@@ -114,11 +124,11 @@ function CheckboxList({
           className="mb-2 w-full rounded-lg border border-gray-300 px-3 py-2.5 text-base focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500 lg:py-2 lg:text-sm"
         />
       )}
-      <ul className={`space-y-0.5 ${searchLabel ? 'max-h-72 overflow-y-auto overscroll-contain pr-1 lg:max-h-64' : ''}`}>
+      <ul className="space-y-0.5">
         {visible.map((option) => {
           const id = `${idPrefix}-${option.value}`.replace(/[^\w-]/g, '_');
           return (
-            <li key={option.value} className="flex items-center gap-1">
+            <li key={option.value} className="group flex items-center gap-1">
               <input
                 id={id}
                 type="checkbox"
@@ -136,6 +146,16 @@ function CheckboxList({
         })}
         {visible.length === 0 && <li className="px-1.5 py-1 text-sm text-gray-500">No matches</li>}
       </ul>
+      {collapsible && (
+        <button
+          type="button"
+          onClick={() => setShowAll((value) => !value)}
+          aria-expanded={showAll}
+          className="mt-1 rounded px-2 py-2 text-sm font-medium text-teal-700 hover:bg-teal-50 hover:text-teal-800 lg:px-1.5 lg:py-1"
+        >
+          {showAll ? 'Show fewer' : `Show all ${matches.length}`}
+        </button>
+      )}
     </div>
   );
 }
@@ -251,7 +271,7 @@ export default function FilterPanel({ idPrefix, filters, options, onToggle, onYe
             <button
               type="button"
               onClick={() => setRubricLevel(option.value)}
-              className="rounded-full p-2.5 text-gray-400 transition-colors hover:text-teal-700 lg:p-1"
+              className="rounded-full p-2.5 text-gray-400 transition hover:text-teal-700 focus-visible:opacity-100 lg:p-1 lg:opacity-0 lg:group-hover:opacity-100"
               aria-label={`What does ${option.label} mean?`}
               title="What does this level mean?"
             >

@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { NextPage } from 'next';
 import { useRouter } from 'next/router';
 import Seo from '@/components/seo';
@@ -8,23 +8,128 @@ import { EmptyState, ErrorState } from '@/components/state-messages';
 import { useJson } from '@/lib/use-json';
 import type { PieceSummary, SortKey, ViewMode } from '@/lib/types';
 import { COMPOSER_GROUPS, type ComposerGroupSlug } from '@/lib/composer-groups';
+import { isFreeIn } from '@/lib/copyright';
 import { sortPieces } from '@/utils/musicUtils';
 
-const CATEGORIES = COMPOSER_GROUPS;
+const CATEGORIES = [...COMPOSER_GROUPS.map(({ slug, label }) => ({ slug, label })), { slug: 'free', label: 'Free Music' }] as const;
 
-type CategorySlug = ComposerGroupSlug;
+type CategorySlug = ComposerGroupSlug | 'free';
 const NO_PIECES: PieceSummary[] = [];
+
+// Countries offered in the "free in" picker; the visitor's detected country is added if it isn't here.
+const COUNTRY_CHOICES = [
+  'AR', 'AU', 'AT', 'BD', 'BE', 'BR', 'CA', 'CL', 'CN', 'CO', 'CU', 'CZ', 'DK', 'EG', 'FI', 'FR', 'DE', 'GH', 'GR',
+  'GT', 'HK', 'HU', 'IN', 'IE', 'IL', 'IT', 'JM', 'JP', 'KE', 'MY', 'MX', 'NL', 'NZ', 'NG', 'NO', 'PK', 'PE', 'PH',
+  'PL', 'PT', 'RO', 'RU', 'SG', 'ZA', 'KR', 'ES', 'SE', 'CH', 'TW', 'TH', 'TR', 'UA', 'GB', 'US', 'VE', 'VN',
+];
+const COUNTRY_KEY = 'freeMusicCountry';
+
+function countryName(code: string): string {
+  try {
+    return new Intl.DisplayNames(['en'], { type: 'region' }).of(code) ?? code;
+  } catch {
+    return code;
+  }
+}
+
+/**
+ * The country whose copyright rules decide which public-domain pieces count as free: the visitor's own choice if
+ * they made one, otherwise the country Vercel detects. Null means unknown, so only music free everywhere is shown.
+ */
+function useFreeMusicCountry() {
+  const [detected, setDetected] = useState<string | null>(null);
+  // undefined = the visitor hasn't chosen; '' was saved for "every country".
+  const [chosen, setChosen] = useState<string | null | undefined>(() => {
+    try {
+      const saved = typeof window === 'undefined' ? null : localStorage.getItem(COUNTRY_KEY);
+      return saved === null ? undefined : saved || null;
+    } catch {
+      return undefined; // Storage can be unavailable (private windows); the detected country still works.
+    }
+  });
+
+  useEffect(() => {
+    fetch('/api/region')
+      .then((response) => (response.ok ? response.json() : { country: null }))
+      .then((data: { country: string | null }) => setDetected(data.country))
+      .catch(() => setDetected(null));
+  }, []);
+
+  const choose = (code: string | null) => {
+    setChosen(code);
+    try {
+      localStorage.setItem(COUNTRY_KEY, code ?? '');
+    } catch {
+      // Not remembered across visits, but still applied now.
+    }
+  };
+
+  return { country: chosen === undefined ? detected : chosen, detected, choose };
+}
+
+function FreeMusicNote({
+  country,
+  detected,
+  onChoose,
+  elsewhere,
+}: {
+  country: string | null;
+  detected: string | null;
+  onChoose: (code: string | null) => void;
+  elsewhere: number;
+}) {
+  const codes = Array.from(new Set([...COUNTRY_CHOICES, ...(detected ? [detected] : []), ...(country ? [country] : [])]));
+  const options = codes.map((code) => ({ code, name: countryName(code) })).sort((a, b) => a.name.localeCompare(b.name));
+  return (
+    <div className="mb-5 rounded-xl border border-teal-200 bg-teal-50 px-4 py-3 text-sm text-teal-900">
+      <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+        <span>Free sheet music you can download legally in</span>
+        <label htmlFor="free-country" className="sr-only">
+          Country
+        </label>
+        <select
+          id="free-country"
+          value={country ?? ''}
+          onChange={(event) => onChoose(event.target.value || null)}
+          className="rounded-md border border-teal-300 bg-white px-2 py-1 font-medium text-teal-900"
+        >
+          <option value="">every country</option>
+          {options.map(({ code, name }) => (
+            <option key={code} value={code}>
+              {name}
+            </option>
+          ))}
+        </select>
+      </div>
+      <p className="mt-1.5 text-teal-800">
+        {elsewhere > 0 &&
+          `${elsewhere} more ${elsewhere === 1 ? 'piece is' : 'pieces are'} free in other countries but may still be under copyright ${
+            country ? `in ${countryName(country)}` : 'somewhere'
+          }. `}
+        Public-domain status is worked out from each composer&rsquo;s death year and the first publication date; it&rsquo;s a guide,
+        not legal advice.
+      </p>
+    </div>
+  );
+}
 
 const FeaturedDatabases: NextPage = () => {
   const router = useRouter();
   const { data, error, loading, retry } = useJson<PieceSummary[]>('/api/celloMusic');
   const pieces = data ?? NO_PIECES;
+  const { country, detected, choose } = useFreeMusicCountry();
 
   // The category lives in the URL so each database has a shareable link. Old ?category=non-binary
   // links (the database's earlier name) still open the queer database.
   const requested = router.query.category === 'non-binary' ? 'queer' : router.query.category;
   const category: CategorySlug = CATEGORIES.find((c) => c.slug === requested)?.slug ?? 'women';
   const [sort, setSort] = useState<SortKey>('level-asc');
+  const activeTab = useRef<HTMLButtonElement>(null);
+
+  // On phones the tabs scroll sideways, so bring the selected one into view (e.g. when opened from a link).
+  useEffect(() => {
+    activeTab.current?.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+  }, [category]);
   const [view, setView] = useState<ViewMode>('grid');
   const [page, setPage] = useState(1);
 
@@ -34,8 +139,17 @@ const FeaturedDatabases: NextPage = () => {
   };
 
   const byCategory = useMemo(
-    () => Object.fromEntries(CATEGORIES.map((c) => [c.slug, pieces.filter(c.matches)])) as Record<CategorySlug, PieceSummary[]>,
-    [pieces]
+    () =>
+      ({
+        ...Object.fromEntries(COMPOSER_GROUPS.map((group) => [group.slug, pieces.filter(group.matches)])),
+        free: pieces.filter((piece) => isFreeIn(piece, country)),
+      }) as Record<CategorySlug, PieceSummary[]>,
+    [pieces, country]
+  );
+  // Public-domain pieces that are free somewhere, but not in the chosen country.
+  const freeElsewhere = useMemo(
+    () => pieces.filter((piece) => piece.free_download === 'public-domain' && !isFreeIn(piece, country)).length,
+    [pieces, country]
   );
 
   const featured = useMemo(() => sortPieces(byCategory[category], sort), [byCategory, category, sort]);
@@ -46,7 +160,7 @@ const FeaturedDatabases: NextPage = () => {
       <Seo
         title="Featured Databases"
         path="/featured-databases"
-        description="Explore curated databases of cello music by women, queer, Black, and Indigenous composers."
+        description="Explore curated databases of cello music by women, queer, Black, and Indigenous composers, plus free sheet music you can download."
       />
       <PageHeader title="Featured Databases" subtitle="Curated collections celebrating composers from all backgrounds.">
         {/* Swipeable on phones. */}
@@ -55,6 +169,7 @@ const FeaturedDatabases: NextPage = () => {
             {CATEGORIES.map((c) => (
               <button
                 key={c.slug}
+                ref={category === c.slug ? activeTab : undefined}
                 type="button"
                 onClick={() => selectCategory(c.slug)}
                 aria-pressed={category === c.slug}
@@ -89,6 +204,10 @@ const FeaturedDatabases: NextPage = () => {
             <ViewToggle value={view} onChange={setView} />
           </div>
         </div>
+
+        {category === 'free' && !loading && !error && (
+          <FreeMusicNote country={country} detected={detected} onChoose={choose} elsewhere={freeElsewhere} />
+        )}
 
         {error ? (
           <ErrorState message="We couldn't load the featured databases. Please try again." onRetry={retry} />

@@ -63,7 +63,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   try {
-    res.status(200).json(await runAssistant(history));
+    const header = req.headers['x-vercel-ip-country'];
+    const country = (Array.isArray(header) ? header[0] : header) || null;
+    res.status(200).json(await runAssistant(history, country));
   } catch (error) {
     if (error instanceof AssistantRefusal) {
       return res.status(200).json({ reply: "Sorry, I can't help with that. I can help you find pieces in the catalogue.", pieces: {}, resources: {} });
