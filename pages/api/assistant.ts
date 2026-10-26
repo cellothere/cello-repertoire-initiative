@@ -66,7 +66,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     res.status(200).json(await runAssistant(history));
   } catch (error) {
     if (error instanceof AssistantRefusal) {
-      return res.status(200).json({ reply: "Sorry, I can't help with that. I can help you find pieces in the catalogue.", pieces: {} });
+      return res.status(200).json({ reply: "Sorry, I can't help with that. I can help you find pieces in the catalogue.", pieces: {}, resources: {} });
     }
     if (error instanceof Anthropic.RateLimitError || error instanceof Anthropic.InternalServerError) {
       console.error('Assistant: Claude is busy:', error.message);

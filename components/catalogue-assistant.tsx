@@ -1,15 +1,16 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import Link from 'next/link';
+import { FiExternalLink } from 'react-icons/fi';
 import { HiChatBubbleLeftRight, HiPaperAirplane, HiXMark } from 'react-icons/hi2';
 import LevelBadge from './level-badge';
 import { useAuth } from '@/contexts/AuthContext';
 import { pieceHref } from '@/lib/instruments';
-import type { PieceSummary } from '@/lib/types';
-import { formatComposers } from '@/utils/musicUtils';
+import type { PieceSummary, Resource } from '@/lib/types';
+import { formatComposers, hostnameOf } from '@/utils/musicUtils';
 
 interface Turn {
   role: 'user' | 'assistant';
-  /** Assistant turns keep their [[instrument:id]] tokens, which are sent back as context. */
+  /** Assistant turns keep their [[instrument:id]] and [[resource:id]] tokens, which are sent back as context. */
   content: string;
 }
 
@@ -21,6 +22,9 @@ const SUGGESTIONS = [
 
 const TOKEN = /\[\[([a-z]+:\d+)\]\]/g;
 const MAX_LENGTH = 800;
+
+// Site pages the assistant may mention by path; anything else stays plain text.
+const SITE_PATH = /(\/(?:cello-music|violin-music|featured-databases|composers|recently-added|resources|contribute)\b)/;
 
 function PieceLink({ piece, onNavigate }: { piece: PieceSummary; onNavigate: () => void }) {
   return (
@@ -38,29 +42,82 @@ function PieceLink({ piece, onNavigate }: { piece: PieceSummary; onNavigate: () 
   );
 }
 
-/** An assistant reply: plain lines of text, with each piece token shown as a card above its note. */
+/** An outside resource from the Resources page; opens in a new tab. */
+function ResourceLink({ resource }: { resource: Resource }) {
+  return (
+    <a
+      href={resource.url}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="block rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 shadow-sm transition hover:border-amber-400 hover:shadow focus-visible:outline focus-visible:outline-2 focus-visible:outline-amber-600"
+    >
+      <span className="text-[11px] font-semibold uppercase tracking-wide text-amber-800">Resource</span>
+      <span className="block font-semibold leading-snug text-gray-900">{resource.title}</span>
+      <span className="mt-0.5 inline-flex items-center gap-1 text-sm text-gray-600">
+        {hostnameOf(resource.url)}
+        <FiExternalLink className="h-3.5 w-3.5" aria-hidden="true" />
+      </span>
+    </a>
+  );
+}
+
+/** Plain text with any site page paths (e.g. /resources) turned into links. */
+function TextWithPageLinks({ text, onNavigate }: { text: string; onNavigate: () => void }) {
+  // With a capturing group, split() puts the paths at odd indices.
+  return (
+    <>
+      {text.split(SITE_PATH).map((part, index) =>
+        index % 2 === 1 ? (
+          <Link key={index} href={part} onClick={onNavigate} className="font-medium text-teal-700 underline underline-offset-2">
+            {part}
+          </Link>
+        ) : (
+          part
+        )
+      )}
+    </>
+  );
+}
+
+/** An assistant reply: plain lines of text, with each piece or resource token shown as a card above its note. */
 function AssistantMessage({
   content,
   pieces,
+  resources,
   onNavigate,
 }: {
   content: string;
   pieces: Record<string, PieceSummary>;
+  resources: Record<string, Resource>;
   onNavigate: () => void;
 }) {
   const lines = content.split('\n').map((line) => line.trim()).filter(Boolean);
   return (
     <div className="space-y-2">
       {lines.map((line, index) => {
-        const refs = Array.from(line.matchAll(TOKEN), (match) => match[1]).filter((ref) => pieces[ref]);
+        const refs = Array.from(line.matchAll(TOKEN), (match) => match[1]).filter((ref) => pieces[ref] || resources[ref]);
         const text = line.replace(TOKEN, '').replace(/^[\s\-–—:•]+/, '').trim();
-        if (!refs.length) return <p key={index}>{text}</p>;
+        if (!refs.length) {
+          return (
+            <p key={index}>
+              <TextWithPageLinks text={text} onNavigate={onNavigate} />
+            </p>
+          );
+        }
         return (
           <div key={index} className="space-y-1">
-            {refs.map((ref) => (
-              <PieceLink key={ref} piece={pieces[ref]} onNavigate={onNavigate} />
-            ))}
-            {text && <p className="px-1 text-sm text-gray-600">{text}</p>}
+            {refs.map((ref) =>
+              pieces[ref] ? (
+                <PieceLink key={ref} piece={pieces[ref]} onNavigate={onNavigate} />
+              ) : (
+                <ResourceLink key={ref} resource={resources[ref]} />
+              )
+            )}
+            {text && (
+              <p className="px-1 text-sm text-gray-600">
+                <TextWithPageLinks text={text} onNavigate={onNavigate} />
+              </p>
+            )}
           </div>
         );
       })}
@@ -74,6 +131,7 @@ export default function CatalogueAssistant() {
   const [open, setOpen] = useState(false);
   const [turns, setTurns] = useState<Turn[]>([]);
   const [pieces, setPieces] = useState<Record<string, PieceSummary>>({});
+  const [resources, setResources] = useState<Record<string, Resource>>({});
   const [draft, setDraft] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -121,6 +179,7 @@ export default function CatalogueAssistant() {
         throw new Error(data.error || 'Something went wrong. Please try again.');
       }
       setPieces((known) => ({ ...known, ...data.pieces }));
+      setResources((known) => ({ ...known, ...data.resources }));
       setTurns([...history, { role: 'assistant', content: data.reply }]);
     } catch (err) {
       // Put the message back so the visitor can retry without retyping it.
@@ -186,7 +245,7 @@ export default function CatalogueAssistant() {
                 </div>
               ) : (
                 <div key={index} className="max-w-[95%] rounded-2xl rounded-tl-sm bg-white px-3 py-2 text-gray-800 shadow-sm">
-                  <AssistantMessage content={turn.content} pieces={pieces} onNavigate={closeOnPhone} />
+                  <AssistantMessage content={turn.content} pieces={pieces} resources={resources} onNavigate={closeOnPhone} />
                 </div>
               )
             )}
