@@ -1,6 +1,7 @@
 import Anthropic from '@anthropic-ai/sdk';
 import { COMPOSER_GROUPS, type ComposerGroupSlug } from './composer-groups';
-import { INSTRUMENTS, INSTRUMENT_LABELS, isInstrument, type Instrument } from './instruments';
+import { INSTRUMENTS, INSTRUMENT_LABELS, collectionFor, isInstrument, type Instrument } from './instruments';
+import { getDb } from './mongodb';
 import { getPieceDetail, listPieces } from './repertoire';
 import type { PieceSummary } from './types';
 import { LEVEL_ORDER, levelRank, normalizeForSearch } from '@/utils/musicUtils';
@@ -30,16 +31,30 @@ export class AssistantRefusal extends Error {}
 // ---------------------------------------------------------------------------
 
 const CATALOGUE_TTL_MS = 5 * 60 * 1000;
-const catalogueCache = new Map<Instrument, { at: number; pieces: Promise<PieceSummary[]> }>();
 
-function catalogue(instrument: Instrument): Promise<PieceSummary[]> {
-  const cached = catalogueCache.get(instrument);
-  if (cached && Date.now() - cached.at < CATALOGUE_TTL_MS) return cached.pieces;
-  const pieces = listPieces(instrument);
-  catalogueCache.set(instrument, { at: Date.now(), pieces });
-  pieces.catch(() => catalogueCache.delete(instrument));
-  return pieces;
+/** Caches one loader's result per instrument for a few minutes, forgetting failures so the next call retries. */
+function cachedPerInstrument<T>(load: (instrument: Instrument) => Promise<T>) {
+  const cache = new Map<Instrument, { at: number; value: Promise<T> }>();
+  return (instrument: Instrument): Promise<T> => {
+    const cached = cache.get(instrument);
+    if (cached && Date.now() - cached.at < CATALOGUE_TTL_MS) return cached.value;
+    const value = load(instrument);
+    cache.set(instrument, { at: Date.now(), value });
+    value.catch(() => cache.delete(instrument));
+    return value;
+  };
 }
+
+const catalogue = cachedPerInstrument(listPieces);
+
+/** Each piece's description, normalized for searching, so style words like "fiddle" or "lullaby" are found. */
+const descriptions = cachedPerInstrument(async (instrument) => {
+  const docs = await (await getDb())
+    .collection(collectionFor(instrument))
+    .find({ disabled: false }, { projection: { _id: 0, id: 1, description: 1 } })
+    .toArray();
+  return new Map(docs.map((doc) => [Number(doc.id), normalizeForSearch(String(doc.description ?? ''))]));
+});
 
 export const pieceRef = (piece: Pick<PieceSummary, 'instrument' | 'id'>) => `${piece.instrument}:${piece.id}`;
 
@@ -74,13 +89,16 @@ const TOOLS: Anthropic.Tool[] = [
         instrument: {
           type: 'string',
           enum: [...INSTRUMENTS],
-          description: 'The featured instrument. Defaults to cello, which has by far the largest collection.',
+          description:
+            'The instrument the music is for. Defaults to cello, which has by far the largest collection. Style words ' +
+            'such as "fiddle tunes" describe cello music too; choose violin only when the visitor wants violin music.',
         },
         text: {
           type: 'string',
           description:
-            'Words that must all appear in the title, composer, arranger, nationality, tags or instrumentation, ' +
-            'e.g. "suite", "Price", "Brazil", "spiritual". Leave empty to filter only.',
+            'One or two key words, e.g. "fiddle", "tango", "spiritual", "lullaby", "Price", "Brazil". Every word must ' +
+            'appear in the title, composer, arranger, nationality, tags or description; word endings are ignored, so ' +
+            '"fiddle" also finds "fiddling". Pieces matching on title or composer come first. Leave empty to filter only.',
         },
         levels: {
           type: 'array',
@@ -165,9 +183,21 @@ function describe(piece: PieceSummary) {
   };
 }
 
+// Words that say nothing about which pieces fit, but would rule out ones that happen not to use them.
+const FILLER_WORDS = new Set(['a', 'an', 'and', 'for', 'of', 'the', 'with', 'some', 'music', 'piece', 'pieces', 'tune', 'tunes', 'work', 'works', 'cello', 'cellos']);
+
+/** Drops common English endings so "fiddle", "fiddles" and "fiddling" all search for "fiddl". */
+function stem(word: string): string {
+  const stripped = word.replace(/(ings?|ed|es|s|e)$/, '');
+  return stripped.length >= 3 ? stripped : word;
+}
+
 async function searchCatalogue(input: SearchInput) {
   const instrument: Instrument = isInstrument(input.instrument) ? input.instrument : 'cello';
-  const words = normalizeForSearch(input.text ?? '').split(' ').filter(Boolean);
+  const words = normalizeForSearch(input.text ?? '').replace(/[^\p{L}\p{N}\s-]/gu, ' ').split(' ').filter((word) => word && !FILLER_WORDS.has(word)).map(stem);
+  const described = words.length ? await descriptions(instrument) : new Map<number, string>();
+  // How many search words were found only in the description: pieces matching on title, composer etc. come first.
+  const rank = new Map<number, number>();
   const levels = stringList(input.levels);
   const groups = COMPOSER_GROUPS.filter((group) => stringList(input.composer_groups).includes(group.slug));
   const accompaniment = normalizeForSearch(input.accompaniment ?? '');
@@ -188,12 +218,19 @@ async function searchCatalogue(input: SearchInput) {
     }
     if (words.length) {
       const text = haystack(piece);
-      if (!words.every((word) => text.includes(word))) return false;
+      const description = described.get(piece.id) ?? '';
+      if (!words.every((word) => text.includes(word) || description.includes(word))) return false;
+      rank.set(piece.id, words.filter((word) => !text.includes(word)).length);
     }
     return true;
   });
 
-  matches.sort((a, b) => levelRank(a.level) - levelRank(b.level) || a.title.localeCompare(b.title));
+  matches.sort(
+    (a, b) =>
+      (rank.get(a.id) ?? 0) - (rank.get(b.id) ?? 0) ||
+      levelRank(a.level) - levelRank(b.level) ||
+      a.title.localeCompare(b.title)
+  );
   return { instrument, total_matches: matches.length, pieces: matches.slice(0, MAX_RESULTS).map(describe) };
 }
 
@@ -244,6 +281,8 @@ Visitors are mostly cellists, teachers and parents looking for repertoire. Help 
 
 How to answer:
 - If a request doesn't say enough to search usefully (for example "find me music", "any suggestions?", "something for my student"), don't search yet. Ask a short, friendly follow-up instead: who will play it and roughly what level (or how long they've been playing), and whether they have anything in mind, such as solo or with piano, a mood or occasion, or composers from one of the featured groups. Give two or three quick example answers they could reply with. Once you know the level, or something specific enough to narrow the catalogue, search.
+- Visitors almost always want cello music. Words like fiddle, folk, bluegrass, Celtic, jazz, tango or spirituals describe a style to look for in the cello catalogue, not another instrument; search violin, viola or bass music only when someone asks for music for that instrument.
+- Search with one or two key words rather than whole phrases. If a search finds nothing, try a related word (for example "folk" or "Celtic" for fiddle tunes) or fewer filters before saying there's nothing.
 - Search before recommending, and recommend only pieces the tools returned. Never invent pieces, composers or facts; if you don't know something, say so.
 - Suggest 3 to 6 pieces when you can. Put each suggestion on its own line, starting with its reference token in double square brackets, then a few words on why it fits, e.g.:
 [[cello:123]] A lyrical early-intermediate piece with lots of shifting practice.
