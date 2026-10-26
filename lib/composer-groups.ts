@@ -27,6 +27,12 @@ const GROUPS = [
     label: 'Women Composers',
     matches: (piece: PieceSummary) => piece.composer_tags.includes('Woman'),
   },
+    {
+    slug: 'disabled-neurodivergent',
+    label: 'Disabled & Neurodivergent Composers',
+    matches: (piece: PieceSummary) =>
+      piece.composer_tags.includes('Disabled') || piece.composer_tags.includes('Neurodivergent'),
+  },
   {
     slug: 'queer',
     label: 'Queer Composers',
@@ -45,14 +51,7 @@ const GROUPS = [
     label: 'Indigenous Composers',
     matches: isIndigenous,
   },
-  {
-    // Composers who identify themselves as disabled or neurodivergent (or, for historical composers, whose
-    // disability was documented in their lifetime); never retrospective diagnoses.
-    slug: 'disabled-neurodivergent',
-    label: 'Disabled & Neurodivergent Composers',
-    matches: (piece: PieceSummary) =>
-      piece.composer_tags.includes('Disabled') || piece.composer_tags.includes('Neurodivergent'),
-  },
+
   {
     slug: 'living',
     label: 'Living Composers',

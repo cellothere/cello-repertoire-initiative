@@ -126,6 +126,8 @@ function AssistantMessage({
 }
 
 /** The floating "ask the assistant" button and chat panel, shown on every page. */
+const isPhone = () => window.matchMedia('(max-width: 767px)').matches;
+
 export default function CatalogueAssistant() {
   const { user } = useAuth();
   const [open, setOpen] = useState(false);
@@ -140,8 +142,14 @@ export default function CatalogueAssistant() {
 
   const greeting = `Hi${user ? ` ${user.username}` : ''}! I'm a virtual assistant. Tell me what you're looking for and I'll search our catalogue for suggestions.`;
 
+  // On a phone, focusing the field pops up the keyboard, which then covers most of the panel; there the
+  // keyboard waits until the visitor taps the field.
+  const focusInput = () => {
+    if (!isPhone()) inputRef.current?.focus();
+  };
+
   useEffect(() => {
-    if (open) inputRef.current?.focus();
+    if (open) focusInput();
   }, [open]);
 
   useEffect(() => {
@@ -157,7 +165,7 @@ export default function CatalogueAssistant() {
 
   // On a phone the panel covers the page, so close it when a suggestion is opened.
   const closeOnPhone = () => {
-    if (window.matchMedia('(max-width: 767px)').matches) setOpen(false);
+    if (isPhone()) setOpen(false);
   };
 
   async function send(text: string) {
@@ -188,7 +196,7 @@ export default function CatalogueAssistant() {
       setError(err instanceof Error ? err.message : 'Something went wrong. Please try again.');
     } finally {
       setBusy(false);
-      inputRef.current?.focus();
+      focusInput();
     }
   }
 
@@ -301,7 +309,7 @@ export default function CatalogueAssistant() {
         onClick={() => setOpen((value) => !value)}
         aria-expanded={open}
         aria-label={open ? 'Close the assistant' : 'Ask the repertoire assistant'}
-        className={`fixed bottom-[calc(4.5rem+env(safe-area-inset-bottom))] right-[max(1rem,env(safe-area-inset-right))] z-40 ${open ? 'hidden md:flex' : 'flex'} h-14 w-14 items-center justify-center rounded-full bg-teal-700 text-white shadow-lg transition hover:bg-teal-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-700 md:bottom-6 md:right-6`}
+        className={`fixed bottom-[calc(5.25rem+env(safe-area-inset-bottom))] right-[max(1rem,env(safe-area-inset-right))] z-40 ${open ? 'hidden md:flex' : 'flex'} h-14 w-14 items-center justify-center rounded-full bg-teal-700 text-white shadow-lg transition hover:bg-teal-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-700 md:bottom-6 md:right-6`}
       >
         {open ? <HiXMark className="h-6 w-6" aria-hidden="true" /> : <HiChatBubbleLeftRight className="h-6 w-6" aria-hidden="true" />}
       </button>

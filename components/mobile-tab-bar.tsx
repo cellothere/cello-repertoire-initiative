@@ -111,9 +111,10 @@ export default function MobileTabBar() {
     <>
       <nav
         aria-label="Primary"
-        className="mobile-tab-bar fixed inset-x-0 bottom-0 z-40 border-t border-gray-200 bg-white/95 pb-[env(safe-area-inset-bottom)] pl-[env(safe-area-inset-left)] pr-[env(safe-area-inset-right)] backdrop-blur supports-[backdrop-filter]:bg-white/85 md:hidden"
+        className="mobile-tab-bar pointer-events-none fixed inset-x-0 bottom-0 z-40 pb-[max(0.75rem,env(safe-area-inset-bottom))] pl-[max(0.75rem,env(safe-area-inset-left))] pr-[max(0.75rem,env(safe-area-inset-right))] md:hidden"
       >
-        <ul className="mx-auto grid h-14 max-w-lg grid-cols-5">
+        {/* A floating, rounded bar; the space around it lets taps through to the page. */}
+        <ul className="pointer-events-auto mx-auto grid h-14 max-w-lg grid-cols-5 overflow-hidden rounded-full border border-gray-200 bg-white/95 shadow-lg backdrop-blur supports-[backdrop-filter]:bg-white/85">
           {TABS.map((tab) => {
             const active = tab.matches(pathname);
             const Icon = active ? tab.ActiveIcon : tab.Icon;
