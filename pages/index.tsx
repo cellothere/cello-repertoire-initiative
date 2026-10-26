@@ -18,7 +18,7 @@ const FEATURES = [
     href: '/featured-databases',
     src: '/assets/whatsNew.png',
     label: 'Featured Databases',
-    description: 'Music by women, queer, Black, Indigenous, and disabled and neurodivergent composers, plus free sheet music.',
+    description: 'Music by women, queer, Black, Indigenous, disabled and neurodivergent, and living composers, plus free sheet music.',
   },
   {
     href: '/contribute',

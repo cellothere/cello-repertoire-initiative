@@ -14,7 +14,7 @@ interface NavLink {
 
 export const MUSIC_LINKS: NavLink[] = [
   { href: '/cello-music', label: 'Cello Music', description: 'Search and filter the full catalogue' },
-  { href: '/featured-databases', label: 'Featured Databases', description: 'Women, queer, Black & Indigenous composers' },
+  { href: '/featured-databases', label: 'Featured Databases', description: 'Curated collections of music by underrepresented composers' },
   { href: '/recently-added', label: 'Recently Added', description: 'The newest additions' },
   { href: '/composers', label: 'Composers', description: 'Browse every composer' },
 ];

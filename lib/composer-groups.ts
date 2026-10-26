@@ -13,6 +13,14 @@ const indigenousPatterns = indigenousKeywords.map((keyword) => {
 const isIndigenous = (piece: PieceSummary) =>
   piece.nationality.some((nationality) => indigenousPatterns.some((pattern) => pattern.test(nationality)));
 
+// A composer with no death year counts as living (composer dates were checked against Wikidata and the web on
+// 2026-10-26). "Various" stands for many composers, so it doesn't count. `composer_died` leaves out Traditional
+// (id 0), so it lines up with the other composers.
+const hasLivingComposer = (piece: PieceSummary) =>
+  piece.composers
+    .filter((composer) => composer.id !== 0)
+    .some((composer, index) => piece.composer_died[index] === null && composer.full_name !== 'Various');
+
 const GROUPS = [
   {
     slug: 'women',
@@ -45,10 +53,15 @@ const GROUPS = [
     matches: (piece: PieceSummary) =>
       piece.composer_tags.includes('Disabled') || piece.composer_tags.includes('Neurodivergent'),
   },
+  {
+    slug: 'living',
+    label: 'Living Composers',
+    matches: hasLivingComposer,
+  },
 ] as const;
 
 /**
- * The featured databases: which pieces count as by women, queer, Black, Indigenous, or disabled and neurodivergent
+ * The featured databases: which pieces count as by women, queer, Black, Indigenous, disabled and neurodivergent, or living
  * composers. An anthology credited to "Various" joins a database through a piece tag with the database's name
  * (e.g. "Women Composers").
  */

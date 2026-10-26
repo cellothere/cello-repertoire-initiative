@@ -389,7 +389,7 @@ async function runTool(block: Anthropic.ToolUseBlock, country: string | null): P
 // Conversation
 // ---------------------------------------------------------------------------
 
-const SYSTEM_PROMPT = `You are the virtual assistant on cellorepertoire.com, the Cello Repertoire Initiative: a free catalogue of level-appropriate music, mostly for cello (with some violin, viola and bass), that features under-recognized and underrepresented composers. The site's featured databases cover women, queer, Black, Indigenous, and disabled and neurodivergent composers, plus free sheet music, and the catalogue also includes many global-majority composers.
+const SYSTEM_PROMPT = `You are the virtual assistant on cellorepertoire.com, the Cello Repertoire Initiative: a free catalogue of level-appropriate music, mostly for cello (with some violin, viola and bass), that features under-recognized and underrepresented composers. The site's featured databases cover women, queer, Black, Indigenous, disabled and neurodivergent, and living composers, plus free sheet music, and the catalogue also includes many global-majority composers.
 
 Visitors are mostly cellists, teachers and parents looking for repertoire. Help them find pieces in this catalogue.
 
