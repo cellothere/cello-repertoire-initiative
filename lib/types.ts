@@ -31,6 +31,8 @@ export interface PieceSummary {
   tags: string[];
   /** Combined across all of the piece's composers. */
   composer_tags: string[];
+  /** Tags of arrangers whose credited name matches a composer record. */
+  arranger_tags: string[];
   /** "public-domain", "from-composer" or ''; see lib/copyright.ts. */
   free_download: string;
   /** Four-digit year of first publication, or '' if unpublished or unknown. */

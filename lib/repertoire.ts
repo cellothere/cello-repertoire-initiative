@@ -34,6 +34,12 @@ const composerLookup: Document[] = [
   { $lookup: { from: 'composers', localField: 'composerIds', foreignField: 'id', as: 'composerDetails' } },
 ];
 
+// Arranger credits are names; this finds the ones that match a composer record, so an arranger's identity tags
+// can count (e.g. an arrangement by a woman joins the Women database). Names that match no record add nothing.
+const arrangerLookup: Document = {
+  $lookup: { from: 'composers', localField: 'arrangers', foreignField: 'composer_full_name', as: 'arrangerDetails' },
+};
+
 /** At least one of the piece's composers is enabled. */
 const enabledComposerMatch: Document = { $match: { 'composerDetails.disabled': false } };
 
@@ -62,6 +68,8 @@ const summaryProjection = {
   'composerDetails.bio_link': 1,
   'composerDetails.died': 1,
   'composerDetails.disabled': 1,
+  'arrangerDetails.tags': 1,
+  'arrangerDetails.disabled': 1,
 };
 
 /** The looked-up composer documents in the piece's own order (lead first); the lookup doesn't keep it. */
@@ -101,6 +109,11 @@ function toSummary(doc: Document, instrument: Instrument): PieceSummary {
     technique_focus: strArray(doc.technique_focus),
     tags: strArray(doc.tags),
     composer_tags: union(composers.map((c) => strArray(c.tags))),
+    arranger_tags: union(
+      (Array.isArray(doc.arrangerDetails) ? doc.arrangerDetails : [])
+        .filter((c: Document) => c.disabled !== true)
+        .map((c: Document) => strArray(c.tags))
+    ),
     free_download: str(doc.free_download),
     first_published: str(doc.first_published),
     // "Traditional" (id 0) has no death year and doesn't hold a copyright.
@@ -127,6 +140,7 @@ export async function listPieces(instrument: Instrument): Promise<PieceSummary[]
       { $match: { disabled: false } },
       ...composerLookup,
       enabledComposerMatch,
+      arrangerLookup,
       { $project: summaryProjection },
     ])
     .toArray();
@@ -155,6 +169,7 @@ export async function listRecentlyAdded(limit = 12): Promise<PieceSummary[]> {
       ...composerLookup,
       enabledComposerMatch,
       { $limit: limit },
+      arrangerLookup,
       { $project: summaryProjection },
     ])
     .toArray();
@@ -182,6 +197,7 @@ export async function getPiecesByRefs(
         .aggregate([
           { $match: { id: { $in: ids }, disabled: false } },
           ...composerLookup,
+          arrangerLookup,
           { $project: summaryProjection },
         ])
         .toArray();

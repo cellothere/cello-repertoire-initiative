@@ -25,7 +25,8 @@ const GROUPS = [
   {
     slug: 'women',
     label: 'Women Composers',
-    matches: (piece: PieceSummary) => piece.composer_tags.includes('Woman'),
+    // Arrangements by women count too.
+    matches: (piece: PieceSummary) => piece.composer_tags.includes('Woman') || piece.arranger_tags.includes('Woman'),
   },
     {
     slug: 'disabled-neurodivergent',
