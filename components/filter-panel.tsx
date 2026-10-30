@@ -282,20 +282,6 @@ export default function FilterPanel({ idPrefix, filters, options, onToggle, onYe
         />
       </Section>
 
-      {options.database.length > 0 && (
-        <Section id={`${idPrefix}-database`} title="Featured databases" count={filters.database.length} defaultOpen>
-          <CheckboxList
-            idPrefix={`${idPrefix}-database`}
-            options={options.database}
-            selected={filters.database}
-            onToggle={(value) => onToggle('database', value)}
-          />
-          {options.database.length > 1 && (
-            <p className="mt-2 text-xs text-gray-500">Tick more than one to find pieces in all of them, such as free music by women.</p>
-          )}
-        </Section>
-      )}
-
       <Section
         id={`${idPrefix}-instrumentation`}
         title="Instrumentation"
@@ -357,6 +343,20 @@ export default function FilterPanel({ idPrefix, filters, options, onToggle, onYe
       <Section id={`${idPrefix}-year`} title="Composition year" count={yearActive ? 1 : 0} defaultOpen={yearActive}>
         <YearRange idPrefix={idPrefix} from={filters.from} to={filters.to} onChange={onYearChange} />
       </Section>
+
+      {options.database.length > 0 && (
+        <Section id={`${idPrefix}-database`} title="Featured databases" count={filters.database.length} defaultOpen>
+          <CheckboxList
+            idPrefix={`${idPrefix}-database`}
+            options={options.database}
+            selected={filters.database}
+            onToggle={(value) => onToggle('database', value)}
+          />
+          {options.database.length > 1 && (
+            <p className="mt-2 text-xs text-gray-500">Tick more than one to find pieces in all of them, such as free music by women.</p>
+          )}
+        </Section>
+      )}
 
       <LevelModal open={rubricLevel !== null} onClose={() => setRubricLevel(null)} level={rubricLevel ?? ''} />
     </div>

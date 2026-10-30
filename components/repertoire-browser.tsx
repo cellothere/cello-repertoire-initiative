@@ -187,7 +187,11 @@ export default function RepertoireBrowser({
   // Keep typing and slider dragging responsive; results catch up a frame later.
   const deferredFilters = useDeferredValue(filters);
 
-  const filtered = useMemo(() => {
+  type Entry = (typeof indexed)[number];
+  type FacetKey = ListFilterKey | 'q' | 'year';
+
+  // One test per filter, so each list's options can be worked out from the other filters alone.
+  const tests = useMemo(() => {
     const f = deferredFilters;
     const tokens = normalizeForSearch(f.q).split(' ').filter(Boolean);
     const composers = new Set(f.composer);
@@ -195,49 +199,85 @@ export default function RepertoireBrowser({
     const countries = new Set(f.country);
     const focus = f.focus.map(normalizeForSearch);
     const yearActive = isYearFilterActive(f);
+    const all: Record<FacetKey, (entry: Entry) => boolean> = {
+      q: (entry) => tokens.every((token) => entry.text.includes(token)),
+      composer: (entry) => composers.size === 0 || entry.piece.composers.some((c) => composers.has(c.full_name)),
+      level: (entry) => levels.size === 0 || levels.has(entry.level),
+      country: (entry) => countries.size === 0 || entry.piece.nationality.some((n) => countries.has(n)),
+      instrumentation: (entry) =>
+        f.instrumentation.length === 0 ||
+        f.instrumentation.some((option) => matchesInstrumentationOption(entry.categories, option)),
+      focus: (entry) => focus.length === 0 || focus.some((item) => entry.focus.includes(item)),
+      database: (entry) => f.database.every((slug) => entry.databases.has(slug as DatabaseSlug)),
+      year: (entry) => !yearActive || (entry.year !== null && entry.year >= f.from && entry.year <= f.to),
+    };
+    return Object.entries(all) as [FacetKey, (entry: Entry) => boolean][];
+  }, [deferredFilters]);
 
-    return indexed
-      .filter(
-        (entry) =>
-          tokens.every((token) => entry.text.includes(token)) &&
-          (composers.size === 0 || entry.piece.composers.some((c) => composers.has(c.full_name))) &&
-          (levels.size === 0 || levels.has(entry.level)) &&
-          (countries.size === 0 || entry.piece.nationality.some((n) => countries.has(n))) &&
-          (f.instrumentation.length === 0 ||
-            f.instrumentation.some((option) => matchesInstrumentationOption(entry.categories, option))) &&
-          (focus.length === 0 || focus.some((item) => entry.focus.includes(item))) &&
-          f.database.every((slug) => entry.databases.has(slug as DatabaseSlug)) &&
-          (!yearActive || (entry.year !== null && entry.year >= f.from && entry.year <= f.to))
-      )
-      .map((entry) => entry.piece);
-  }, [indexed, deferredFilters]);
+  const matchingExcept = useCallback(
+    (skip: FacetKey | null) => indexed.filter((entry) => tests.every(([key, test]) => key === skip || test(entry))),
+    [indexed, tests]
+  );
+
+  const filtered = useMemo(() => matchingExcept(null).map((entry) => entry.piece), [matchingExcept]);
 
   const sorted = useMemo(() => sortPieces(filtered, state.sort), [filtered, state.sort]);
 
-  const options = useMemo<FilterOptions>(() => {
-    const composers = new Map<string, string>();
-    const countries = new Set<string>();
+  const composerLabels = useMemo(() => {
+    const labels = new Map<string, string>();
     for (const piece of pieces) {
       for (const c of piece.composers) {
-        if (c.full_name && !composers.has(c.full_name)) composers.set(c.full_name, formatComposerName(c.first_name, c.last_name));
+        if (c.full_name && !labels.has(c.full_name)) labels.set(c.full_name, formatComposerName(c.first_name, c.last_name));
       }
-      piece.nationality.forEach((n) => countries.add(n));
     }
-    // Offer the databases these pieces belong to, besides the one being browsed; ticked ones always stay listed.
-    const inUse = new Set(indexed.flatMap((entry) => Array.from(entry.databases)));
-    return {
-      level: toOptions(LEVEL_ORDER),
-      database: databases
-        .filter((d) => d.slug !== database && (inUse.has(d.slug) || state.database.includes(d.slug)))
-        .map((d) => ({ value: d.slug, label: d.label })),
-      instrumentation: toOptions(instrumentationOptions(instrument)),
-      composer: Array.from(composers, ([value, optionLabel]) => ({ value, label: optionLabel })).sort((a, b) =>
-        collator.compare(a.label, b.label)
-      ),
-      country: toOptions(Array.from(countries).sort(collator.compare)),
-      focus: toOptions(techniqueKeywords),
+    return labels;
+  }, [pieces]);
+
+  // Each list offers only what would find pieces given the other filters, so ticking Women Composers leaves only
+  // women in the composer list. Ticked options always stay listed so they can be unticked.
+  const { level, instrumentation, composer, country: nationality, focus, database: ticked } = state;
+  const options = useMemo<FilterOptions>(() => {
+    const selected: Record<ListFilterKey, string[]> = { level, instrumentation, composer, country: nationality, focus, database: ticked };
+    const offered = (key: ListFilterKey, values: Iterable<string>) => {
+      const set = new Set(values);
+      selected[key].forEach((value) => set.add(value));
+      return set;
     };
-  }, [pieces, indexed, instrument, databases, database, state.database]);
+    const pool = (key: ListFilterKey) => matchingExcept(key);
+
+    const levels = offered('level', pool('level').map((entry) => entry.level));
+    const instrumentationPool = pool('instrumentation');
+    const focusPool = pool('focus');
+    const databasesInUse = offered('database', pool('database').flatMap((entry) => Array.from(entry.databases)));
+    const composers = offered('composer', pool('composer').flatMap((entry) => entry.piece.composers.map((c) => c.full_name)));
+    const countries = offered('country', pool('country').flatMap((entry) => entry.piece.nationality));
+
+    return {
+      // The level list is fixed, so it stays whole until the catalogue has loaded.
+      level: toOptions(indexed.length ? LEVEL_ORDER.filter((value) => levels.has(value)) : LEVEL_ORDER),
+      database: databases
+        .filter((d) => d.slug !== database && databasesInUse.has(d.slug))
+        .map((d) => ({ value: d.slug, label: d.label })),
+      instrumentation: toOptions(
+        instrumentationOptions(instrument).filter(
+          (option) =>
+            instrumentation.includes(option) ||
+            instrumentationPool.some((entry) => matchesInstrumentationOption(entry.categories, option))
+        )
+      ),
+      composer: Array.from(composers)
+        .filter(Boolean)
+        .map((value) => ({ value, label: composerLabels.get(value) ?? value }))
+        .sort((a, b) => collator.compare(a.label, b.label)),
+      country: toOptions(Array.from(countries).filter(Boolean).sort(collator.compare)),
+      focus: toOptions(
+        techniqueKeywords.filter((keyword) => {
+          const normalized = normalizeForSearch(keyword);
+          return focus.includes(keyword) || focusPool.some((entry) => entry.focus.includes(normalized));
+        })
+      ),
+    };
+  }, [indexed, matchingExcept, level, instrumentation, composer, nationality, focus, ticked, instrument, databases, database, composerLabels]);
 
   const toggle = useCallback(
     (key: ListFilterKey, value: string) => {
@@ -251,7 +291,6 @@ export default function RepertoireBrowser({
   const clearFilters = useCallback(() => update({ ...EMPTY_FILTERS }), [update]);
   const closeDrawer = useCallback(() => setDrawerOpen(false), []);
 
-  const composerLabels = useMemo(() => new Map(options.composer.map((o) => [o.value, o.label])), [options.composer]);
   const chips = [
     ...state.level.map((value) => ({ key: `level:${value}`, label: value, remove: () => toggle('level', value) })),
     ...state.database.map((value) => ({
@@ -323,7 +362,7 @@ export default function RepertoireBrowser({
 
       <div className="container mx-auto px-4 py-4 sm:py-6 lg:flex lg:items-start lg:gap-8">
         <aside className="hidden w-72 shrink-0 lg:block" aria-label="Filters">
-          <div className="sticky top-24 max-h-[calc(100vh-7rem)] overflow-y-auto overscroll-contain rounded-2xl border border-gray-200 bg-white px-4 py-2 shadow-sm [scrollbar-color:theme(colors.gray.300)_transparent] [scrollbar-width:thin]">
+          <div className="rounded-2xl border border-gray-200 bg-white px-4 py-2 shadow-sm">
             <div className="flex items-center justify-between border-b border-gray-200 py-2">
               <h2 className="text-lg font-bold">Filters</h2>
               {activeCount > 0 && (
