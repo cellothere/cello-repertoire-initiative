@@ -207,7 +207,9 @@ export default function PieceDetailPage({ piece }: { piece: PieceDetail }) {
         <div className="space-y-4 sm:space-y-6 lg:col-span-2">
           {videoId && (
             <section className="card overflow-hidden" aria-label="Recording">
-              <YouTubeEmbed videoId={videoId} title={piece.title} />
+              {/* Keyed by video: moving to another piece reuses this page, and the old player's "playing" state would
+                  start the new piece's video by itself. */}
+              <YouTubeEmbed key={videoId} videoId={videoId} title={piece.title} />
             </section>
           )}
           {embed && <RecordingPlayer embed={embed} title={piece.title} />}
