@@ -3,9 +3,9 @@ import { COMPOSER_GROUPS, type ComposerGroupSlug } from './composer-groups';
 import { isFreeIn } from './copyright';
 import { INSTRUMENTS, INSTRUMENT_LABELS, collectionFor, isInstrument, type Instrument } from './instruments';
 import { getDb } from './mongodb';
-import { getPieceDetail, listPieces, listResources } from './repertoire';
-import type { PieceSummary, Resource } from './types';
-import { LEVEL_ORDER, levelRank, normalizeForSearch } from '@/utils/musicUtils';
+import { getPieceDetail, listComposers, listPieces, listResources } from './repertoire';
+import type { ComposerSummary, PieceSummary, Resource } from './types';
+import { LEVEL_ORDER, levelRank, normalizeForSearch, parseYear } from '@/utils/musicUtils';
 import techniqueKeywords from '@/utils/techniqueKeywords';
 
 // A fast, inexpensive model is plenty for searching the catalogue and writing a short reply.
@@ -51,13 +51,13 @@ function cachedPerInstrument<T>(load: (instrument: Instrument) => Promise<T>) {
 const catalogue = cachedPerInstrument(listPieces);
 
 /**
- * Each piece's description, normalized for searching so style words like "fiddle" or "lullaby" are found, and
- * when it was added (from its ObjectId), for "what's new" questions.
+ * Each piece's description, normalized for searching so style words like "fiddle" or "lullaby" are found, when it
+ * was added (from its ObjectId), for "what's new" questions, and whether it has a recording to listen to.
  */
 const pieceExtras = cachedPerInstrument(async (instrument) => {
   const docs = await (await getDb())
     .collection(collectionFor(instrument))
-    .find({ disabled: false }, { projection: { _id: 1, id: 1, description: 1 } })
+    .find({ disabled: false }, { projection: { _id: 1, id: 1, description: 1, audio_link: 1 } })
     .toArray();
   return new Map(
     docs.map((doc) => [
@@ -65,6 +65,7 @@ const pieceExtras = cachedPerInstrument(async (instrument) => {
       {
         description: normalizeForSearch(String(doc.description ?? '')),
         addedAt: doc._id?.getTimestamp?.()?.getTime() ?? 0,
+        hasRecording: Array.isArray(doc.audio_link) && doc.audio_link.some((link: unknown) => typeof link === 'string' && link.trim()),
       },
     ])
   );
@@ -77,6 +78,16 @@ function resources(): Promise<Resource[]> {
   const value = listResources();
   resourceCache = { at: Date.now(), value };
   value.catch(() => (resourceCache = null));
+  return value;
+}
+
+let composerCache: { at: number; value: Promise<ComposerSummary[]> } | null = null;
+
+function composers(): Promise<ComposerSummary[]> {
+  if (composerCache && Date.now() - composerCache.at < CATALOGUE_TTL_MS) return composerCache.value;
+  const value = listComposers();
+  composerCache = { at: Date.now(), value };
+  value.catch(() => (composerCache = null));
   return value;
 }
 
@@ -108,7 +119,8 @@ const TOOLS: Anthropic.Tool[] = [
     name: 'search_catalogue',
     description:
       'Search the catalogue. Every filter is optional and they combine (AND). Returns the total number of matches and up ' +
-      `to ${MAX_RESULTS} pieces, easiest first. Search again with fewer filters if nothing matches.`,
+      `to ${MAX_RESULTS} pieces, easiest first, with each one's length when known. Search again with fewer filters if ` +
+      'nothing matches.',
     input_schema: {
       type: 'object',
       properties: {
@@ -129,17 +141,46 @@ const TOOLS: Anthropic.Tool[] = [
         levels: {
           type: 'array',
           items: { type: 'string', enum: LEVELS },
-          description: 'Keep pieces at any of these levels.',
+          description:
+            'Keep pieces at any of these levels. A broad word covers its whole band: "intermediate" means Early ' +
+            'Intermediate, Intermediate and Late Intermediate.',
         },
         composer_groups: {
           type: 'array',
           items: { type: 'string', enum: GROUP_SLUGS },
-          description: "Keep pieces whose composer belongs to any of these groups (the site's featured databases).",
+          description:
+            "Keep pieces in all of these groups (the site's featured databases), e.g. black and women for Black women composers.",
+        },
+        countries: {
+          type: 'array',
+          items: { type: 'string' },
+          description:
+            'Keep pieces whose composer is from any of these, written as the catalogue does: country names such as ' +
+            '"Mexico", "Brazil", "United States of America", "United Kingdom", "South Korea", or Indigenous nations such ' +
+            'as "Cree" or "Métis". For a region, list its countries (Latin America: Mexico, Cuba, Argentina, Brazil, ' +
+            'Venezuela, Colombia, Costa Rica, Belize, Haiti, ...).',
         },
         accompaniment: {
           type: 'string',
           description:
-            'What else plays, e.g. "Piano", "Orchestra", "Cello" (for duets), or "unaccompanied" for solo pieces.',
+            'Exactly what else plays, comma-separated: "Piano" (cello and piano only), "Orchestra", "Cello" (a duet with ' +
+            'another cello), "Cello Ensemble", "Violin, Piano" (a piano trio), or "unaccompanied" for solo pieces.',
+        },
+        min_minutes: { type: 'number', description: 'Shortest length in minutes. Pieces of unknown length are left out.' },
+        max_minutes: { type: 'number', description: 'Longest length in minutes. Pieces of unknown length are left out.' },
+        composed_from: {
+          type: 'integer',
+          description: 'Earliest composition year, e.g. 1820 for Romantic-era music. Pieces with no known year are left out.',
+        },
+        composed_to: { type: 'integer', description: 'Latest composition year. Pieces with no known year are left out.' },
+        has_recording: {
+          type: 'boolean',
+          description: 'Keep only pieces with a recording (YouTube or a streaming service) to listen to on their page.',
+        },
+        exclude_refs: {
+          type: 'array',
+          items: { type: 'string' },
+          description: 'Leave out these pieces, e.g. ones already suggested, when someone asks for more.',
         },
         techniques: {
           type: 'array',
@@ -181,6 +222,20 @@ const TOOLS: Anthropic.Tool[] = [
     },
   },
   {
+    name: 'get_composer',
+    description:
+      'Look up composers by name: their dates, nationality, documented identity (as the site records it), and how many ' +
+      'pieces of theirs the catalogue has, at which levels. Search the catalogue with their name to list the pieces.',
+    input_schema: {
+      type: 'object',
+      properties: {
+        name: { type: 'string', description: 'All or part of the name, e.g. "Florence Price" or "Price".' },
+      },
+      required: ['name'],
+      additionalProperties: false,
+    },
+  },
+  {
     name: 'get_piece_details',
     description: "Read one piece's description, technical overview and publisher, to answer questions about it.",
     input_schema: {
@@ -203,6 +258,13 @@ interface SearchInput {
   techniques?: string[];
   free_only?: boolean;
   sort?: string;
+  countries?: string[];
+  min_minutes?: number;
+  max_minutes?: number;
+  composed_from?: number;
+  composed_to?: number;
+  has_recording?: boolean;
+  exclude_refs?: string[];
 }
 
 const stringList = (value: unknown): string[] =>
@@ -225,20 +287,33 @@ function groupsOf(piece: PieceSummary): ComposerGroupSlug[] {
   return COMPOSER_GROUPS.filter((group) => group.matches(piece)).map((group) => group.slug);
 }
 
+/** A piece's length in seconds, or null when unknown ("00:00:00" stands for unknown). */
+function durationSeconds(duration: string): number | null {
+  const parts = duration.split(':').map(Number);
+  if (!parts.length || parts.some((part) => Number.isNaN(part))) return null;
+  const seconds = parts.reduce((total, part) => total * 60 + part, 0);
+  return seconds > 0 ? seconds : null;
+}
+
+const formatLength = (seconds: number) => `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, '0')}`;
+
 /** What the model sees for each match: enough to choose, little enough to keep the context small. */
-function describe(piece: PieceSummary, country: string | null, addedAt?: number) {
+function describe(piece: PieceSummary, country: string | null, extras?: { addedAt: number; hasRecording: boolean }, newest = false) {
+  const seconds = durationSeconds(piece.duration);
   return {
     ref: pieceRef(piece),
     ...(isFreeIn(piece, country) ? { free_download_here: true } : {}),
-    ...(addedAt ? { added: new Date(addedAt).toISOString().slice(0, 10) } : {}),
+    ...(extras?.hasRecording ? { has_recording: true } : {}),
+    ...(newest && extras?.addedAt ? { added: new Date(extras.addedAt).toISOString().slice(0, 10) } : {}),
     title: piece.title,
     composers: piece.composers.map((c) => c.full_name).join(' & '),
     ...(piece.arrangers.length ? { arrangers: piece.arrangers.join(', ') } : {}),
     level: piece.level,
     instrumentation: piece.instrumentation.join(', '),
+    ...(seconds ? { length: formatLength(seconds) } : {}),
     ...(/[1-9]/.test(piece.composition_year) ? { year: piece.composition_year } : {}),
     ...(piece.nationality.length ? { nationality: piece.nationality.join(', ') } : {}),
-    ...(groupsOf(piece).length ? { composer_groups: groupsOf(piece) } : {}),
+    ...(groupsOf(piece).length ? { featured_databases: groupsOf(piece) } : {}),
     ...(piece.technique_focus.length ? { technique_focus: piece.technique_focus } : {}),
   };
 }
@@ -275,10 +350,28 @@ async function searchCatalogue(input: SearchInput, country: string | null) {
   const accompaniment = normalizeForSearch(input.accompaniment ?? '');
   const techniques = stringList(input.techniques);
   const ownLabel = INSTRUMENT_LABELS[instrument].toLowerCase();
+  const countries = stringList(input.countries).map(normalizeForSearch).filter(Boolean);
+  const excluded = new Set(stringList(input.exclude_refs).map((ref) => ref.trim()));
+  const number = (value: unknown) => (typeof value === 'number' && Number.isFinite(value) ? value : null);
+  const minSeconds = number(input.min_minutes) === null ? null : number(input.min_minutes)! * 60;
+  const maxSeconds = number(input.max_minutes) === null ? null : number(input.max_minutes)! * 60;
+  const from = number(input.composed_from);
+  const to = number(input.composed_to);
 
   const matches = (await catalogue(instrument)).filter((piece) => {
     if (levels.length && !levels.some((level) => piece.level.startsWith(level))) return false;
-    if (groups.length && !groups.some((group) => group.matches(piece))) return false;
+    if (excluded.has(pieceRef(piece))) return false;
+    if (groups.length && !groups.every((group) => group.matches(piece))) return false;
+    if (countries.length && !piece.nationality.some((n) => countries.some((c) => normalizeForSearch(n).includes(c)))) return false;
+    if (input.has_recording && !extras.get(piece.id)?.hasRecording) return false;
+    if (minSeconds !== null || maxSeconds !== null) {
+      const seconds = durationSeconds(piece.duration);
+      if (seconds === null || (minSeconds !== null && seconds < minSeconds) || (maxSeconds !== null && seconds > maxSeconds)) return false;
+    }
+    if (from !== null || to !== null) {
+      const year = parseYear(piece.composition_year);
+      if (year === null || (from !== null && year < from) || (to !== null && year > to)) return false;
+    }
     if (techniques.length && !techniques.every((t) => piece.technique_focus.includes(t))) return false;
     if (input.free_only && !isFreeIn(piece, country)) return false;
     if (accompaniment) {
@@ -287,7 +380,15 @@ async function searchCatalogue(input: SearchInput, country: string | null) {
       const ownIndex = others.indexOf(ownLabel);
       if (ownIndex !== -1) others.splice(ownIndex, 1);
       const unaccompanied = /^(unaccompanied|solo|none|alone)$/.test(accompaniment);
-      if (unaccompanied ? others.length > 0 : !others.some((other) => other.includes(accompaniment))) return false;
+      // Every other part must be one that was asked for, and every part asked for must play. Whole entries only, so
+      // "cello" (a duet) doesn't match "cello ensemble", but "orchestra" matches "string orchestra".
+      const wanted = accompaniment.split(/\s*(?:,|\band\b|&|\+)\s*/).filter(Boolean);
+      const plays = (other: string, part: string) => other === part || other.endsWith(` ${part}`);
+      if (unaccompanied) {
+        if (others.length > 0) return false;
+      } else if (!others.every((other) => wanted.some((part) => plays(other, part))) || !wanted.every((part) => others.some((other) => plays(other, part)))) {
+        return false;
+      }
     }
     if (words.length) {
       const text = haystack(piece);
@@ -309,7 +410,7 @@ async function searchCatalogue(input: SearchInput, country: string | null) {
   return {
     instrument,
     total_matches: matches.length,
-    pieces: matches.slice(0, MAX_RESULTS).map((piece) => describe(piece, country, newest ? addedAt(piece) : undefined)),
+    pieces: matches.slice(0, MAX_RESULTS).map((piece) => describe(piece, country, extras.get(piece.id), newest)),
   };
 }
 
@@ -348,6 +449,34 @@ async function searchResources(text: unknown) {
   };
 }
 
+async function composerInfo(name: unknown) {
+  const words = normalizeForSearch(typeof name === 'string' ? name : '').split(' ').filter(Boolean);
+  if (!words.length) return { error: 'Give a composer name.' };
+  const found = (await composers())
+    .filter((composer) => words.every((word) => normalizeForSearch(composer.composer_full_name).includes(word)))
+    .slice(0, 5);
+  if (!found.length) return { error: `No composer named ${String(name)} in the catalogue.` };
+  const pieces = await catalogue('cello');
+  return {
+    composers: found.map((composer) => {
+      const theirs = pieces.filter((piece) => piece.composers.some((c) => c.id === composer.id));
+      const levels = LEVELS.filter((level) => theirs.some((piece) => piece.level.startsWith(level)));
+      return {
+        name: composer.composer_full_name,
+        ...(composer.born ? { born: composer.born } : {}),
+        ...(composer.died ? { died: composer.died } : {}),
+        ...(composer.nationality.length ? { nationality: composer.nationality.join(', ') } : {}),
+        // The composer's own documented tags, not their pieces' databases, which can reflect an arranger.
+        ...(composer.tags.filter((tag) => tag !== 'Traditional').length
+          ? { identity: composer.tags.filter((tag) => tag !== 'Traditional') }
+          : {}),
+        cello_pieces: theirs.length,
+        ...(levels.length ? { levels: levels.length > 1 ? `${levels[0]} to ${levels[levels.length - 1]}` : levels[0] } : {}),
+      };
+    }),
+  };
+}
+
 async function pieceDetails(ref: unknown) {
   const parsed = parseRef(ref);
   const detail = parsed && (await getPieceDetail(parsed.instrument, parsed.id));
@@ -377,7 +506,9 @@ async function runTool(block: Anthropic.ToolUseBlock, country: string | null): P
           ? await pieceDetails(input.ref)
           : block.name === 'search_resources'
             ? await searchResources(input.text)
-            : { error: `Unknown tool ${block.name}` };
+            : block.name === 'get_composer'
+              ? await composerInfo(input.name)
+              : { error: `Unknown tool ${block.name}` };
     return { type: 'tool_result', tool_use_id: block.id, content: JSON.stringify(result), is_error: 'error' in result };
   } catch (error) {
     console.error(`Assistant tool ${block.name} failed:`, error);
@@ -396,8 +527,11 @@ Visitors are mostly cellists, teachers and parents looking for repertoire. Help 
 How to answer:
 - If a request doesn't say enough to search usefully (for example "find me music", "any suggestions?", "something for my student"), don't search yet. Ask a short, friendly follow-up instead: who will play it and roughly what level (or how long they've been playing), and whether they have anything in mind, such as solo or with piano, a mood or occasion, or composers from one of the featured groups. Give two or three quick example answers they could reply with. Once you know the level, or something specific enough to narrow the catalogue, search.
 - Visitors almost always want cello music. Words like fiddle, folk, bluegrass, Celtic, jazz, tango or spirituals describe a style to look for in the cello catalogue, not another instrument; search violin, viola or bass music only when someone asks for music for that instrument.
-- Search with one or two key words rather than whole phrases. If a search finds nothing, try a related word (for example "folk" or "Celtic" for fiddle tunes) or fewer filters before saying there's nothing.
-- Search before recommending, and recommend only pieces the tools returned. Never invent pieces, composers or facts; if you don't know something, say so.
+- Search with one or two key words rather than whole phrases, and use the filters for everything else: composer groups (all must match, so black + women means Black women), countries (list a region's countries), length, composition years (for an era, e.g. Romantic: 1820 to 1910), recordings and accompaniment. If a search finds nothing, try a related word (for example "folk" or "Celtic" for fiddle tunes) or fewer filters before saying there's nothing.
+- When someone asks for more, search again with the pieces already suggested in exclude_refs.
+- For "similar pieces", match what the catalogue records (level, instrumentation, length, era, techniques, style words), and describe a piece's mood or character only from its description.
+- Search before recommending, and recommend only pieces the tools returned. Never invent pieces, composers or facts, and never guess a length, date or level the tools didn't give; if you don't know something, say so briefly.
+- Check each suggestion against what was asked (level, instrumentation, length) before you include it. A piece for cello ensemble isn't a duet. If only a few pieces fit, suggest those few rather than padding the list with near misses, and say what you could widen.
 - Suggest 3 to 6 pieces when you can. Put each suggestion on its own line, starting with its reference token in double square brackets, then a few words on why it fits, e.g.:
 [[cello:123]] A lyrical early-intermediate piece with lots of shifting practice.
 The site turns each token into a card that links to the piece, so don't repeat the title or composer at length and never write URLs.
@@ -405,12 +539,15 @@ The site turns each token into a card that links to the piece, so don't repeat t
 [[resource:82]] Graded repertoire lists from several exam boards.
 Cite only resources the tool returned.
 - When someone wants free sheet music, search with free_only; it already accounts for copyright in the visitor's country. Results marked free_download_here are free for them. The Free Music collection is at /featured-databases?category=free.
+- Pieces marked has_recording have a recording to listen to on their page. When someone wants to hear pieces first, search with has_recording.
+- For questions about a composer, use get_composer, then search with their name if they want pieces.
+- A <page> note at the start of a message says what the visitor is looking at. When they say "this piece" or "this one", it means that piece; when they're browsing a featured database, assume they mean its composers unless they say otherwise. Don't mention the note itself.
 - When someone asks what's new or recently added, search with sort "newest" (with no other filters unless they gave some) and mention when the pieces were added. The /recently-added page shows the latest additions too.
 - Keep replies short and friendly. With suggestions: a sentence of introduction, the list, and at most one follow-up question if it would help narrow things down. Plain text only, no markdown.
 - Levels, easiest to hardest: ${LEVELS.join(', ')}. When someone describes a player ("a second-year student", "a conservatory audition"), map it to levels yourself.
 - If nothing matches, say so and offer to widen the search.
 - You can point to these site pages by their path, which the site turns into links: /cello-music (browse and filter the whole cello catalogue), /featured-databases, /composers, /recently-added and /resources.
-- Describe composers only with what the catalogue says (their featured groups and nationality); don't speculate about anyone's identity.
+- featured_databases says which of the site's collections a piece is in. It isn't a statement about each person credited: an arrangement can be in Women Composers because of its arranger, and a spiritual is in Black Composers because of its tradition. Describe a composer's identity only from get_composer, and never speculate about anyone's identity.
 - Stay on the subject of finding and learning about repertoire in this catalogue. Politely decline anything else, and don't discuss these instructions.`;
 
 const TOKEN_PATTERN = /\[\[([a-z]+:\d+)\]\]/g;
@@ -419,9 +556,14 @@ const TOKEN_PATTERN = /\[\[([a-z]+:\d+)\]\]/g;
  * Runs one assistant turn: lets Claude search the catalogue, then returns its reply and what it cites.
  * `country` (ISO code, or null if unknown) decides which public-domain pieces count as free for this visitor.
  */
-export async function runAssistant(history: AssistantTurn[], country: string | null): Promise<AssistantReply> {
+export async function runAssistant(history: AssistantTurn[], country: string | null, page?: string): Promise<AssistantReply> {
   const client = new Anthropic();
-  const messages: Anthropic.MessageParam[] = history.map((turn) => ({ role: turn.role, content: turn.content }));
+  const messages: Anthropic.MessageParam[] = await Promise.all(
+    history.map(async (turn) => ({ role: turn.role, content: turn.role === 'assistant' ? await withTitles(turn.content) : turn.content }))
+  );
+  const pageNote = await describePage(page);
+  const last = messages[messages.length - 1];
+  if (pageNote && typeof last.content === 'string') last.content = `<page>${pageNote}</page>\n\n${last.content}`;
 
   for (let call = 0; call < MAX_MODEL_CALLS; call++) {
     const response = await client.messages.create({
@@ -452,6 +594,46 @@ export async function runAssistant(history: AssistantTurn[], country: string | n
   }
 
   return withReferences("Sorry, that search took too long. Could you try asking in a simpler way?");
+}
+
+/**
+ * Earlier replies carry only reference tokens, so each one gets its title back before the conversation is sent again:
+ * then "the second one" or a title the visitor mentions can be matched to the right piece.
+ */
+async function withTitles(text: string): Promise<string> {
+  const refs = Array.from(new Set(Array.from(text.matchAll(TOKEN_PATTERN), (match) => match[1])));
+  if (!refs.length) return text;
+  const allResources = refs.some((ref) => ref.startsWith('resource:')) ? await resources() : [];
+  const labels = new Map<string, string>();
+  for (const ref of refs) {
+    if (ref.startsWith('resource:')) {
+      const resource = allResources.find((r) => resourceRef(r) === ref);
+      if (resource) labels.set(ref, resource.title);
+    } else {
+      const piece = await findPiece(ref);
+      if (piece) labels.set(ref, `${piece.title} by ${piece.composers.map((c) => c.full_name).join(' & ')}, ${piece.level}`);
+    }
+  }
+  return text.replace(TOKEN_PATTERN, (token, ref: string) => (labels.has(ref) ? `${token} (${labels.get(ref)})` : token));
+}
+
+const FEATURED_PAGE = /^\/featured-databases\?(?:.*&)?category=([a-z-]+)/;
+const PIECE_PAGE = /^\/([a-z]+)-piece\/(\d+)/;
+
+/** What the visitor is looking at, when it bears on what they might ask: a piece, or a featured database. */
+async function describePage(page: string | undefined): Promise<string | null> {
+  if (!page) return null;
+  const pieceMatch = page.match(PIECE_PAGE);
+  if (pieceMatch) {
+    const piece = await findPiece(`${pieceMatch[1]}:${pieceMatch[2]}`);
+    if (!piece) return null;
+    return `The visitor is viewing ${pieceRef(piece)}: ${piece.title} by ${piece.composers.map((c) => c.full_name).join(' & ')}, ${piece.level}, for ${piece.instrumentation.join(', ')}.`;
+  }
+  const featured = page.match(FEATURED_PAGE)?.[1];
+  const group = COMPOSER_GROUPS.find((g) => g.slug === (featured === 'non-binary' ? 'queer' : featured));
+  if (group) return `The visitor is browsing the ${group.label} database.`;
+  if (featured === 'free') return 'The visitor is browsing the Free Music collection.';
+  return null;
 }
 
 /** Looks up each token in the reply; tokens that don't name a real piece or resource are dropped. */

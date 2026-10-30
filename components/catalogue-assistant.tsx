@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/router';
 import { FiExternalLink } from 'react-icons/fi';
 import { HiChatBubbleLeftRight, HiPaperAirplane, HiXMark } from 'react-icons/hi2';
 import LevelBadge from './level-badge';
@@ -19,6 +20,9 @@ const SUGGESTIONS = [
   'Intermediate cello and piano music by Black composers',
   'An unaccompanied piece for an advanced student',
 ];
+
+// On a piece's page, the assistant knows which piece "this" is.
+const PIECE_SUGGESTIONS = ['Is this right for my student?', 'Find similar pieces', 'Tell me about the composer'];
 
 const TOKEN = /\[\[([a-z]+:\d+)\]\]/g;
 const MAX_LENGTH = 800;
@@ -137,6 +141,7 @@ export default function CatalogueAssistant() {
   const [draft, setDraft] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const router = useRouter();
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const logRef = useRef<HTMLDivElement>(null);
 
@@ -180,7 +185,8 @@ export default function CatalogueAssistant() {
       const response = await fetch('/api/assistant', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ messages: history }),
+        // The page lets the assistant tell what "this piece" means.
+        body: JSON.stringify({ messages: history, page: router.asPath }),
       });
       const data = await response.json().catch(() => ({}));
       if (!response.ok || typeof data.reply !== 'string') {
@@ -233,7 +239,7 @@ export default function CatalogueAssistant() {
 
             {turns.length === 0 && (
               <div className="flex flex-col items-start gap-2 pt-1">
-                {SUGGESTIONS.map((suggestion) => (
+                {(/-piece\/\[id\]$/.test(router.pathname) ? PIECE_SUGGESTIONS : SUGGESTIONS).map((suggestion) => (
                   <button
                     key={suggestion}
                     type="button"
