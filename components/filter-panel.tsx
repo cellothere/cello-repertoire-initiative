@@ -7,7 +7,7 @@ import LevelModal from './level-modal';
 import type { BrowseFilters } from '@/lib/browse-state';
 import { CURRENT_YEAR, MIN_YEAR, normalizeForSearch } from '@/utils/musicUtils';
 
-export type ListFilterKey = 'level' | 'instrumentation' | 'composer' | 'country' | 'focus';
+export type ListFilterKey = 'level' | 'database' | 'instrumentation' | 'composer' | 'country' | 'focus';
 
 export interface FilterOption {
   value: string;
@@ -16,6 +16,7 @@ export interface FilterOption {
 
 export interface FilterOptions {
   level: FilterOption[];
+  database: FilterOption[];
   instrumentation: FilterOption[];
   composer: FilterOption[];
   country: FilterOption[];
@@ -280,6 +281,20 @@ export default function FilterPanel({ idPrefix, filters, options, onToggle, onYe
           )}
         />
       </Section>
+
+      {options.database.length > 0 && (
+        <Section id={`${idPrefix}-database`} title="Featured databases" count={filters.database.length} defaultOpen>
+          <CheckboxList
+            idPrefix={`${idPrefix}-database`}
+            options={options.database}
+            selected={filters.database}
+            onToggle={(value) => onToggle('database', value)}
+          />
+          {options.database.length > 1 && (
+            <p className="mt-2 text-xs text-gray-500">Tick more than one to find pieces in all of them, such as free music by women.</p>
+          )}
+        </Section>
+      )}
 
       <Section
         id={`${idPrefix}-instrumentation`}

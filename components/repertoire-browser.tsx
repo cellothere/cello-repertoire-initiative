@@ -1,4 +1,4 @@
-import { useCallback, useDeferredValue, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useDeferredValue, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { FaFilter, FaSearch, FaTimes } from 'react-icons/fa';
 import { IoClose } from 'react-icons/io5';
 import Seo from './seo';
@@ -9,6 +9,8 @@ import { EmptyState, ErrorState } from './state-messages';
 import { useJson } from '@/lib/use-json';
 import { useBrowseState } from '@/lib/use-browse-state';
 import { EMPTY_FILTERS, isYearFilterActive, type BrowseFilters } from '@/lib/browse-state';
+import { featuredDatabases, type DatabaseSlug } from '@/lib/featured-databases';
+import { useFreeMusicCountry } from '@/lib/use-free-music-country';
 import { INSTRUMENT_LABELS, type Instrument } from '@/lib/instruments';
 import type { PieceSummary } from '@/lib/types';
 import techniqueKeywords from '@/utils/techniqueKeywords';
@@ -29,6 +31,16 @@ interface RepertoireBrowserProps {
   instrument: Instrument;
   apiPath: string;
   path: string;
+  /** Replaces the default title header and its SEO tags, e.g. with Featured Databases' tabs. */
+  header?: ReactNode;
+  /** Browse only the pieces in this featured database. */
+  database?: DatabaseSlug;
+  /** The country Free Music is worked out for, when the page lets visitors choose it. Otherwise it's looked up here. */
+  freeCountry?: string | null;
+  /** URL parameters the page owns, kept when filters rewrite the URL. */
+  keepQuery?: Record<string, string>;
+  /** Shown above the results. */
+  notice?: ReactNode;
 }
 
 const NO_PIECES: PieceSummary[] = [];
@@ -119,26 +131,44 @@ function FilterDrawer({
   );
 }
 
-export default function RepertoireBrowser({ instrument, apiPath, path }: RepertoireBrowserProps) {
+export default function RepertoireBrowser({
+  instrument,
+  apiPath,
+  path,
+  header,
+  database,
+  freeCountry,
+  keepQuery,
+  notice,
+}: RepertoireBrowserProps) {
   const label = INSTRUMENT_LABELS[instrument];
   const { data, error, loading, retry } = useJson<PieceSummary[]>(apiPath);
-  const pieces = data ?? NO_PIECES;
-  const { state, update, ready } = useBrowseState(instrument);
+  const allPieces = data ?? NO_PIECES;
+  const { state, update, ready } = useBrowseState(instrument, keepQuery);
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const ownFreeCountry = useFreeMusicCountry(freeCountry === undefined && state.database.includes('free'));
+  const country = freeCountry === undefined ? ownFreeCountry.country : freeCountry;
+  const databases = useMemo(() => featuredDatabases(country), [country]);
 
   // Precompute everything the filters compare against once, rather than on every keystroke.
-  const indexed = useMemo(
+  const indexedAll = useMemo(
     () =>
-      pieces.map((piece) => ({
+      allPieces.map((piece) => ({
         piece,
         text: normalizeForSearch(`${piece.title} ${piece.composers.map((c) => c.full_name).join(' ')} ${piece.arrangers.join(' ')}`),
         level: baseLevel(piece.level),
         year: parseYear(piece.composition_year),
         categories: instrumentationCategories(piece.instrumentation, instrument),
         focus: piece.technique_focus.map(normalizeForSearch),
+        databases: new Set(databases.filter((d) => d.matches(piece)).map((d) => d.slug)),
       })),
-    [pieces, instrument]
+    [allPieces, instrument, databases]
   );
+  const indexed = useMemo(
+    () => (database ? indexedAll.filter((entry) => entry.databases.has(database)) : indexedAll),
+    [indexedAll, database]
+  );
+  const pieces = useMemo(() => indexed.map((entry) => entry.piece), [indexed]);
 
   const filters = useMemo<BrowseFilters>(
     () => ({
@@ -148,10 +178,11 @@ export default function RepertoireBrowser({ instrument, apiPath, path }: Reperto
       instrumentation: state.instrumentation,
       country: state.country,
       focus: state.focus,
+      database: state.database,
       from: state.from,
       to: state.to,
     }),
-    [state.q, state.composer, state.level, state.instrumentation, state.country, state.focus, state.from, state.to]
+    [state.q, state.composer, state.level, state.instrumentation, state.country, state.focus, state.database, state.from, state.to]
   );
   // Keep typing and slider dragging responsive; results catch up a frame later.
   const deferredFilters = useDeferredValue(filters);
@@ -175,6 +206,7 @@ export default function RepertoireBrowser({ instrument, apiPath, path }: Reperto
           (f.instrumentation.length === 0 ||
             f.instrumentation.some((option) => matchesInstrumentationOption(entry.categories, option))) &&
           (focus.length === 0 || focus.some((item) => entry.focus.includes(item))) &&
+          f.database.every((slug) => entry.databases.has(slug as DatabaseSlug)) &&
           (!yearActive || (entry.year !== null && entry.year >= f.from && entry.year <= f.to))
       )
       .map((entry) => entry.piece);
@@ -191,8 +223,13 @@ export default function RepertoireBrowser({ instrument, apiPath, path }: Reperto
       }
       piece.nationality.forEach((n) => countries.add(n));
     }
+    // Offer the databases these pieces belong to, besides the one being browsed; ticked ones always stay listed.
+    const inUse = new Set(indexed.flatMap((entry) => Array.from(entry.databases)));
     return {
       level: toOptions(LEVEL_ORDER),
+      database: databases
+        .filter((d) => d.slug !== database && (inUse.has(d.slug) || state.database.includes(d.slug)))
+        .map((d) => ({ value: d.slug, label: d.label })),
       instrumentation: toOptions(instrumentationOptions(instrument)),
       composer: Array.from(composers, ([value, optionLabel]) => ({ value, label: optionLabel })).sort((a, b) =>
         collator.compare(a.label, b.label)
@@ -200,7 +237,7 @@ export default function RepertoireBrowser({ instrument, apiPath, path }: Reperto
       country: toOptions(Array.from(countries).sort(collator.compare)),
       focus: toOptions(techniqueKeywords),
     };
-  }, [pieces, instrument]);
+  }, [pieces, indexed, instrument, databases, database, state.database]);
 
   const toggle = useCallback(
     (key: ListFilterKey, value: string) => {
@@ -217,6 +254,11 @@ export default function RepertoireBrowser({ instrument, apiPath, path }: Reperto
   const composerLabels = useMemo(() => new Map(options.composer.map((o) => [o.value, o.label])), [options.composer]);
   const chips = [
     ...state.level.map((value) => ({ key: `level:${value}`, label: value, remove: () => toggle('level', value) })),
+    ...state.database.map((value) => ({
+      key: `database:${value}`,
+      label: databases.find((d) => d.slug === value)?.label ?? value,
+      remove: () => toggle('database', value),
+    })),
     ...state.instrumentation.map((value) => ({
       key: `inst:${value}`,
       label: value,
@@ -259,21 +301,25 @@ export default function RepertoireBrowser({ instrument, apiPath, path }: Reperto
 
   return (
     <>
-      <Seo
-        title={`${label} Music`}
-        path={path}
-        description={`Search and filter ${label.toLowerCase()} repertoire by level, instrumentation, composer, nationality, technical focus and composition year.`}
-      />
-      <PageHeader
-        size="compact"
-        align="left"
-        title={`${label} Music`}
-        subtitle={
-          pieces.length >= SHOW_PIECE_COUNT_FROM
-            ? `Search ${pieces.length.toLocaleString()} pieces by level, instrumentation, composer and more.`
-            : 'Search pieces by level, instrumentation, composer and more.'
-        }
-      />
+      {header ?? (
+        <>
+          <Seo
+            title={`${label} Music`}
+            path={path}
+            description={`Search and filter ${label.toLowerCase()} repertoire by level, featured database, instrumentation, composer, nationality, technical focus and composition year.`}
+          />
+          <PageHeader
+            size="compact"
+            align="left"
+            title={`${label} Music`}
+            subtitle={
+              pieces.length >= SHOW_PIECE_COUNT_FROM
+                ? `Search ${pieces.length.toLocaleString()} pieces by level, instrumentation, composer and more.`
+                : 'Search pieces by level, instrumentation, composer and more.'
+            }
+          />
+        </>
+      )}
 
       <div className="container mx-auto px-4 py-4 sm:py-6 lg:flex lg:items-start lg:gap-8">
         <aside className="hidden w-72 shrink-0 lg:block" aria-label="Filters">
@@ -361,6 +407,7 @@ export default function RepertoireBrowser({ instrument, apiPath, path }: Reperto
           )}
 
           <div className="mt-4 sm:mt-6">
+            {!error && !isLoading && notice}
             {error ? (
               <ErrorState message="We couldn't load the catalogue. Please check your connection and try again." onRetry={retry} />
             ) : isLoading ? (

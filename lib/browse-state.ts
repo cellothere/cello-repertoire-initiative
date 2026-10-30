@@ -1,6 +1,7 @@
 import type { ParsedUrlQuery } from 'querystring';
 import type { Instrument } from './instruments';
 import type { SortKey, ViewMode } from './types';
+import { DATABASE_SLUGS } from './featured-databases';
 import { CURRENT_YEAR, MIN_YEAR, isSortKey, normalizeInstrumentationOption } from '@/utils/musicUtils';
 
 export interface BrowseFilters {
@@ -10,6 +11,8 @@ export interface BrowseFilters {
   instrumentation: string[];
   country: string[];
   focus: string[];
+  /** Featured database slugs; a piece must be in all of them. */
+  database: string[];
   from: number;
   to: number;
 }
@@ -27,6 +30,7 @@ export const DEFAULT_BROWSE_STATE: BrowseState = {
   instrumentation: [],
   country: [],
   focus: [],
+  database: [],
   from: MIN_YEAR,
   to: CURRENT_YEAR,
   sort: 'level-asc',
@@ -41,6 +45,7 @@ export const EMPTY_FILTERS: BrowseFilters = {
   instrumentation: [],
   country: [],
   focus: [],
+  database: [],
   from: MIN_YEAR,
   to: CURRENT_YEAR,
 };
@@ -93,6 +98,7 @@ export function parseBrowseQuery(query: ParsedUrlQuery, instrument: Instrument):
     ),
     country: list(query.country, query.selectedCountries),
     focus: list(query.focus, query.selectedTechnicalFocus),
+    database: list(query.database).filter((slug) => (DATABASE_SLUGS as string[]).includes(slug)),
     from,
     to,
     sort,
@@ -110,6 +116,7 @@ export function browseStateToQuery(state: BrowseState): Record<string, string | 
   if (state.instrumentation.length) query.instrumentation = state.instrumentation;
   if (state.country.length) query.country = state.country;
   if (state.focus.length) query.focus = state.focus;
+  if (state.database.length) query.database = state.database;
   if (state.from !== MIN_YEAR) query.from = String(state.from);
   if (state.to !== CURRENT_YEAR) query.to = String(state.to);
   if (state.sort !== DEFAULT_BROWSE_STATE.sort) query.sort = state.sort;

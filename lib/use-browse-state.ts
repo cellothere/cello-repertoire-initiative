@@ -14,8 +14,9 @@ const SEARCH_DEBOUNCE_MS = 300;
 /**
  * Browse state that mirrors the URL query string, so filtered views can be bookmarked and shared.
  * The URL is updated with `replace` (not `push`) so typing and filtering don't flood history.
+ * `keepQuery` holds parameters the page itself owns (e.g. Featured Databases' `category`), kept when the URL is rewritten.
  */
-export function useBrowseState(instrument: Instrument) {
+export function useBrowseState(instrument: Instrument, keepQuery: Record<string, string> = {}) {
   const router = useRouter();
   const [state, setState] = useState<BrowseState>(DEFAULT_BROWSE_STATE);
   const [ready, setReady] = useState(false);
@@ -39,9 +40,10 @@ export function useBrowseState(instrument: Instrument) {
   // State → URL.
   useEffect(() => {
     if (!ready) return;
-    const query = browseStateToQuery(state);
-    const key = queryKey(query);
-    if (key === queryKey(router.query)) {
+    const browseQuery = browseStateToQuery(state);
+    const key = queryKey(browseQuery);
+    const query = { ...keepQuery, ...browseQuery };
+    if (queryKey(query) === queryKey(router.query)) {
       writtenKey.current = key;
       return;
     }
