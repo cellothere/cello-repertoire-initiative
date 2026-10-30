@@ -103,26 +103,16 @@ const MusicCard: React.FC<MusicCardProps> = ({
           same drawing on most cards and took half of each one; about twice as many pieces fit per screen. */}
       <div className={`h-1.5 sm:hidden ${levelStripClass(level)}`} aria-hidden="true" />
       <div className="relative hidden aspect-[4/3] overflow-hidden bg-gray-100 sm:block">
-        {cover_image ? (
-          // A portrait book cover, shown whole on a soft backdrop rather than cropped to the frame.
-          <FadeImage
-            src={cover_image}
-            alt=""
-            fill
-            priority={priority}
-            sizes="(min-width: 1280px) 180px, (min-width: 1024px) 22vw, (min-width: 640px) 25vw, 40vw"
-            className="object-contain p-3 drop-shadow-md group-hover:scale-105"
-          />
-        ) : (
-          <FadeImage
-            src={imageFor(level, instrumentation)}
-            alt=""
-            fill
-            priority={priority}
-            sizes="(min-width: 1280px) 240px, (min-width: 1024px) 30vw, (min-width: 640px) 33vw, 50vw"
-            className="object-cover group-hover:scale-105"
-          />
-        )}
+        {/* Book covers and the level illustrations are both portrait, so each is shown whole, like a book on a soft
+            backdrop, rather than cropped to the frame. */}
+        <FadeImage
+          src={cover_image || imageFor(level, instrumentation)}
+          alt=""
+          fill
+          priority={priority}
+          sizes="(min-width: 1280px) 180px, (min-width: 1024px) 22vw, (min-width: 640px) 25vw, 40vw"
+          className="object-contain p-3 drop-shadow-md group-hover:scale-105"
+        />
       </div>
 
       <div className="flex flex-1 flex-col p-3 sm:p-4">
