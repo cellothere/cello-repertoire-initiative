@@ -110,6 +110,63 @@ export const youtubeId = (link: string): string | null => {
   return id && /^[\w-]{6,20}$/.test(id) ? id : null;
 };
 
+/** A recording that can be played on the page: a streaming service's player, or an audio file. */
+export type RecordingEmbed =
+  | { kind: 'player'; service: 'Spotify' | 'Apple Music' | 'Deezer' | 'SoundCloud'; src: string; height: number }
+  | { kind: 'audio'; src: string };
+
+// SoundCloud profile pages that aren't a track or playlist.
+const SOUNDCLOUD_PROFILE_PAGES = new Set(['tracks', 'albums', 'sets', 'reposts', 'likes', 'popular-tracks', 'followers', 'following', 'comments']);
+
+/** The embeddable player for a Spotify, Apple Music, Deezer or SoundCloud link, or an audio file link. */
+export const recordingEmbed = (link: string): RecordingEmbed | null => {
+  let url: URL;
+  try {
+    url = new URL(link);
+  } catch {
+    return null;
+  }
+  if (url.protocol !== 'https:') return null;
+  const host = url.hostname.replace(/^(www|m)\./, '');
+  const parts = url.pathname.split('/').filter(Boolean);
+
+  if (host === 'open.spotify.com') {
+    // Links may carry a locale ("/intl-de/track/…").
+    const [type, id] = parts.filter((part) => !part.startsWith('intl-') && part !== 'embed');
+    if (['track', 'album', 'playlist', 'episode'].includes(type) && /^[A-Za-z0-9]{22}$/.test(id ?? '')) {
+      const single = type === 'track' || type === 'episode';
+      return { kind: 'player', service: 'Spotify', src: `https://open.spotify.com/embed/${type}/${id}`, height: single ? 152 : 352 };
+    }
+  } else if (host === 'music.apple.com') {
+    // /us/album/<slug>/<id>?i=<track id>, /us/song/<slug>/<id> or /us/playlist/<slug>/<id>
+    const [country, type] = parts;
+    const id = parts[parts.length - 1];
+    const track = url.searchParams.get('i');
+    if (/^[a-z]{2}$/.test(country ?? '') && ['album', 'song', 'playlist'].includes(type) && /^(\d+|pl\.[\w-]+)$/.test(id ?? '')) {
+      const single = type === 'song' || Boolean(track && /^\d+$/.test(track));
+      const query = type === 'album' && single ? `?i=${track}` : '';
+      return { kind: 'player', service: 'Apple Music', src: `https://embed.music.apple.com${url.pathname}${query}`, height: single ? 175 : 450 };
+    }
+  } else if (host === 'deezer.com') {
+    // /en/track/<id>, /album/<id> or /playlist/<id>
+    const [type, id] = parts.filter((part) => !/^[a-z]{2}$/.test(part));
+    if (['track', 'album', 'playlist'].includes(type) && /^\d+$/.test(id ?? '')) {
+      return { kind: 'player', service: 'Deezer', src: `https://widget.deezer.com/widget/auto/${type}/${id}`, height: type === 'track' ? 152 : 300 };
+    }
+  } else if (host === 'soundcloud.com') {
+    // A track (/<user>/<track>) or playlist (/<user>/sets/<name>), not a profile page.
+    const isSet = parts[1] === 'sets' && parts.length >= 3;
+    if (isSet || (parts.length >= 2 && !SOUNDCLOUD_PROFILE_PAGES.has(parts[1]))) {
+      const page = `https://soundcloud.com/${parts.join('/')}`;
+      const options = 'color=%23623d88&auto_play=false&hide_related=true&show_comments=false&show_reposts=false&visual=false';
+      return { kind: 'player', service: 'SoundCloud', src: `https://w.soundcloud.com/player/?url=${encodeURIComponent(page)}&${options}`, height: isSet ? 450 : 166 };
+    }
+  } else if (/\.(mp3|m4a|aac|ogg|oga|opus|wav|flac)$/i.test(url.pathname)) {
+    return { kind: 'audio', src: url.href };
+  }
+  return null;
+};
+
 // ---------------------------------------------------------------------------
 // Instrumentation categories
 // ---------------------------------------------------------------------------

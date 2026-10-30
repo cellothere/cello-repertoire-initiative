@@ -9,10 +9,11 @@ import Seo from './seo';
 import SaveButton from './save-button';
 import LevelModal from './level-modal';
 import YouTubeEmbed from './youtube-embed';
+import RecordingPlayer from './recording-player';
 import Linkify, { ExternalLink } from './linkify';
 import { INSTRUMENT_LABELS, LISTING_PATHS, composerWorksHref, pieceHref } from '@/lib/instruments';
 import type { PieceDetail } from '@/lib/types';
-import { formatDuration, hostnameOf, joinNames, parseYear, youtubeId } from '@/utils/musicUtils';
+import { formatDuration, hostnameOf, joinNames, parseYear, recordingEmbed, youtubeId } from '@/utils/musicUtils';
 
 function Card({ title, children, className = '' }: { title: string; children: ReactNode; className?: string }) {
   return (
@@ -44,6 +45,11 @@ export default function PieceDetailPage({ piece }: { piece: PieceDetail }) {
   const year = parseYear(piece.composition_year);
   const duration = formatDuration(piece.duration);
   const videoId = useMemo(() => piece.audio_link.map(youtubeId).find(Boolean) ?? null, [piece.audio_link]);
+  // Without a YouTube video, play the first recording that has an embeddable player instead.
+  const embed = useMemo(
+    () => (videoId ? null : (piece.audio_link.map(recordingEmbed).find(Boolean) ?? null)),
+    [videoId, piece.audio_link]
+  );
   const recordings = piece.audio_link.filter((link) => hostnameOf(link));
 
   const details = [
@@ -204,6 +210,7 @@ export default function PieceDetailPage({ piece }: { piece: PieceDetail }) {
               <YouTubeEmbed videoId={videoId} title={piece.title} />
             </section>
           )}
+          {embed && <RecordingPlayer embed={embed} title={piece.title} />}
 
           {purchaseCard('lg:hidden')}
           {coverFigure('lg:hidden')}
