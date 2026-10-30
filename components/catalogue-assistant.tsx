@@ -2,7 +2,7 @@ import { useEffect, useRef, useState, type FormEvent } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { FiExternalLink } from 'react-icons/fi';
-import { HiChatBubbleLeftRight, HiPaperAirplane, HiXMark } from 'react-icons/hi2';
+import { HiArrowPath, HiChatBubbleLeftRight, HiPaperAirplane, HiXMark } from 'react-icons/hi2';
 import LevelBadge from './level-badge';
 import { useAuth } from '@/contexts/AuthContext';
 import { pieceHref } from '@/lib/instruments';
@@ -206,6 +206,16 @@ export default function CatalogueAssistant() {
     }
   }
 
+  // Waits for any reply in progress, which would otherwise bring the old conversation back when it arrives.
+  const startOver = () => {
+    if (busy) return;
+    setTurns([]);
+    setPieces({});
+    setResources({});
+    setError(null);
+    focusInput();
+  };
+
   const onSubmit = (event: FormEvent) => {
     event.preventDefault();
     send(draft);
@@ -224,14 +234,27 @@ export default function CatalogueAssistant() {
               <h2 className="font-semibold leading-tight">Repertoire assistant</h2>
               <p className="text-xs text-teal-100">Searches the Cello Repertoire Initiative catalogue</p>
             </div>
-            <button
-              type="button"
-              onClick={() => setOpen(false)}
-              aria-label="Close the assistant"
-              className="rounded-full p-1.5 hover:bg-teal-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-white"
-            >
-              <HiXMark className="h-5 w-5" aria-hidden="true" />
-            </button>
+            <div className="flex shrink-0 items-center gap-1">
+              {turns.length > 0 && (
+                <button
+                  type="button"
+                  onClick={startOver}
+                  disabled={busy}
+                  className="inline-flex items-center gap-1 rounded-full px-2.5 py-1.5 text-sm font-medium hover:bg-teal-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-white disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  <HiArrowPath className="h-4 w-4" aria-hidden="true" />
+                  New chat
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={() => setOpen(false)}
+                aria-label="Close the assistant"
+                className="rounded-full p-1.5 hover:bg-teal-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-white"
+              >
+                <HiXMark className="h-5 w-5" aria-hidden="true" />
+              </button>
+            </div>
           </header>
 
           <div ref={logRef} aria-live="polite" className="flex-1 space-y-3 overflow-y-auto overscroll-contain bg-gray-50 px-3 py-4 text-[15px] leading-relaxed">
