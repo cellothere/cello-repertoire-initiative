@@ -236,6 +236,7 @@ export async function getPieceDetail(instrument: Instrument, id: number): Promis
     instrumentation: strArray(doc.instrumentation),
     publisher_info: str(doc.publisher_info),
     description: str(doc.description),
+    description_sources: strArray(doc.description_sources),
     technical_overview: str(doc.technical_overview),
     technique_focus: strArray(doc.technique_focus),
     where_to_buy_or_download: strArray(doc.where_to_buy_or_download),

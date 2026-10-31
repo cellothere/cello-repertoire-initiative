@@ -11,6 +11,7 @@ import LevelModal from './level-modal';
 import YouTubeEmbed from './youtube-embed';
 import RecordingPlayer from './recording-player';
 import Linkify, { ExternalLink } from './linkify';
+import CitedText, { stripCitations } from './cited-text';
 import { INSTRUMENT_LABELS, LISTING_PATHS, composerWorksHref, pieceHref } from '@/lib/instruments';
 import type { PieceDetail } from '@/lib/types';
 import { formatDuration, hostnameOf, joinNames, parseYear, recordingEmbed, youtubeId } from '@/utils/musicUtils';
@@ -25,7 +26,7 @@ function Card({ title, children, className = '' }: { title: string; children: Re
 }
 
 function summarize(text: string, max = 155): string {
-  const clean = text.replace(/https?:\/\/\S+/g, '').replace(/\s+/g, ' ').trim();
+  const clean = stripCitations(text).replace(/https?:\/\/\S+/g, '').replace(/\s+/g, ' ').trim();
   return clean.length > max ? `${clean.slice(0, max - 1).trimEnd()}…` : clean;
 }
 
@@ -218,9 +219,13 @@ export default function PieceDetailPage({ piece }: { piece: PieceDetail }) {
           {coverFigure('lg:hidden')}
 
           <Card title="About this piece">
-            <p className="whitespace-pre-line break-words leading-relaxed text-gray-700">
-              {piece.description ? <Linkify text={piece.description} /> : 'A description is coming soon.'}
-            </p>
+            <div className="leading-relaxed text-gray-700">
+              {piece.description ? (
+                <CitedText text={piece.description} sources={piece.description_sources} />
+              ) : (
+                'A description is coming soon.'
+              )}
+            </div>
           </Card>
 
           <Card title="Technical overview">

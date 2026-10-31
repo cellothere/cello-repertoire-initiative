@@ -54,6 +54,8 @@ export interface PieceDetail {
   instrumentation: string[];
   publisher_info: string;
   description: string;
+  /** Source URLs for the description's [1], [2]… citation markers, in order (item 0 is [1]). */
+  description_sources: string[];
   technical_overview: string;
   technique_focus: string[];
   where_to_buy_or_download: string[];
