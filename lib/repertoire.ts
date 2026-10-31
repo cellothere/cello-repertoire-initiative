@@ -1,4 +1,4 @@
-import type { Document } from 'mongodb';
+import { ObjectId, type Document } from 'mongodb';
 import { deathYear } from './copyright';
 import { getDb } from './mongodb';
 import { INSTRUMENTS, collectionFor, type Instrument } from './instruments';
@@ -148,10 +148,13 @@ export async function listPieces(instrument: Instrument): Promise<PieceSummary[]
 }
 
 /** The newest pieces across every instrument collection. */
-export async function listRecentlyAdded(limit = 12): Promise<PieceSummary[]> {
+/** Everything added in the last `days` days, newest first, up to `limit` pieces. */
+export async function listRecentlyAdded(days = 30, limit = 1500): Promise<PieceSummary[]> {
   const db = await getDb();
+  // An ObjectId starts with its creation time, so this finds documents added since the cutoff.
+  const since = ObjectId.createFromTime(Math.floor(Date.now() / 1000) - days * 24 * 60 * 60);
   const branch = (instrument: Instrument): Document[] => [
-    { $match: { disabled: false } },
+    { $match: { disabled: false, _id: { $gte: since } } },
     { $addFields: { instrument } },
   ];
   const [first, ...rest] = INSTRUMENTS;
