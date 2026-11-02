@@ -240,7 +240,7 @@ export default function PieceDetailPage({ piece }: { piece: PieceDetail }) {
               <>
                 <h3 className="mb-2 mt-6 text-sm font-semibold uppercase tracking-wide text-gray-500">Technical focus</h3>
                 <ul className="flex flex-wrap gap-2">
-                  {piece.technique_focus.map((focus) => (
+                  {[...piece.technique_focus].sort((x, y) => x.localeCompare(y, 'en', { sensitivity: 'base' })).map((focus) => (
                     <li key={focus} className="chip">
                       {focus}
                     </li>

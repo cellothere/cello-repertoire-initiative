@@ -24,6 +24,43 @@ export const removeDiacritics = (str: string): string =>
 export const normalizeForSearch = (str: string): string =>
   removeDiacritics(str.toLowerCase()).replace(/[.'’]/g, '').replace(/\s+/g, ' ').trim();
 
+/** Edit distance (swapped neighbours count as one edit), capped: anything above `max` returns max + 1. */
+function editDistance(a: string, b: string, max: number): number {
+  if (Math.abs(a.length - b.length) > max) return max + 1;
+  let before: number[] = [];
+  let prev = Array.from({ length: b.length + 1 }, (_, i) => i);
+  for (let i = 1; i <= a.length; i++) {
+    const row = [i];
+    for (let j = 1; j <= b.length; j++) {
+      row[j] = Math.min(prev[j] + 1, row[j - 1] + 1, prev[j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
+      if (i > 1 && j > 1 && a[i - 1] === b[j - 2] && a[i - 2] === b[j - 1]) row[j] = Math.min(row[j], before[j - 2] + 1);
+    }
+    if (Math.min(...row) > max) return max + 1;
+    before = prev;
+    prev = row;
+  }
+  return prev[b.length];
+}
+
+/**
+ * Forgiving match for filter search boxes: every word typed must start, appear in, or be a small typo of some word
+ * in the label, in any order ("spicato" finds "Spiccato", "harm false" finds "False Harmonics").
+ */
+export function fuzzyMatches(query: string, label: string): boolean {
+  const needle = normalizeForSearch(query);
+  if (!needle) return true;
+  const haystack = normalizeForSearch(label);
+  if (haystack.includes(needle)) return true;
+  const words = haystack.split(/[\s/-]+/);
+  return needle.split(' ').every((part) => {
+    const allowed = part.length >= 7 ? 2 : part.length >= 4 ? 1 : 0;
+    return words.some(
+      (word) => word.includes(part) || (allowed > 0 && editDistance(part, word.slice(0, part.length + 1), allowed) <= allowed)
+        || (allowed > 0 && editDistance(part, word, allowed) <= allowed)
+    );
+  });
+}
+
 /** Strip qualifiers such as "(Book 2)" so levels group and sort together. */
 export const baseLevel = (level: string): string => level.replace(/\s*\(.*\)/, '').trim();
 

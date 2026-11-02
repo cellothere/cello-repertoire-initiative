@@ -5,7 +5,7 @@ import { FaChevronDown } from 'react-icons/fa';
 import { AiFillQuestionCircle } from 'react-icons/ai';
 import LevelModal from './level-modal';
 import type { BrowseFilters } from '@/lib/browse-state';
-import { CURRENT_YEAR, MIN_YEAR, normalizeForSearch } from '@/utils/musicUtils';
+import { CURRENT_YEAR, MIN_YEAR, fuzzyMatches } from '@/utils/musicUtils';
 
 export type ListFilterKey = 'level' | 'database' | 'instrumentation' | 'composer' | 'country' | 'focus';
 
@@ -104,8 +104,7 @@ function CheckboxList({
   const long = options.length > SHORT_LIST + 2;
 
   const matches = useMemo(() => {
-    const needle = normalizeForSearch(search);
-    const found = needle ? options.filter((o) => normalizeForSearch(o.label).includes(needle)) : options;
+    const found = search.trim() ? options.filter((o) => fuzzyMatches(search, o.label)) : options;
     return long ? [...found.filter((o) => selectedSet.has(o.value)), ...found.filter((o) => !selectedSet.has(o.value))] : found;
   }, [options, search, long, selectedSet]);
 
@@ -337,6 +336,7 @@ export default function FilterPanel({ idPrefix, filters, options, onToggle, onYe
           options={options.focus}
           selected={filters.focus}
           onToggle={(value) => onToggle('focus', value)}
+          searchLabel="Search techniques…"
         />
       </Section>
 

@@ -271,10 +271,12 @@ export default function RepertoireBrowser({
         .sort((a, b) => collator.compare(a.label, b.label)),
       country: toOptions(Array.from(countries).filter(Boolean).sort(collator.compare)),
       focus: toOptions(
-        techniqueKeywords.filter((keyword) => {
-          const normalized = normalizeForSearch(keyword);
-          return focus.includes(keyword) || focusPool.some((entry) => entry.focus.includes(normalized));
-        })
+        techniqueKeywords
+          .filter((keyword) => {
+            const normalized = normalizeForSearch(keyword);
+            return focus.includes(keyword) || focusPool.some((entry) => entry.focus.includes(normalized));
+          })
+          .sort(collator.compare)
       ),
     };
   }, [indexed, matchingExcept, level, instrumentation, composer, nationality, focus, ticked, instrument, databases, database, composerLabels]);
