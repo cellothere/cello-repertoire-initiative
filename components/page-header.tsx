@@ -6,10 +6,12 @@ interface PageHeaderProps {
   /** `compact` keeps the header short on pages where the content should be visible immediately. */
   size?: 'default' | 'compact';
   align?: 'center' | 'left';
+  /** Decoration drawn behind the text, filling the header (e.g. the composer portrait carousel). */
+  background?: ReactNode;
   children?: ReactNode;
 }
 
-export default function PageHeader({ title, subtitle, size = 'default', align = 'center', children }: PageHeaderProps) {
+export default function PageHeader({ title, subtitle, size = 'default', align = 'center', background, children }: PageHeaderProps) {
   const compact = size === 'compact';
   return (
     <header
@@ -17,6 +19,7 @@ export default function PageHeader({ title, subtitle, size = 'default', align = 
         compact ? 'py-6 md:py-10' : 'py-9 md:py-20'
       } ${align === 'center' ? 'text-center' : 'text-left'}`}
     >
+      {background}
       <div className="absolute inset-0 bg-gradient-to-br from-teal-500/10 to-transparent" aria-hidden="true" />
       <div className="container relative z-10 mx-auto px-4">
         <h1

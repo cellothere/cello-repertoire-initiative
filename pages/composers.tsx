@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { FaArrowRight, FaChevronLeft, FaChevronRight, FaSearch, FaUsers } from 'react-icons/fa';
 import Seo from '@/components/seo';
 import PageHeader from '@/components/page-header';
+import PortraitCarousel from '@/components/portrait-carousel';
 import { ExternalLink } from '@/components/linkify';
 import { EmptyState, ErrorState } from '@/components/state-messages';
 import { useJson } from '@/lib/use-json';
@@ -231,7 +232,7 @@ const ComposersPage: NextPage = () => {
         path="/composers"
         description="Browse the composers in the Cello Repertoire Initiative catalogue and explore their works for cello."
       />
-      <PageHeader title="Composers" subtitle="Discover the artists behind the music." />
+      <PageHeader title="Composers" subtitle="Discover the artists behind the music." background={<PortraitCarousel />} />
 
       <div className="container mx-auto max-w-5xl px-4 py-5 md:py-8">
         <div className="flex flex-col gap-3 md:flex-row md:items-center">

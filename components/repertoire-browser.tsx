@@ -33,6 +33,8 @@ interface RepertoireBrowserProps {
   path: string;
   /** Replaces the default title header and its SEO tags, e.g. with Featured Databases' tabs. */
   header?: ReactNode;
+  /** Decoration behind the default header's text, e.g. the drifting lines of music on Cello Music. */
+  headerBackground?: ReactNode;
   /** Browse only the pieces in this featured database. */
   database?: DatabaseSlug;
   /** The country Free Music is worked out for, when the page lets visitors choose it. Otherwise it's looked up here. */
@@ -136,6 +138,7 @@ export default function RepertoireBrowser({
   apiPath,
   path,
   header,
+  headerBackground,
   database,
   freeCountry,
   keepQuery,
@@ -352,6 +355,7 @@ export default function RepertoireBrowser({
           <PageHeader
             size="compact"
             align="left"
+            background={headerBackground}
             title={`${label} Music`}
             subtitle={
               pieces.length >= SHOW_PIECE_COUNT_FROM

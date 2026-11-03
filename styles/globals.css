@@ -135,6 +135,33 @@
   100% { transform: translate(-80%, -40%) scale(1.2); }
 }
 
+/* ---------- Composers header: portraits drifting past ----------
+   The strip holds two copies of the portraits, so moving it left by half its width lands exactly where it
+   started. About 15px a second on wide screens; the tiles are smaller on phones, so it moves slower there. */
+.portrait-marquee {
+  animation: drift-left 360s linear infinite;
+  will-change: transform;
+}
+
+@keyframes drift-left {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+
+/* ---------- Cello Music header: lines of music drifting past ----------
+   Each ribbon holds two copies of its strip and moves left by one copy. The back line moves slower,
+   about 7px a second against the front line's 11px, so the two read as depth. */
+.score-ribbon-front {
+  animation: drift-left 480s linear infinite;
+  will-change: transform;
+}
+
+.score-ribbon-back {
+  animation: drift-left 720s linear infinite;
+  animation-delay: -200s;
+  will-change: transform;
+}
+
 /* ---------- Dialogs: animate both ways ----------
    The open state eases in from @starting-style; closing transitions back while display and overlay
    are held with allow-discrete. Browsers without support simply open and close instantly. */
