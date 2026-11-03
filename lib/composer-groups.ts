@@ -10,8 +10,10 @@ const indigenousPatterns = indigenousKeywords.map((keyword) => {
   return keyword.length <= 4 ? new RegExp(`(^|[^\\p{L}])${escaped}($|[^\\p{L}])`, 'iu') : new RegExp(escaped, 'i');
 });
 
-const isIndigenous = (piece: PieceSummary) =>
-  piece.nationality.some((nationality) => indigenousPatterns.some((pattern) => pattern.test(nationality)));
+/** Whether a nationality entry names an Indigenous nation or people. */
+export const isIndigenousNationality = (nationality: string) => indigenousPatterns.some((pattern) => pattern.test(nationality));
+
+const isIndigenous = (piece: PieceSummary) => piece.nationality.some(isIndigenousNationality);
 
 // A composer with no death year counts as living (composer dates were checked against Wikidata and the web on
 // 2026-10-26). "Various" stands for many composers, so it doesn't count. `composer_died` leaves out Traditional

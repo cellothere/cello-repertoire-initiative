@@ -5,13 +5,16 @@ import type { ParsedUrlQuery } from 'querystring';
 import Seo from '@/components/seo';
 import PageHeader from '@/components/page-header';
 import RepertoireBrowser from '@/components/repertoire-browser';
+import NameDrift from '@/components/name-drift';
 import { useJson } from '@/lib/use-json';
-import type { PieceSummary } from '@/lib/types';
+import type { ComposerSummary, PieceSummary } from '@/lib/types';
 import { isFreeIn } from '@/lib/copyright';
 import { DATABASE_SLUGS, featuredDatabases, type DatabaseSlug } from '@/lib/featured-databases';
+import { databaseNames } from '@/lib/database-names';
 import { useFreeMusicCountry } from '@/lib/use-free-music-country';
 
 const NO_PIECES: PieceSummary[] = [];
+const NO_COMPOSERS: ComposerSummary[] = [];
 
 // Countries offered in the "free in" picker; the visitor's detected country is added if it isn't here.
 const COUNTRY_CHOICES = [
@@ -77,6 +80,9 @@ const FeaturedDatabases: NextPage = () => {
   const router = useRouter();
   const { data, error, loading } = useJson<PieceSummary[]>('/api/celloMusic');
   const pieces = data ?? NO_PIECES;
+  // Only for the names drifting behind the header; the page works without them.
+  const { data: composerData } = useJson<ComposerSummary[]>('/api/composers');
+  const composers = composerData ?? NO_COMPOSERS;
   const { country, detected, choose } = useFreeMusicCountry();
   const databases = useMemo(() => featuredDatabases(country), [country]);
 
@@ -104,6 +110,9 @@ const FeaturedDatabases: NextPage = () => {
     () => Object.fromEntries(databases.map((d) => [d.slug, pieces.filter(d.matches).length])) as Record<DatabaseSlug, number>,
     [pieces, databases]
   );
+  const selected = databases.find((d) => d.slug === category) ?? databases[0];
+  const names = useMemo(() => databaseNames(selected, pieces, composers), [selected, pieces, composers]);
+
   // Public-domain pieces that are free somewhere, but not in the chosen country.
   const freeElsewhere = useMemo(
     () => pieces.filter((piece) => piece.free_download === 'public-domain' && !isFreeIn(piece, country)).length,
@@ -117,7 +126,11 @@ const FeaturedDatabases: NextPage = () => {
         path="/featured-databases"
         description="Explore curated databases of cello music by women, queer, Black, Indigenous, disabled and neurodivergent, and living composers, plus free sheet music you can download."
       />
-      <PageHeader title="Featured Databases" subtitle="Curated collections celebrating composers from all backgrounds.">
+      <PageHeader
+        title="Featured Databases"
+        subtitle="Curated collections celebrating composers from all backgrounds."
+        background={<NameDrift key={category} names={names} />}
+      >
         {/* Swipeable on phones. */}
         <div className="-mx-4 mt-5 snap-x snap-mandatory scroll-px-4 overflow-x-auto px-4 pb-1 [scrollbar-width:none] md:mt-8 [&::-webkit-scrollbar]:hidden">
           <div className="mx-auto flex w-max gap-2" role="group" aria-label="Choose a database">

@@ -162,6 +162,68 @@
   will-change: transform;
 }
 
+/* ---------- Featured Databases header: composer names drifting past ----------
+   Each row holds two copies of its names and moves by one copy; components/name-drift.tsx sets each row's
+   duration from its length, so the rows keep a steady, slow speed. Odd rows run the other way. */
+.name-drift-left {
+  animation: drift-left 300s linear infinite;
+  will-change: transform;
+}
+
+.name-drift-right {
+  animation: drift-right 300s linear infinite;
+  will-change: transform;
+}
+
+@keyframes drift-right {
+  from { transform: translateX(-50%); }
+  to { transform: translateX(0); }
+}
+
+/* New names (another database chosen) ease in rather than appearing at once. */
+.name-drift-in {
+  animation: fade-in 1.2s ease-out both;
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* ---------- Resource Catalog header: the home page's colour pools, at night ----------
+   The same teal and purple pools as the home hero drift past each other, but dimmed and slowed to sit on a dark
+   page header. They reuse the hero's paths; with reduced motion they rest in place. */
+.header-glow {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.header-glow::before,
+.header-glow::after {
+  content: "";
+  position: absolute;
+  width: max(60%, 30rem);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  will-change: transform;
+}
+
+.header-glow::before {
+  top: -60%;
+  left: -15%;
+  background: radial-gradient(circle, rgb(54 193 144 / 0.35), transparent 62%);
+  animation: hero-wave-a 22s ease-in-out infinite alternate;
+}
+
+.header-glow::after {
+  bottom: -65%;
+  right: -15%;
+  background: radial-gradient(circle, rgb(98 61 136 / 0.5), transparent 62%);
+  animation: hero-wave-b 28s ease-in-out infinite alternate;
+}
+
 /* ---------- Dialogs: animate both ways ----------
    The open state eases in from @starting-style; closing transitions back while display and overlay
    are held with allow-discrete. Browsers without support simply open and close instantly. */

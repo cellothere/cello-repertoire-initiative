@@ -121,7 +121,11 @@ const Resources: NextPage = () => {
         path="/resources"
         description="A curated catalog of websites, databases and teaching resources for cellists and string teachers."
       />
-      <PageHeader title="Resource Catalog" subtitle="Websites, databases, and teaching tools we recommend." />
+      <PageHeader
+        title="Resource Catalog"
+        subtitle="Websites, databases, and teaching tools we recommend."
+        background={<div className="header-glow" aria-hidden="true" />}
+      />
 
       <div className="container mx-auto px-4 py-5 md:py-12">
         <div className="relative mx-auto max-w-xl">
