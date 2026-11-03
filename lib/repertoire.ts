@@ -313,5 +313,6 @@ export async function listResources(): Promise<Resource[]> {
     title: str(doc.title),
     description: str(doc.description),
     url: str(doc.url),
+    extra_links: strArray(doc.extra_links).filter((v) => /^https?:\/\//.test(v)),
   }));
 }

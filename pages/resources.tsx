@@ -63,10 +63,25 @@ function ResourceCard({ resource }: { resource: Resource }) {
         {resource.description}
       </p>
       <div className="mt-auto flex items-center justify-between gap-3 pt-3 sm:pt-4">
-        <span className="inline-flex min-w-0 items-center gap-1.5 text-sm font-medium text-teal-700">
-          <span className="truncate">{hostnameOf(resource.url) ?? 'Visit website'}</span>
-          <FiExternalLink className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
-        </span>
+        {/* The main link is the card itself; extra links sit above it (z-10) so each opens on its own. */}
+        <div className="flex min-w-0 flex-wrap items-center gap-x-4 gap-y-1 text-sm font-medium text-teal-700">
+          <span className="inline-flex min-w-0 items-center gap-1.5">
+            <span className="truncate">{hostnameOf(resource.url) ?? 'Visit website'}</span>
+            <FiExternalLink className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+          </span>
+          {resource.extra_links.map((link) => (
+            <a
+              key={link}
+              href={link}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="relative z-10 inline-flex min-w-0 items-center gap-1.5 rounded hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-500"
+            >
+              <span className="truncate">{hostnameOf(link) ?? 'Website'}</span>
+              <FiExternalLink className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+            </a>
+          ))}
+        </div>
         {(clamped || expanded) && (
           <button
             type="button"

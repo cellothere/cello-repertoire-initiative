@@ -93,6 +93,8 @@ export interface Resource {
   title: string;
   description: string;
   url: string;
+  /** Further links shown under the description, e.g. a teacher's website beside their YouTube channel. */
+  extra_links: string[];
 }
 
 export type SortKey =
