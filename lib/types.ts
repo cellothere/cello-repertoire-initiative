@@ -97,6 +97,8 @@ export interface Resource {
   extra_links: string[];
   /** URLs for the description's [1], [2]… citation markers (item 0 is [1]), as on pieces. */
   description_sources: string[];
+  /** When the resource was added (ISO date), if known; resources from before dates were recorded have none. */
+  added_at?: string;
 }
 
 export type SortKey =

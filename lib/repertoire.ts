@@ -305,6 +305,14 @@ export async function listComposers(): Promise<ComposerSummary[]> {
   );
 }
 
+// The data-entry tool records `added_at`; resources inserted with an ObjectId carry their creation time in it.
+// Older resources with numeric ids have neither, so they never count as new.
+function resourceAddedAt(doc: Document): string | undefined {
+  if (doc.added_at instanceof Date) return doc.added_at.toISOString();
+  if (doc._id instanceof ObjectId) return doc._id.getTimestamp().toISOString();
+  return undefined;
+}
+
 export async function listResources(): Promise<Resource[]> {
   const db = await getDb();
   const docs = await db.collection('resources').find({ disabled: false }).sort({ title: 1 }).toArray();
@@ -315,5 +323,6 @@ export async function listResources(): Promise<Resource[]> {
     url: str(doc.url),
     extra_links: strArray(doc.extra_links).filter((v) => /^https?:\/\//.test(v)),
     description_sources: strArray(doc.description_sources),
+    added_at: resourceAddedAt(doc),
   }));
 }
