@@ -314,5 +314,6 @@ export async function listResources(): Promise<Resource[]> {
     description: str(doc.description),
     url: str(doc.url),
     extra_links: strArray(doc.extra_links).filter((v) => /^https?:\/\//.test(v)),
+    description_sources: strArray(doc.description_sources),
   }));
 }

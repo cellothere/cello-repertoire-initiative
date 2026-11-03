@@ -3,6 +3,7 @@ import { COMPOSER_GROUPS, type ComposerGroupSlug } from './composer-groups';
 import { isFreeIn } from './copyright';
 import { INSTRUMENTS, INSTRUMENT_LABELS, collectionFor, isInstrument, type Instrument } from './instruments';
 import { getDb } from './mongodb';
+import { stripCitations } from '@/components/cited-text';
 import { getPieceDetail, listComposers, listPieces, listResources } from './repertoire';
 import type { ComposerSummary, PieceSummary, Resource } from './types';
 import { LEVEL_ORDER, levelRank, normalizeForSearch, parseYear } from '@/utils/musicUtils';
@@ -444,7 +445,7 @@ async function searchResources(text: unknown) {
     resources: scored.slice(0, 12).map(({ resource }) => ({
       ref: resourceRef(resource),
       title: resource.title,
-      description: clip(resource.description, words.length ? 300 : 120),
+      description: clip(stripCitations(resource.description), words.length ? 300 : 120),
     })),
   };
 }

@@ -3,6 +3,7 @@ import { NextPage } from 'next';
 import { FaBookOpen, FaSearch } from 'react-icons/fa';
 import { FiExternalLink } from 'react-icons/fi';
 import Seo from '@/components/seo';
+import CitedText from '@/components/cited-text';
 import PageHeader from '@/components/page-header';
 import { EmptyState, ErrorState } from '@/components/state-messages';
 import { useJson } from '@/lib/use-json';
@@ -15,7 +16,7 @@ import { hostnameOf, normalizeForSearch } from '@/utils/musicUtils';
  * target while the toggle (a button, which can't sit inside a link) works on its own.
  */
 function ResourceCard({ resource }: { resource: Resource }) {
-  const textRef = useRef<HTMLParagraphElement>(null);
+  const textRef = useRef<HTMLDivElement>(null);
   const [expanded, setExpanded] = useState(false);
   const [clamped, setClamped] = useState(false);
   const fromHeight = useRef<number | null>(null);
@@ -59,9 +60,13 @@ function ResourceCard({ resource }: { resource: Resource }) {
           {resource.title}
         </a>
       </h2>
-      <p ref={textRef} className={`mt-2 leading-relaxed text-gray-600 ${expanded ? '' : 'max-sm:line-clamp-3'}`}>
-        {resource.description}
-      </p>
+      {/* Citation and in-text links sit above the card's stretched link (z-10) so they open on their own. */}
+      <div
+        ref={textRef}
+        className={`mt-2 leading-relaxed text-gray-600 [&_a]:relative [&_a]:z-10 ${expanded ? '' : 'max-sm:line-clamp-3'}`}
+      >
+        <CitedText text={resource.description} sources={resource.description_sources} />
+      </div>
       <div className="mt-auto flex items-center justify-between gap-3 pt-3 sm:pt-4">
         {/* The main link is the card itself; extra links sit above it (z-10) so each opens on its own. */}
         <div className="flex min-w-0 flex-wrap items-center gap-x-4 gap-y-1 text-sm font-medium text-teal-700">

@@ -95,6 +95,8 @@ export interface Resource {
   url: string;
   /** Further links shown under the description, e.g. a teacher's website beside their YouTube channel. */
   extra_links: string[];
+  /** URLs for the description's [1], [2]… citation markers (item 0 is [1]), as on pieces. */
+  description_sources: string[];
 }
 
 export type SortKey =
