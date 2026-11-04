@@ -173,7 +173,88 @@ function TextWithPageLinks({ text, onNavigate }: { text: string; onNavigate: () 
   );
 }
 
-/** An assistant reply: plain lines of text, with each piece or resource token shown as a card above its note. */
+// ---------------------------------------------------------------------------
+// Formatting. The assistant may use a little Markdown (bold, short lists); it is turned into React elements here, never
+// into raw HTML, so nothing it writes can inject markup. Anything else Markdown-like is shown as plain words.
+// ---------------------------------------------------------------------------
+
+const LIST_ITEM = /^(?:[-*+•]|\d{1,2}[.)])\s+/;
+const ORDERED_ITEM = /^\d{1,2}[.)]\s+/;
+const HEADING = /^#{1,6}\s+/;
+const RULE = /^([-*_])(?:\s*\1){2,}$/;
+// **bold** or __bold__, *italic*, `code`, and [label](target) links.
+const INLINE = /(\*\*[^*\n]+?\*\*|__[^_\n]+?__|\*[^*\s][^*\n]*?\*|`[^`\n]+`|\[[^\]\n]+\]\([^)\s]+\))/g;
+
+/** One line's inline formatting, with site paths (e.g. /resources) turned into links. */
+function Inline({ text, onNavigate }: { text: string; onNavigate: () => void }) {
+  // With a capturing group, split() puts the formatted pieces at odd indices.
+  return (
+    <>
+      {text.split(INLINE).map((part, index) => {
+        if (index % 2 === 0) return part && <TextWithPageLinks key={index} text={part} onNavigate={onNavigate} />;
+        if (part.startsWith('**') || part.startsWith('__')) {
+          return (
+            <strong key={index} className="font-semibold text-gray-900">
+              <TextWithPageLinks text={part.slice(2, -2)} onNavigate={onNavigate} />
+            </strong>
+          );
+        }
+        if (part.startsWith('`')) return <span key={index}>{part.slice(1, -1)}</span>;
+        if (part.startsWith('[')) {
+          const [, label, target] = part.match(/^\[([^\]]+)\]\(([^)]+)\)$/) ?? [];
+          // Only links to the site's own pages; the assistant isn't trusted to link elsewhere.
+          return SITE_PATH.test(target ?? '') && target === target.match(SITE_PATH)?.[1] ? (
+            <Link key={index} href={target} onClick={onNavigate} className="font-medium text-teal-700 underline underline-offset-2">
+              {label}
+            </Link>
+          ) : (
+            <span key={index}>{label}</span>
+          );
+        }
+        return <em key={index}>{part.slice(1, -1)}</em>;
+      })}
+    </>
+  );
+}
+
+type Block =
+  | { kind: 'paragraph'; text: string; heading: boolean }
+  | { kind: 'list'; ordered: boolean; items: string[] }
+  | { kind: 'cards'; refs: string[]; note: string };
+
+/**
+ * Groups a reply's lines into blocks: paragraphs (headings become bold lines), bulleted or numbered lists, and lines
+ * that cite pieces, books or resources, which become cards with their note underneath.
+ */
+function toBlocks(content: string, known: (ref: string) => boolean): Block[] {
+  const blocks: Block[] = [];
+  for (const raw of content.split('\n')) {
+    const line = raw.trim().replace(/^>\s?/, '');
+    if (!line || RULE.test(line)) continue;
+    const refs = Array.from(line.matchAll(TOKEN), (match) => match[1]).filter(known);
+    if (refs.length) {
+      const note = line.replace(TOKEN, '').replace(LIST_ITEM, '').replace(/^[\s\-–—:•]+/, '').trim();
+      blocks.push({ kind: 'cards', refs, note });
+      continue;
+    }
+    // A token for something no longer known leaves nothing worth showing.
+    const text = line.replace(TOKEN, '').trim();
+    if (!text) continue;
+    if (LIST_ITEM.test(text)) {
+      const ordered = ORDERED_ITEM.test(text);
+      const item = text.replace(LIST_ITEM, '');
+      const previous = blocks[blocks.length - 1];
+      if (previous?.kind === 'list' && previous.ordered === ordered) previous.items.push(item);
+      else blocks.push({ kind: 'list', ordered, items: [item] });
+      continue;
+    }
+    const heading = HEADING.test(text);
+    blocks.push({ kind: 'paragraph', text: text.replace(HEADING, ''), heading });
+  }
+  return blocks;
+}
+
+/** An assistant reply: lightly formatted text, with each piece, book or resource token shown as a card. */
 function AssistantMessage({
   content,
   pieces,
@@ -187,22 +268,32 @@ function AssistantMessage({
   books: Record<string, LiteratureBook>;
   onNavigate: () => void;
 }) {
-  const lines = content.split('\n').map((line) => line.trim()).filter(Boolean);
+  const blocks = toBlocks(content, (ref) => Boolean(pieces[ref] || resources[ref] || books[ref]));
   return (
     <div className="space-y-2">
-      {lines.map((line, index) => {
-        const refs = Array.from(line.matchAll(TOKEN), (match) => match[1]).filter((ref) => pieces[ref] || resources[ref] || books[ref]);
-        const text = line.replace(TOKEN, '').replace(/^[\s\-–—:•]+/, '').trim();
-        if (!refs.length) {
+      {blocks.map((block, index) => {
+        if (block.kind === 'paragraph') {
           return (
-            <p key={index}>
-              <TextWithPageLinks text={text} onNavigate={onNavigate} />
+            <p key={index} className={block.heading ? 'font-semibold text-gray-900' : undefined}>
+              <Inline text={block.text} onNavigate={onNavigate} />
             </p>
+          );
+        }
+        if (block.kind === 'list') {
+          const List = block.ordered ? 'ol' : 'ul';
+          return (
+            <List key={index} className={`space-y-1 pl-5 ${block.ordered ? 'list-decimal' : 'list-disc'} marker:text-teal-600`}>
+              {block.items.map((item, itemIndex) => (
+                <li key={itemIndex}>
+                  <Inline text={item} onNavigate={onNavigate} />
+                </li>
+              ))}
+            </List>
           );
         }
         return (
           <div key={index} className="space-y-1">
-            {refs.map((ref) =>
+            {block.refs.map((ref) =>
               pieces[ref] ? (
                 <PieceLink key={ref} piece={pieces[ref]} onNavigate={onNavigate} />
               ) : books[ref] ? (
@@ -211,9 +302,9 @@ function AssistantMessage({
                 <ResourceLink key={ref} resource={resources[ref]} />
               )
             )}
-            {text && (
+            {block.note && (
               <p className="px-1 text-sm text-gray-600">
-                <TextWithPageLinks text={text} onNavigate={onNavigate} />
+                <Inline text={block.note} onNavigate={onNavigate} />
               </p>
             )}
           </div>
