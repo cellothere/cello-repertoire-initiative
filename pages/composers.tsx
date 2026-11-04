@@ -66,7 +66,7 @@ function ComposerRow({ composer }: { composer: ComposerSummary }) {
   const works = `${composer.cello_works} ${composer.cello_works === 1 ? 'work' : 'works'}`;
 
   return (
-    <li className="relative flex items-center gap-3 px-4 py-3 active:bg-gray-50 sm:justify-between sm:p-5 sm:active:bg-transparent">
+    <li className="scroll-reveal relative flex items-center gap-3 px-4 py-3 active:bg-gray-50 sm:justify-between sm:p-5 sm:active:bg-transparent">
       <div className="min-w-0 flex-1">
         <p className="font-semibold text-gray-900 sm:text-lg">
           {formatComposerName(composer.composer_first_name, composer.composer_last_name)}

@@ -20,7 +20,7 @@ function ResourceCard({ resource }: { resource: Resource }) {
   const { ref: textRef, expanded, clamped, toggle } = useClampToggle(resource.description);
 
   return (
-    <div className="card group relative flex h-full flex-col p-4 transition focus-within:ring-2 focus-within:ring-teal-500 duration-300 ease-out-expo hover:-translate-y-1 hover:shadow-xl sm:p-6">
+    <div className="scroll-reveal card spotlight group relative flex h-full flex-col p-4 transition focus-within:ring-2 focus-within:ring-teal-500 duration-300 ease-out-expo hover:-translate-y-1 hover:shadow-xl sm:p-6">
       <h2 className="text-lg font-semibold text-gray-900 group-hover:underline">
         <a href={resource.url} target="_blank" rel="noopener noreferrer" className="after:absolute after:inset-0 focus:outline-none">
           {resource.title}

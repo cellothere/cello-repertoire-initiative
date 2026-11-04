@@ -116,9 +116,9 @@ export default function PieceDetailPage({ piece }: { piece: PieceDetail }) {
         }
       />
 
-      <header className="relative overflow-hidden bg-gradient-to-r from-gray-900 via-gray-800 to-black text-white">
+      <header className="parallax-scope relative overflow-hidden bg-gradient-to-r from-gray-900 via-gray-800 to-black text-white">
         <div className="absolute inset-0 bg-gradient-to-br from-teal-500/10 to-transparent" aria-hidden="true" />
-        <div className="container relative z-10 mx-auto px-4 py-6 md:py-12">
+        <div className="parallax-fg container relative z-10 mx-auto px-4 py-6 md:py-12">
           {listingPath && (
             <nav aria-label="Breadcrumb" className="mb-3 text-sm text-gray-400 md:mb-4">
               <ol className="flex flex-wrap items-center gap-1.5">

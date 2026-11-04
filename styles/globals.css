@@ -77,9 +77,11 @@
   to { background-position: -100vw 0; }
 }
 
+/* The entrance animations move with the individual translate and scale properties rather than transform, so once they
+   finish they don't hold transform in place and a card's hover lift (a transform) still works. */
 @keyframes reveal {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: none; }
+  from { opacity: 0; translate: 0 10px; }
+  to { opacity: 1; translate: none; }
 }
 
 /* ---------- Home hero: slow colour waves ----------
@@ -269,6 +271,120 @@
   background: linear-gradient(90deg, #623d88, #36c190);
   box-shadow: 0 0 10px rgb(54 193 144 / 0.55);
   transition: transform 400ms cubic-bezier(0.16, 1, 0.3, 1), opacity 300ms ease;
+}
+
+/* ---------- Pointer glow on cards ----------
+   A soft light follows the pointer across a card (components/spotlight.tsx sets --spot-x and --spot-y). Tinted teal on
+   white cards; .spotlight-dark makes it a white glow for cards on dark images. Only on devices that can hover. */
+.spotlight::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  border-radius: inherit;
+  pointer-events: none;
+  opacity: 0;
+  background: radial-gradient(22rem circle at var(--spot-x, 50%) var(--spot-y, 50%), rgb(54 193 144 / 0.13), transparent 65%);
+  transition: opacity 400ms ease;
+}
+.spotlight-dark::before {
+  background: radial-gradient(26rem circle at var(--spot-x, 50%) var(--spot-y, 50%), rgb(255 255 255 / 0.16), transparent 60%);
+}
+@media (hover: hover) {
+  .spotlight:hover::before { opacity: 1; }
+}
+
+/* ---------- Scroll motion ----------
+   Driven by the scroll position itself (CSS scroll-driven animations), so it costs no JavaScript and stays in step
+   with the finger or wheel. Browsers without support, and anyone who asks for less motion, see everything in place.
+
+   - .parallax-scope marks a banner (home hero, page headers, piece header). As it scrolls away, its .parallax-bg
+     decoration sinks at about a third of the scroll speed and its .parallax-fg text drifts down and fades out. The top
+     inset matches the sticky navbar, so the effect starts with the first pixel of scrolling.
+   - .scroll-reveal fades content up as it comes into view. Items already on screen are untouched (their load-time
+     .reveal still plays).
+   - .card-scope / .parallax-img: an image moves a little within its frame as the card crosses the screen.
+   - .ink-underline draws a brand-coloured line under a heading as it arrives.
+   - .nav-elevate gives the navbar a soft shadow once the page has scrolled. */
+@media (prefers-reduced-motion: no-preference) {
+  @supports (animation-timeline: view()) {
+    .parallax-scope {
+      view-timeline: --banner block;
+      view-timeline-inset: 3.5rem 0;
+    }
+    .parallax-bg {
+      animation: parallax-sink linear both;
+      animation-timeline: --banner;
+      animation-range: exit 0% exit 100%;
+    }
+    .parallax-fg {
+      animation: parallax-fade linear both;
+      animation-timeline: --banner;
+      animation-range: exit 0% exit 70%;
+    }
+
+    .scroll-reveal {
+      animation: scroll-reveal linear both;
+      animation-timeline: view();
+      /* Fully in place a short way into the screen, so nothing sits half-faded at the bottom edge for long. */
+      animation-range: entry 0% entry 160px;
+    }
+
+    .card-scope { view-timeline: --card block; }
+    .parallax-img {
+      animation: parallax-pan linear both;
+      animation-timeline: --card;
+      animation-range: cover 0% cover 100%;
+    }
+
+    .ink-underline {
+      transform-origin: center;
+      animation: ink-draw linear both;
+      animation-timeline: view();
+      animation-range: entry 40% cover 35%;
+    }
+
+    .nav-elevate {
+      animation: nav-elevate linear both;
+      animation-timeline: scroll(root block);
+      animation-range: 0px 96px;
+    }
+  }
+  @media (min-width: 768px) {
+    @supports (animation-timeline: view()) {
+      .parallax-scope { view-timeline-inset: 4rem 0; }
+    }
+  }
+}
+
+@keyframes parallax-sink {
+  to { transform: translateY(35%); }
+}
+
+@keyframes parallax-fade {
+  to { opacity: 0; transform: translateY(28%) scale(0.98); }
+}
+
+@keyframes scroll-reveal {
+  from { opacity: 0; translate: 0 28px; scale: 0.98; }
+  to { opacity: 1; translate: none; scale: none; }
+}
+
+@keyframes parallax-pan {
+  from { transform: translateY(-6%) scale(1.14); }
+  to { transform: translateY(6%) scale(1.14); }
+}
+
+@keyframes ink-draw {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+
+@keyframes nav-elevate {
+  to {
+    border-bottom-color: transparent;
+    box-shadow: 0 10px 30px -18px rgb(17 24 39 / 0.35);
+  }
 }
 
 /* People who ask their device for less motion get instant changes everywhere. */

@@ -10,13 +10,15 @@ const prefersReducedMotion = () =>
  * - a thin brand-gradient bar across the top while a page loads. It waits a moment before
  *   appearing, so instant (prefetched) changes don't flash it, then creeps toward the end and
  *   finishes with a quick fill and fade;
- * - the new page fades up a few pixels into place.
+ * - the old page fades out as soon as a change starts, and the new page fades up a few pixels into place, so the
+ *   two pages cross-fade rather than swapping in one frame.
  * Filter and sort changes only touch the query string, so they get neither.
  */
 export default function RouteTransitions({ contentRef }: { contentRef: RefObject<HTMLElement | null> }) {
   const router = useRouter();
   const [progress, setProgress] = useState<number | null>(null);
   const timers = useRef<{ show?: number; trickle?: number; hide?: number }>({});
+  const fadeOut = useRef<Animation | null>(null);
 
   useEffect(() => {
     const t = timers.current;
@@ -26,9 +28,25 @@ export default function RouteTransitions({ contentRef }: { contentRef: RefObject
       window.clearTimeout(t.hide);
     };
 
+    // Undo the fade-out, e.g. when the change fails or is cancelled.
+    const restore = () => {
+      fadeOut.current?.cancel();
+      fadeOut.current = null;
+    };
+
     const start = (url: string, { shallow }: { shallow: boolean }) => {
       if (shallow || pathOf(url) === window.location.pathname) return;
       clear();
+      const el = contentRef.current;
+      if (el && !prefersReducedMotion() && typeof el.animate === 'function') {
+        restore();
+        // Fades to nothing over a moment; a prefetched page usually replaces it before it gets there.
+        fadeOut.current = el.animate([{ opacity: 1 }, { opacity: 0 }], {
+          duration: 200,
+          easing: 'cubic-bezier(0.4, 0, 1, 1)',
+          fill: 'forwards',
+        });
+      }
       t.show = window.setTimeout(() => {
         setProgress(0.08);
         // Each step covers part of what's left, so the bar slows but never quite arrives.
@@ -37,6 +55,7 @@ export default function RouteTransitions({ contentRef }: { contentRef: RefObject
     };
 
     const finish = () => {
+      restore();
       window.clearTimeout(t.show);
       window.clearInterval(t.trickle);
       setProgress((p) => {

@@ -31,7 +31,7 @@ function BookCard({ book }: { book: LiteratureBook }) {
   const { ref: textRef, expanded, clamped, toggle } = useClampToggle(book.description);
 
   return (
-    <div className="card group relative flex h-full flex-col p-4 transition focus-within:ring-2 focus-within:ring-teal-500 duration-300 ease-out-expo hover:-translate-y-1 hover:shadow-xl sm:p-6">
+    <div className="scroll-reveal card spotlight group relative flex h-full flex-col p-4 transition focus-within:ring-2 focus-within:ring-teal-500 duration-300 ease-out-expo hover:-translate-y-1 hover:shadow-xl sm:p-6">
       <p className="text-xs font-semibold uppercase tracking-wide text-teal-700">{book.topic}</p>
       <h2 className="mt-1 text-lg font-semibold leading-snug text-gray-900 group-hover:underline">
         <a href={book.url} target="_blank" rel="noopener noreferrer" className="after:absolute after:inset-0 focus:outline-none">

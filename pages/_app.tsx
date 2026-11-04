@@ -8,6 +8,7 @@ import Footer from "@/components/footer";
 import MobileTabBar from "@/components/mobile-tab-bar";
 import RouteTransitions from "@/components/route-transitions";
 import CatalogueAssistant from "@/components/catalogue-assistant";
+import Spotlight from "@/components/spotlight";
 import { AuthProvider } from "@/contexts/AuthContext";
 
 export default function App({ Component, pageProps }: AppProps) {
@@ -19,6 +20,7 @@ export default function App({ Component, pageProps }: AppProps) {
         <meta key="viewport" name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
       </Head>
       <RouteTransitions contentRef={mainRef} />
+      <Spotlight />
       <div className="flex min-h-screen flex-col">
         <NavbarMain />
         <main ref={mainRef} id="main-content" className="flex-grow">

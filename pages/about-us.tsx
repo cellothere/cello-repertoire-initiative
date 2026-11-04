@@ -38,7 +38,7 @@ const AboutUs: NextPage = () => {
       <section className="border-t border-gray-200 bg-white" aria-label="Get started">
         <div className="container mx-auto grid gap-3 px-4 py-8 sm:gap-6 md:grid-cols-3 md:py-12">
           {NEXT_STEPS.map((step) => (
-            <Link key={step.href} href={step.href} className="card group p-5 transition active:scale-[0.98] hover:-translate-y-0.5 hover:shadow-lg sm:p-6">
+            <Link key={step.href} href={step.href} className="scroll-reveal card spotlight group relative p-5 transition active:scale-[0.98] hover:-translate-y-0.5 hover:shadow-lg sm:p-6">
               <h2 className="flex items-center gap-2 text-lg font-bold text-gray-900">
                 {step.title}
                 <FaArrowRight className="h-3 w-3 text-teal-600 transition-transform group-hover:translate-x-1" aria-hidden="true" />
