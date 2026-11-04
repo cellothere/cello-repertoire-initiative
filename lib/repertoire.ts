@@ -2,7 +2,7 @@ import { ObjectId, type Document } from 'mongodb';
 import { deathYear } from './copyright';
 import { getDb } from './mongodb';
 import { INSTRUMENTS, collectionFor, type Instrument } from './instruments';
-import type { ComposerRef, ComposerSummary, PieceDetail, PieceSummary, Resource } from './types';
+import type { ComposerRef, ComposerSummary, LiteratureBook, PieceDetail, PieceSummary, Resource } from './types';
 
 // ---------------------------------------------------------------------------
 // Normalisers: the collections were filled by hand, so be lenient about types.
@@ -311,6 +311,26 @@ function resourceAddedAt(doc: Document): string | undefined {
   if (doc.added_at instanceof Date) return doc.added_at.toISOString();
   if (doc._id instanceof ObjectId) return doc._id.getTimestamp().toISOString();
   return undefined;
+}
+
+/** Books for the Literature page, alphabetical by title. */
+export async function listLiterature(): Promise<LiteratureBook[]> {
+  const db = await getDb();
+  const docs = await db.collection('literature').find({ disabled: false }).sort({ title: 1 }).toArray();
+  return docs.map((doc) => ({
+    _id: String(doc._id),
+    title: str(doc.title),
+    authors: strArray(doc.authors),
+    publisher: str(doc.publisher),
+    year: str(doc.year),
+    original_year: str(doc.original_year),
+    isbn: str(doc.isbn),
+    topic: str(doc.topic),
+    url: str(doc.url),
+    extra_links: strArray(doc.extra_links).filter((v) => /^https?:\/\//.test(v)),
+    description: str(doc.description),
+    description_sources: strArray(doc.description_sources),
+  }));
 }
 
 export async function listResources(): Promise<Resource[]> {

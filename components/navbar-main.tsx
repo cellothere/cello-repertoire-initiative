@@ -22,6 +22,7 @@ export const MUSIC_LINKS: NavLink[] = [
 export const MORE_LINKS: NavLink[] = [
   { href: '/about-us', label: 'Our Mission' },
   { href: '/resources', label: 'Resource Catalog' },
+  { href: '/literature', label: 'Literature' },
   { href: '/contribute', label: 'Contribute' },
   { href: '/contact', label: 'Contact Us' },
 ];

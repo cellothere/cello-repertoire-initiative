@@ -101,6 +101,31 @@ export interface Resource {
   added_at?: string;
 }
 
+/** Topics a Literature book is filed under, in the order the page offers them. */
+export const LITERATURE_TOPICS = ['Technique', 'Pedagogy', 'Repertoire', 'History', 'Teaching Students with Disabilities'] as const;
+export type LiteratureTopic = (typeof LITERATURE_TOPICS)[number];
+
+/** A book about playing, teaching or learning the cello (the Literature page), as opposed to music to play. */
+export interface LiteratureBook {
+  _id: string;
+  title: string;
+  /** Authors, editors and translators in credit order; roles are written into the name, e.g. "Jane Doe (translator)". */
+  authors: string[];
+  publisher: string;
+  /** Year of the edition linked to. */
+  year: string;
+  /** Year of first publication when the linked edition is a reprint or translation; empty otherwise. */
+  original_year: string;
+  isbn: string;
+  topic: LiteratureTopic | string;
+  /** The publisher's (or self-publishing author's) page for the book. */
+  url: string;
+  extra_links: string[];
+  description: string;
+  /** URLs for the description's [1], [2]… citation markers. */
+  description_sources: string[];
+}
+
 export type SortKey =
   | 'level-asc'
   | 'level-desc'

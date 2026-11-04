@@ -12,6 +12,7 @@ const PAGES = [
   '/composers',
   '/recently-added',
   '/resources',
+  '/literature',
   '/about-us',
   '/contribute',
   '/contact',

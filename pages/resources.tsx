@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { NextPage } from 'next';
 import { FaBookOpen, FaSearch } from 'react-icons/fa';
 import { FiExternalLink } from 'react-icons/fi';
@@ -6,6 +6,7 @@ import Seo from '@/components/seo';
 import CitedText from '@/components/cited-text';
 import PageHeader from '@/components/page-header';
 import { EmptyState, ErrorState } from '@/components/state-messages';
+import { useClampToggle } from '@/lib/use-clamp-toggle';
 import { useJson } from '@/lib/use-json';
 import type { Resource } from '@/lib/types';
 import { hostnameOf, normalizeForSearch } from '@/utils/musicUtils';
@@ -16,42 +17,7 @@ import { hostnameOf, normalizeForSearch } from '@/utils/musicUtils';
  * target while the toggle (a button, which can't sit inside a link) works on its own.
  */
 function ResourceCard({ resource }: { resource: Resource }) {
-  const textRef = useRef<HTMLDivElement>(null);
-  const [expanded, setExpanded] = useState(false);
-  const [clamped, setClamped] = useState(false);
-  const fromHeight = useRef<number | null>(null);
-
-  // Glide between the clamped and full heights rather than jumping.
-  useLayoutEffect(() => {
-    const el = textRef.current;
-    const from = fromHeight.current;
-    fromHeight.current = null;
-    if (!el || from === null || typeof el.animate !== 'function') return;
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-    // A quick second tap: stop the first glide so the target height is the real one.
-    el.getAnimations().forEach((animation) => animation.cancel());
-    const to = el.getBoundingClientRect().height;
-    el.animate([{ height: `${from}px`, overflow: 'hidden' }, { height: `${to}px`, overflow: 'hidden' }], {
-      duration: 380,
-      easing: 'cubic-bezier(0.16, 1, 0.3, 1)',
-    });
-  }, [expanded]);
-
-  const toggle = () => {
-    fromHeight.current = textRef.current?.getBoundingClientRect().height ?? null;
-    setExpanded((open) => !open);
-  };
-
-  // Show the toggle only when the text really is cut, rechecking when the width changes.
-  useEffect(() => {
-    const el = textRef.current;
-    if (!el || expanded) return;
-    const measure = () => setClamped(el.scrollHeight > el.clientHeight + 1);
-    measure();
-    const observer = new ResizeObserver(measure);
-    observer.observe(el);
-    return () => observer.disconnect();
-  }, [expanded, resource.description]);
+  const { ref: textRef, expanded, clamped, toggle } = useClampToggle(resource.description);
 
   return (
     <div className="card group relative flex h-full flex-col p-4 transition focus-within:ring-2 focus-within:ring-teal-500 duration-300 ease-out-expo hover:-translate-y-1 hover:shadow-xl sm:p-6">
