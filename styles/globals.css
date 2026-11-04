@@ -303,7 +303,9 @@
      inset matches the sticky navbar, so the effect starts with the first pixel of scrolling.
    - .scroll-reveal fades content up as it comes into view. Items already on screen are untouched (their load-time
      .reveal still plays).
-   - .card-scope / .parallax-img: an image moves a little within its frame as the card crosses the screen.
+   - .card-scope / .parallax-img: an image moves a little within its frame as the card crosses the screen. On phones a
+     .parallax-tall image (a portrait picture in a wide card) pans its whole height instead, bottom to top, so the
+     card shows every part of the picture in turn rather than a thin middle strip.
    - .ink-underline draws a brand-coloured line under a heading as it arrives.
    - .nav-elevate gives the navbar a soft shadow once the page has scrolled. */
 @media (prefers-reduced-motion: no-preference) {
@@ -335,6 +337,9 @@
       animation: parallax-pan linear both;
       animation-timeline: --card;
       animation-range: cover 0% cover 100%;
+    }
+    @media (max-width: 767px) {
+      .parallax-tall { animation-name: parallax-pan-tall; }
     }
 
     .ink-underline {
@@ -373,6 +378,27 @@
 @keyframes parallax-pan {
   from { transform: translateY(-6%) scale(1.14); }
   to { transform: translateY(6%) scale(1.14); }
+}
+
+/* Starts at the bottom of the picture and ends at the top, so the picture travels up more slowly than the card. */
+@keyframes parallax-pan-tall {
+  from { transform: translateY(calc((var(--card-ratio) - 1) * 100%)); }
+  to { transform: none; }
+}
+
+/* A .parallax-tall picture keeps its own 2:3 shape on phones and sits inside the card like a window. --card-ratio is
+   the card's height over the picture's (a 4:3 card, 2:1 from 640px); without scroll motion the picture rests at
+   --focus (the fraction of its height hidden above the card). */
+@media (max-width: 767px) {
+  .parallax-tall {
+    inset: 0 0 auto 0;
+    aspect-ratio: 2 / 3;
+    --card-ratio: 0.5;
+    transform: translateY(calc(var(--focus, 0.31) * -100%));
+  }
+}
+@media (min-width: 640px) and (max-width: 767px) {
+  .parallax-tall { --card-ratio: 0.3333; }
 }
 
 @keyframes ink-draw {

@@ -7,10 +7,12 @@ import { FaArrowRight, FaSearch } from 'react-icons/fa';
 import { SpeedInsights } from '@vercel/speed-insights/next';
 import Seo from '@/components/seo';
 
-const FEATURES = [
+const FEATURES: { href: string; src: string; focus?: number; label: string; description: string }[] = [
   {
     href: '/cello-music',
     src: '/assets/cellist3.png',
+    // Without scroll motion, phones show the cello's body (f-holes and bow) rather than the middle of the picture.
+    focus: 0.45,
     label: 'Cello Music',
     description: 'Search the catalogue by level, instrumentation, composer and more.',
   },
@@ -107,9 +109,12 @@ const Home: NextPage = () => {
               <Link
                 href={feature.href}
                 style={{ '--i': index } as React.CSSProperties}
-                className="reveal card-scope spotlight spotlight-dark group relative block aspect-[16/9] overflow-hidden rounded-2xl bg-slate-800 shadow-lg transition-transform duration-300 ease-out-expo active:scale-[0.98] sm:aspect-[2/1] md:aspect-[3/4]"
+                className="reveal card-scope spotlight spotlight-dark group relative block aspect-[4/3] overflow-hidden rounded-2xl bg-slate-800 shadow-lg transition-transform duration-300 ease-out-expo active:scale-[0.98] sm:aspect-[2/1] md:aspect-[3/4]"
               >
-                <div className="parallax-img absolute inset-0">
+                <div
+                  className="parallax-img parallax-tall absolute md:inset-0"
+                  style={feature.focus ? ({ '--focus': feature.focus } as React.CSSProperties) : undefined}
+                >
                   <FadeImage
                     src={feature.src}
                     alt=""
