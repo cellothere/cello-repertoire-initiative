@@ -6,7 +6,7 @@ import { HiArrowPath, HiChatBubbleLeftRight, HiPaperAirplane, HiXMark } from 're
 import LevelBadge from './level-badge';
 import { useAuth } from '@/contexts/AuthContext';
 import { pieceHref } from '@/lib/instruments';
-import type { PieceSummary, Resource } from '@/lib/types';
+import type { LiteratureBook, PieceSummary, Resource } from '@/lib/types';
 import { formatComposers, hostnameOf } from '@/utils/musicUtils';
 
 interface Turn {
@@ -15,20 +15,91 @@ interface Turn {
   content: string;
 }
 
+// A fresh handful is drawn from this pool for each new chat, so returning visitors see different ideas. Each one is
+// something the catalogue (or the Literature page) can answer well.
 const SUGGESTIONS = [
   'Beginner pieces by women composers',
   'Intermediate cello and piano music by Black composers',
   'An unaccompanied piece for an advanced student',
+  'Duets for two beginner cellists',
+  'Free sheet music for an intermediate student',
+  'Pieces by Indigenous composers',
+  'Music by Latin American composers with piano',
+  'A short recital piece under three minutes',
+  'Something to practise vibrato on',
+  'Tenor clef practice pieces for a late intermediate student',
+  "What's new in the catalogue?",
+  'Pieces by living composers for a young student',
+  'A duet for two cellos by a Brazilian composer',
+  'A spiritual arranged for cello and piano',
+  'Pieces by queer composers',
+  'Music by disabled or neurodivergent composers',
+  'A lyrical piece for an early intermediate student',
+  'Fiddle-style tunes for cello',
+  'Pieces with recordings I can listen to first',
+  'A Romantic-era piece by a woman composer',
+  'Books on teaching autistic students',
+  'A good book on cello technique',
+  'Books about the Bach cello suites',
+  'Easy pieces for a first recital',
+  'Something for cello ensemble',
+  'Music by Canadian women composers',
+  'A sonata for an advanced student',
+  'Pieces that practise shifting for an intermediate student',
+  'Free public domain pieces for beginners',
+  'Music by Asian composers',
+  'A cello and piano piece by a Caribbean composer',
+  'Pieces that use pizzicato for beginners',
+  'A contemporary piece with extended techniques',
+  'Music by Florence Price',
+  'Something upbeat for a teenage student',
+  'Pieces in treble clef for an advanced student',
+  'A piece for a conservatory audition',
+  'Music by Polish women composers',
+  'Short pieces for a student who has played one year',
+  'A concerto by a woman composer',
+  'Pieces from the 20th century by Black composers',
+  'Books on performance anxiety',
+  'Teaching resources for music by underrepresented composers',
+  'A slow, expressive piece for an adult beginner',
+  'Pieces with double stops for an early advanced student',
+  'Music inspired by folk songs',
+  'Books on teaching students with disabilities',
+  'A piece by a composer from Africa',
+  'Unaccompanied pieces for intermediate students',
+  'Pieces for cello and orchestra at an advanced level',
+  'Music for a beginner and their teacher to play together',
+  'A tango for cello',
+  'Pieces under five minutes by living composers',
+  'Something for a student who loves film music',
+  'A piece about nature or animals for a young student',
+  'Biographies of women cellists',
+  'Free music for two cellos',
+  'Pieces that work on spiccato',
+  'A piece by a Mexican composer',
+  'What should a second-year student play next?',
 ];
+
+const SUGGESTION_COUNT = 4;
+
+/** A few suggestions, chosen at random. */
+const pickSuggestions = () =>
+  [...SUGGESTIONS]
+    .map((text) => ({ text, key: Math.random() }))
+    .sort((a, b) => a.key - b.key)
+    .slice(0, SUGGESTION_COUNT)
+    .map(({ text }) => text);
 
 // On a piece's page, the assistant knows which piece "this" is.
 const PIECE_SUGGESTIONS = ['Is this right for my student?', 'Find similar pieces', 'Tell me about the composer'];
 
-const TOKEN = /\[\[([a-z]+:\d+)\]\]/g;
+// Piece ids are numbers; resource and book ids can be MongoDB ObjectIds.
+const TOKEN = /\[\[([a-z]+:[0-9a-f]+)\]\]/g;
+const STORAGE_KEY = 'cri-assistant-chat';
 const MAX_LENGTH = 800;
 
 // Site pages the assistant may mention by path; anything else stays plain text.
-const SITE_PATH = /(\/(?:cello-music|violin-music|featured-databases|composers|recently-added|resources|contribute)\b(?:\?category=[a-z-]+)?)/;
+const SITE_PATH = /(\/(?:cello-music|violin-music|featured-databases|composers|recently-added|resources|literature|contribute)\b(?:\?category=[a-z-]+)?)/;
 
 function PieceLink({ piece, onNavigate }: { piece: PieceSummary; onNavigate: () => void }) {
   return (
@@ -65,6 +136,25 @@ function ResourceLink({ resource }: { resource: Resource }) {
   );
 }
 
+/** A book from the Literature page; opens the publisher's page in a new tab. */
+function BookLink({ book }: { book: LiteratureBook }) {
+  return (
+    <a
+      href={book.url}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="block rounded-xl border border-indigo-200 bg-indigo-50 px-3 py-2 shadow-sm transition hover:border-indigo-400 hover:shadow focus-visible:outline focus-visible:outline-2 focus-visible:outline-indigo-600"
+    >
+      <span className="text-[11px] font-semibold uppercase tracking-wide text-indigo-800">Book · {book.topic}</span>
+      <span className="block font-semibold leading-snug text-gray-900">{book.title}</span>
+      <span className="mt-0.5 inline-flex flex-wrap items-center gap-x-1 text-sm text-gray-600">
+        {book.authors.join(', ')}
+        <FiExternalLink className="h-3.5 w-3.5" aria-hidden="true" />
+      </span>
+    </a>
+  );
+}
+
 /** Plain text with any site page paths (e.g. /resources) turned into links. */
 function TextWithPageLinks({ text, onNavigate }: { text: string; onNavigate: () => void }) {
   // With a capturing group, split() puts the paths at odd indices.
@@ -88,18 +178,20 @@ function AssistantMessage({
   content,
   pieces,
   resources,
+  books,
   onNavigate,
 }: {
   content: string;
   pieces: Record<string, PieceSummary>;
   resources: Record<string, Resource>;
+  books: Record<string, LiteratureBook>;
   onNavigate: () => void;
 }) {
   const lines = content.split('\n').map((line) => line.trim()).filter(Boolean);
   return (
     <div className="space-y-2">
       {lines.map((line, index) => {
-        const refs = Array.from(line.matchAll(TOKEN), (match) => match[1]).filter((ref) => pieces[ref] || resources[ref]);
+        const refs = Array.from(line.matchAll(TOKEN), (match) => match[1]).filter((ref) => pieces[ref] || resources[ref] || books[ref]);
         const text = line.replace(TOKEN, '').replace(/^[\s\-–—:•]+/, '').trim();
         if (!refs.length) {
           return (
@@ -113,6 +205,8 @@ function AssistantMessage({
             {refs.map((ref) =>
               pieces[ref] ? (
                 <PieceLink key={ref} piece={pieces[ref]} onNavigate={onNavigate} />
+              ) : books[ref] ? (
+                <BookLink key={ref} book={books[ref]} />
               ) : (
                 <ResourceLink key={ref} resource={resources[ref]} />
               )
@@ -129,23 +223,87 @@ function AssistantMessage({
   );
 }
 
+interface ReplyData {
+  reply: string;
+  pieces: Record<string, PieceSummary>;
+  resources: Record<string, Resource>;
+  books: Record<string, LiteratureBook>;
+}
+
+/**
+ * Reads the assistant's answer. It streams as newline-delimited JSON: {"status"} lines while it searches, passed to
+ * `onStatus`, then the reply (or {"error"}). An error before the stream starts comes back as a plain JSON error.
+ */
+async function readReply(response: Response, onStatus: (status: string) => void): Promise<ReplyData> {
+  const fallback = 'Something went wrong. Please try again.';
+  if (!response.ok || !response.body || !response.headers.get('content-type')?.includes('ndjson')) {
+    const data = await response.json().catch(() => ({}));
+    throw new Error(data.error || fallback);
+  }
+  const reader = response.body.getReader();
+  const decoder = new TextDecoder();
+  let buffered = '';
+  for (;;) {
+    const { value, done } = await reader.read();
+    buffered += decoder.decode(value, { stream: !done });
+    const lines = buffered.split('\n');
+    buffered = done ? '' : lines.pop() ?? '';
+    for (const line of lines) {
+      if (!line.trim()) continue;
+      const data = JSON.parse(line);
+      if (typeof data.status === 'string') onStatus(data.status);
+      else if (typeof data.reply === 'string') return { pieces: {}, resources: {}, books: {}, ...data };
+      else throw new Error(data.error || fallback);
+    }
+    if (done) throw new Error(fallback);
+  }
+}
+
+interface SavedChat {
+  turns: Turn[];
+  pieces: Record<string, PieceSummary>;
+  resources: Record<string, Resource>;
+  books: Record<string, LiteratureBook>;
+}
+
+/**
+ * The conversation survives a page refresh within the tab (sessionStorage), so a visitor who opens a suggested piece
+ * and comes back still has their list. The panel is closed when the page is first drawn, so reading this during the
+ * first render can't cause a hydration mismatch. Storage can be unavailable (private mode); then the chat starts fresh.
+ */
+function loadSavedChat(): SavedChat | null {
+  if (typeof window === 'undefined') return null;
+  try {
+    const saved = JSON.parse(sessionStorage.getItem(STORAGE_KEY) ?? 'null');
+    return saved && Array.isArray(saved.turns) ? { pieces: {}, resources: {}, books: {}, ...saved } : null;
+  } catch {
+    return null;
+  }
+}
+
 /** The floating "ask the assistant" button and chat panel, shown on every page. */
 const isPhone = () => window.matchMedia('(max-width: 767px)').matches;
 
 export default function CatalogueAssistant() {
   const { user } = useAuth();
   const [open, setOpen] = useState(false);
-  const [turns, setTurns] = useState<Turn[]>([]);
-  const [pieces, setPieces] = useState<Record<string, PieceSummary>>({});
-  const [resources, setResources] = useState<Record<string, Resource>>({});
+  // A conversation from earlier in this tab, if any (see loadSavedChat).
+  const [saved] = useState(loadSavedChat);
+  const [turns, setTurns] = useState<Turn[]>(saved?.turns ?? []);
+  const [pieces, setPieces] = useState<Record<string, PieceSummary>>(saved?.pieces ?? {});
+  const [resources, setResources] = useState<Record<string, Resource>>(saved?.resources ?? {});
+  const [books, setBooks] = useState<Record<string, LiteratureBook>>(saved?.books ?? {});
+  const [suggestions, setSuggestions] = useState<string[]>([]);
   const [draft, setDraft] = useState('');
   const [busy, setBusy] = useState(false);
+  // What the assistant is doing right now ("Searching: Beginner · Women composers"), while a reply is on its way.
+  const [status, setStatus] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const logRef = useRef<HTMLDivElement>(null);
 
-  const greeting = `Hi${user ? ` ${user.username}` : ''}! I'm a virtual assistant. Tell me what you're looking for and I'll search our catalogue for suggestions.`;
+  const greeting = `Hi${user ? ` ${user.username}` : ''}! I'm a virtual assistant. Tell me what you're looking for and I'll search our catalogue, books and resources for suggestions.`;
 
   // On a phone, focusing the field pops up the keyboard, which then covers most of the panel; there the
   // keyboard waits until the visitor taps the field.
@@ -157,9 +315,24 @@ export default function CatalogueAssistant() {
     if (open) focusInput();
   }, [open]);
 
+  // New ideas each time the panel opens on an empty chat.
+  const toggleOpen = () => {
+    if (!open && turns.length === 0) setSuggestions(pickSuggestions());
+    setOpen(!open);
+  };
+
+  useEffect(() => {
+    try {
+      if (turns.length) sessionStorage.setItem(STORAGE_KEY, JSON.stringify({ turns, pieces, resources, books }));
+      else sessionStorage.removeItem(STORAGE_KEY);
+    } catch {
+      // Not saved; the chat still works.
+    }
+  }, [turns, pieces, resources, books]);
+
   useEffect(() => {
     logRef.current?.scrollTo({ top: logRef.current.scrollHeight, behavior: 'smooth' });
-  }, [turns, busy, error]);
+  }, [turns, busy, error, status]);
 
   useEffect(() => {
     if (!open) return;
@@ -180,6 +353,7 @@ export default function CatalogueAssistant() {
     setTurns(history);
     setDraft('');
     setError(null);
+    setStatus(null);
     setBusy(true);
     try {
       const response = await fetch('/api/assistant', {
@@ -188,12 +362,10 @@ export default function CatalogueAssistant() {
         // The page lets the assistant tell what "this piece" means.
         body: JSON.stringify({ messages: history, page: router.asPath }),
       });
-      const data = await response.json().catch(() => ({}));
-      if (!response.ok || typeof data.reply !== 'string') {
-        throw new Error(data.error || 'Something went wrong. Please try again.');
-      }
+      const data = await readReply(response, setStatus);
       setPieces((known) => ({ ...known, ...data.pieces }));
       setResources((known) => ({ ...known, ...data.resources }));
+      setBooks((known) => ({ ...known, ...data.books }));
       setTurns([...history, { role: 'assistant', content: data.reply }]);
     } catch (err) {
       // Put the message back so the visitor can retry without retyping it.
@@ -202,6 +374,7 @@ export default function CatalogueAssistant() {
       setError(err instanceof Error ? err.message : 'Something went wrong. Please try again.');
     } finally {
       setBusy(false);
+      setStatus(null);
       focusInput();
     }
   }
@@ -212,7 +385,9 @@ export default function CatalogueAssistant() {
     setTurns([]);
     setPieces({});
     setResources({});
+    setBooks({});
     setError(null);
+    setSuggestions(pickSuggestions());
     focusInput();
   };
 
@@ -262,16 +437,27 @@ export default function CatalogueAssistant() {
 
             {turns.length === 0 && (
               <div className="flex flex-col items-start gap-2 pt-1">
-                {(/-piece\/\[id\]$/.test(router.pathname) ? PIECE_SUGGESTIONS : SUGGESTIONS).map((suggestion) => (
+                {(/-piece\/\[id\]$/.test(router.pathname) ? PIECE_SUGGESTIONS : suggestions).map((suggestion, index) => (
                   <button
                     key={suggestion}
                     type="button"
                     onClick={() => send(suggestion)}
-                    className="rounded-full border border-teal-200 bg-white px-3 py-1.5 text-left text-sm text-teal-800 hover:border-teal-400 hover:bg-teal-50"
+                    style={{ '--i': index } as React.CSSProperties}
+                    className="reveal rounded-full border border-teal-200 bg-white px-3 py-1.5 text-left text-sm text-teal-800 hover:border-teal-400 hover:bg-teal-50"
                   >
                     {suggestion}
                   </button>
                 ))}
+                {!/-piece\/\[id\]$/.test(router.pathname) && (
+                  <button
+                    type="button"
+                    onClick={() => setSuggestions(pickSuggestions())}
+                    className="inline-flex items-center gap-1 rounded-full px-2 py-1 text-xs font-medium text-gray-500 hover:text-teal-700"
+                  >
+                    <HiArrowPath className="h-3.5 w-3.5" aria-hidden="true" />
+                    Other ideas
+                  </button>
+                )}
               </div>
             )}
 
@@ -282,7 +468,7 @@ export default function CatalogueAssistant() {
                 </div>
               ) : (
                 <div key={index} className="max-w-[95%] rounded-2xl rounded-tl-sm bg-white px-3 py-2 text-gray-800 shadow-sm">
-                  <AssistantMessage content={turn.content} pieces={pieces} resources={resources} onNavigate={closeOnPhone} />
+                  <AssistantMessage content={turn.content} pieces={pieces} resources={resources} books={books} onNavigate={closeOnPhone} />
                 </div>
               )
             )}
@@ -294,7 +480,7 @@ export default function CatalogueAssistant() {
                   <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-teal-500 [animation-delay:-0.15s]" />
                   <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-teal-500" />
                 </span>
-                Searching the catalogue…
+                <span key={status ?? ''} className="animate-fade-in">{status ? `${status}…` : 'Thinking…'}</span>
               </div>
             )}
 
@@ -335,7 +521,7 @@ export default function CatalogueAssistant() {
 
       <button
         type="button"
-        onClick={() => setOpen((value) => !value)}
+        onClick={toggleOpen}
         aria-expanded={open}
         aria-label={open ? 'Close the assistant' : 'Ask the repertoire assistant'}
         className={`fixed bottom-[calc(5.25rem+env(safe-area-inset-bottom))] right-[max(1rem,env(safe-area-inset-right))] z-40 ${open ? 'hidden md:flex' : 'flex'} h-14 w-14 items-center justify-center rounded-full bg-teal-700 text-white shadow-lg transition hover:bg-teal-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-700 md:bottom-6 md:right-6`}

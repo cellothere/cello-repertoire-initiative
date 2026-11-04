@@ -62,24 +62,47 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(429).json({ error: "You've sent a lot of messages. Please wait a few minutes and try again." });
   }
 
+  const header = req.headers['x-vercel-ip-country'];
+  const country = (Array.isArray(header) ? header[0] : header) || null;
+  const page = typeof req.body?.page === 'string' && req.body.page.length <= 300 ? req.body.page : undefined;
+
+  // The reply streams as newline-delimited JSON: a {"status"} line as each search starts, so the chat window can show
+  // what is happening, then one {"reply"} line (or {"error"}). Errors before the first line still use status codes.
+  let streaming = false;
+  const send = (line: object) => {
+    if (!streaming) {
+      streaming = true;
+      res.writeHead(200, { 'Content-Type': 'application/x-ndjson; charset=utf-8', 'Cache-Control': 'no-store', 'X-Accel-Buffering': 'no' });
+    }
+    res.write(`${JSON.stringify(line)}\n`);
+  };
+  const fail = (status: number, message: string) => {
+    if (streaming) {
+      send({ error: message });
+      res.end();
+    } else {
+      res.status(status).json({ error: message });
+    }
+  };
+
   try {
-    const header = req.headers['x-vercel-ip-country'];
-    const country = (Array.isArray(header) ? header[0] : header) || null;
-    const page = typeof req.body?.page === 'string' && req.body.page.length <= 300 ? req.body.page : undefined;
-    res.status(200).json(await runAssistant(history, country, page));
+    const result = await runAssistant(history, country, page, (status) => send({ status }));
+    send(result);
+    res.end();
   } catch (error) {
     if (error instanceof AssistantRefusal) {
-      return res.status(200).json({ reply: "Sorry, I can't help with that. I can help you find pieces in the catalogue.", pieces: {}, resources: {} });
+      send({ reply: "Sorry, I can't help with that. I can help you find pieces in the catalogue.", pieces: {}, resources: {}, books: {} });
+      return res.end();
     }
     if (error instanceof Anthropic.RateLimitError || error instanceof Anthropic.InternalServerError) {
       console.error('Assistant: Claude is busy:', error.message);
-      return res.status(503).json({ error: 'The assistant is busy right now. Please try again in a moment.' });
+      return fail(503, 'The assistant is busy right now. Please try again in a moment.');
     }
     if (error instanceof Anthropic.APIError) {
       console.error(`Assistant: Claude API error ${error.status}:`, error.message);
     } else {
       console.error('Assistant failed:', error);
     }
-    res.status(500).json({ error: 'Something went wrong. Please try again.' });
+    fail(500, 'Something went wrong. Please try again.');
   }
 }
