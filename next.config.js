@@ -3,6 +3,11 @@ const nextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
 
+  // The share-image routes (lib/og.tsx) read their fonts and pictures from disk.
+  outputFileTracingIncludes: {
+    '/api/og/**': ['./lib/og-fonts/*.woff', './public/assets/*.png', './public/covers/**/*'],
+  },
+
   async redirects() {
     return [
       // Search now lives on the Cello Music page. Query strings are passed through,

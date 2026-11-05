@@ -7,6 +7,7 @@ import { FaArrowRight, FaChevronRight, FaPen } from 'react-icons/fa';
 import { HiMusicNote } from 'react-icons/hi';
 import Seo from './seo';
 import SaveButton from './save-button';
+import ShareButton from './share-button';
 import LevelModal from './level-modal';
 import YouTubeEmbed from './youtube-embed';
 import RecordingPlayer from './recording-player';
@@ -16,6 +17,7 @@ import PieceEditor from './admin/piece-editor';
 import { useAuth } from '@/contexts/AuthContext';
 import { INSTRUMENT_LABELS, LISTING_PATHS, composerWorksHref, pieceHref } from '@/lib/instruments';
 import type { PieceDetail } from '@/lib/types';
+import { pieceShareContent, pieceShareImage } from '@/lib/share';
 import { formatDuration, hostnameOf, joinNames, parseYear, recordingEmbed, youtubeId } from '@/utils/musicUtils';
 
 function Card({ title, children, className = '' }: { title: string; children: ReactNode; className?: string }) {
@@ -28,7 +30,11 @@ function Card({ title, children, className = '' }: { title: string; children: Re
 }
 
 function summarize(text: string, max = 155): string {
-  const clean = stripCitations(text).replace(/https?:\/\/\S+/g, '').replace(/\s+/g, ' ').trim();
+  const clean = stripCitations(text)
+    .replace(/https?:\/\/\S+/g, '')
+    .replace(/\s+/g, ' ')
+    .replace(/\s+([.,;:!?])/g, '$1')
+    .trim();
   return clean.length > max ? `${clean.slice(0, max - 1).trimEnd()}…` : clean;
 }
 
@@ -126,7 +132,8 @@ export default function PieceDetailPage({ piece: pagePiece }: { piece: PieceDeta
       <Seo
         title={`${piece.title} by ${byLine}`}
         path={pieceHref(piece.instrument, piece.id)}
-        image={piece.cover_image || undefined}
+        image={pieceShareImage(piece)}
+        imageAlt={`${piece.title} by ${byLine}: ${piece.level}`}
         description={
           summarize(piece.description) ||
           `${piece.title} by ${byLine}: a ${piece.level.toLowerCase()} level piece for ${piece.instrumentation.join(', ').toLowerCase() || instrumentLabel.toLowerCase()}.`
@@ -205,6 +212,12 @@ export default function PieceDetailPage({ piece: pagePiece }: { piece: PieceDeta
               instrument={piece.instrument}
               title={piece.title}
               variant="full"
+              className="shrink-0 justify-center py-2.5 sm:py-2"
+            />
+            <ShareButton
+              content={pieceShareContent(piece)}
+              image={pieceShareImage(piece)}
+              heading="Share this piece"
               className="shrink-0 justify-center py-2.5 sm:py-2"
             />
             {adminView && !editing && (
