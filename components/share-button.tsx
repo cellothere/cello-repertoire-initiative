@@ -112,10 +112,13 @@ export default function ShareButton({
         type="button"
         onClick={show}
         aria-haspopup="dialog"
-        className={`inline-flex items-center gap-2 rounded-lg bg-white px-4 py-2 font-semibold text-gray-900 transition-colors hover:bg-gray-100 ${className}`}
+        aria-label={heading}
+        title={heading}
+        // Phones get a square icon button (44px, as tall as Save beside it); wider screens show the label too.
+        className={`inline-flex items-center gap-2 rounded-lg bg-white px-4 py-2 font-semibold text-gray-900 transition-colors hover:bg-gray-100 max-sm:h-11 max-sm:w-11 max-sm:px-0 max-sm:py-0 ${className}`}
       >
-        <FiShare aria-hidden="true" />
-        Share
+        <FiShare className="h-5 w-5 sm:h-4 sm:w-4" aria-hidden="true" />
+        <span className="hidden sm:inline">Share</span>
       </button>
 
       {/* showModal() puts the sheet in the top layer, above the header's clipping and the phone tab bar. */}
