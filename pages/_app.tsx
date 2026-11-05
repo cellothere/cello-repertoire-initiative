@@ -8,7 +8,6 @@ import Footer from "@/components/footer";
 import MobileTabBar from "@/components/mobile-tab-bar";
 import RouteTransitions from "@/components/route-transitions";
 import CatalogueAssistant from "@/components/catalogue-assistant";
-import BackButton from "@/components/back-button";
 import Spotlight from "@/components/spotlight";
 import { AuthProvider } from "@/contexts/AuthContext";
 
@@ -29,7 +28,6 @@ export default function App({ Component, pageProps }: AppProps) {
         </main>
         <Footer />
         <MobileTabBar />
-        <BackButton />
         <CatalogueAssistant />
         <Analytics />
       </div>

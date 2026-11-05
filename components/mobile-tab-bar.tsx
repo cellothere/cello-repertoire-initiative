@@ -18,6 +18,7 @@ import {
   HiUserGroup,
 } from 'react-icons/hi2';
 import { useAuth } from '@/contexts/AuthContext';
+import BackButton from './back-button';
 import { MORE_LINKS, MUSIC_LINKS } from './navbar-main';
 
 interface Tab {
@@ -113,58 +114,62 @@ export default function MobileTabBar() {
         aria-label="Primary"
         className="mobile-tab-bar pointer-events-none fixed inset-x-0 bottom-0 z-40 pb-[max(0.75rem,env(safe-area-inset-bottom))] pl-[max(0.75rem,env(safe-area-inset-left))] pr-[max(0.75rem,env(safe-area-inset-right))] md:hidden"
       >
-        {/* A floating, rounded bar; the space around it lets taps through to the page. */}
-        <ul className="pointer-events-auto mx-auto grid h-14 max-w-lg grid-cols-5 overflow-hidden rounded-full border border-gray-200 bg-white/95 shadow-lg backdrop-blur supports-[backdrop-filter]:bg-white/85">
-          {TABS.map((tab) => {
-            const active = tab.matches(pathname);
-            const Icon = active ? tab.ActiveIcon : tab.Icon;
-            const href = tab.href === BROWSE_PATH ? browseHref : tab.href;
-            return (
-              <li key={tab.href}>
-                <Link
-                  href={href}
-                  aria-current={active ? 'page' : undefined}
-                  onClick={(event) => {
-                    // Tapping the tab you're on scrolls back to the top, as in native apps.
-                    if (active && isCurrent(tab.href)) {
-                      event.preventDefault();
-                      window.scrollTo({ top: 0, behavior: 'smooth' });
-                    }
-                  }}
-                  className={tabClass(active)}
-                >
-                  {/* A soft pill grows behind the current tab's icon. */}
-                  <span
-                    className={`flex h-7 w-14 items-center justify-center rounded-full transition duration-300 ease-out-expo ${
-                      active ? 'scale-100 bg-teal-50' : 'scale-90 bg-transparent'
-                    }`}
+        <div className="mx-auto flex max-w-lg items-center gap-2">
+          <BackButton className="pointer-events-auto" />
+          {/* A floating, rounded bar, with the back button beside it when there is somewhere to go back to; the space
+              around them lets taps through to the page. */}
+          <ul className="pointer-events-auto grid h-14 min-w-0 flex-1 grid-cols-5 overflow-hidden rounded-full border border-gray-200 bg-white/95 shadow-lg backdrop-blur supports-[backdrop-filter]:bg-white/85">
+            {TABS.map((tab) => {
+              const active = tab.matches(pathname);
+              const Icon = active ? tab.ActiveIcon : tab.Icon;
+              const href = tab.href === BROWSE_PATH ? browseHref : tab.href;
+              return (
+                <li key={tab.href}>
+                  <Link
+                    href={href}
+                    aria-current={active ? 'page' : undefined}
+                    onClick={(event) => {
+                      // Tapping the tab you're on scrolls back to the top, as in native apps.
+                      if (active && isCurrent(tab.href)) {
+                        event.preventDefault();
+                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                      }
+                    }}
+                    className={tabClass(active)}
                   >
-                    <Icon className="h-6 w-6" aria-hidden="true" />
-                  </span>
-                  {tab.label}
-                </Link>
-              </li>
-            );
-          })}
-          <li>
-            <button
-              type="button"
-              onClick={() => setMoreOpen(true)}
-              aria-haspopup="dialog"
-              aria-expanded={moreOpen}
-              className={`w-full ${tabClass(moreOpen || !tabActive)}`}
-            >
-              <span
-                className={`flex h-7 w-14 items-center justify-center rounded-full transition duration-300 ease-out-expo ${
-                  moreOpen || !tabActive ? 'scale-100 bg-teal-50' : 'scale-90 bg-transparent'
-                }`}
+                    {/* A soft pill grows behind the current tab's icon. */}
+                    <span
+                      className={`flex h-7 w-14 items-center justify-center rounded-full transition duration-300 ease-out-expo ${
+                        active ? 'scale-100 bg-teal-50' : 'scale-90 bg-transparent'
+                      }`}
+                    >
+                      <Icon className="h-6 w-6" aria-hidden="true" />
+                    </span>
+                    {tab.label}
+                  </Link>
+                </li>
+              );
+            })}
+            <li>
+              <button
+                type="button"
+                onClick={() => setMoreOpen(true)}
+                aria-haspopup="dialog"
+                aria-expanded={moreOpen}
+                className={`w-full ${tabClass(moreOpen || !tabActive)}`}
               >
-                {moreOpen || !tabActive ? <HiBars3 className="h-6 w-6" aria-hidden="true" /> : <HiOutlineBars3 className="h-6 w-6" aria-hidden="true" />}
-              </span>
-              More
-            </button>
-          </li>
-        </ul>
+                <span
+                  className={`flex h-7 w-14 items-center justify-center rounded-full transition duration-300 ease-out-expo ${
+                    moreOpen || !tabActive ? 'scale-100 bg-teal-50' : 'scale-90 bg-transparent'
+                  }`}
+                >
+                  {moreOpen || !tabActive ? <HiBars3 className="h-6 w-6" aria-hidden="true" /> : <HiOutlineBars3 className="h-6 w-6" aria-hidden="true" />}
+                </span>
+                More
+              </button>
+            </li>
+          </ul>
+        </div>
       </nav>
 
       <dialog
