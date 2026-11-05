@@ -297,27 +297,30 @@ export default function PieceDetailPage({ piece: pagePiece }: { piece: PieceDeta
             </div>
           </Card>
 
-          <Card title="Technical overview">
-            <p className="whitespace-pre-line break-words leading-relaxed text-gray-700">
-              {piece.technical_overview ? (
-                <Linkify text={piece.technical_overview} />
-              ) : (
-                'No technical overview is available yet.'
+          {/* Professional pieces are concert works: no technical overview or chips, so the section is left out. */}
+          {piece.level !== 'Professional' && (
+            <Card title="Technical overview">
+              <p className="whitespace-pre-line break-words leading-relaxed text-gray-700">
+                {piece.technical_overview ? (
+                  <Linkify text={piece.technical_overview} />
+                ) : (
+                  'No technical overview is available yet.'
+                )}
+              </p>
+              {piece.technique_focus.length > 0 && (
+                <>
+                  <h3 className="mb-2 mt-6 text-sm font-semibold uppercase tracking-wide text-gray-500">Technical focus</h3>
+                  <ul className="flex flex-wrap gap-2">
+                    {[...piece.technique_focus].sort((x, y) => x.localeCompare(y, 'en', { sensitivity: 'base' })).map((focus) => (
+                      <li key={focus} className="chip">
+                        {focus}
+                      </li>
+                    ))}
+                  </ul>
+                </>
               )}
-            </p>
-            {piece.technique_focus.length > 0 && (
-              <>
-                <h3 className="mb-2 mt-6 text-sm font-semibold uppercase tracking-wide text-gray-500">Technical focus</h3>
-                <ul className="flex flex-wrap gap-2">
-                  {[...piece.technique_focus].sort((x, y) => x.localeCompare(y, 'en', { sensitivity: 'base' })).map((focus) => (
-                    <li key={focus} className="chip">
-                      {focus}
-                    </li>
-                  ))}
-                </ul>
-              </>
-            )}
-          </Card>
+            </Card>
+          )}
         </div>
 
         <aside className="space-y-4 sm:space-y-6">

@@ -1,5 +1,6 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState, ReactNode } from 'react';
 import type { Instrument } from '@/lib/instruments';
+import { markSuperUserSession } from '@/lib/analytics-opt-out';
 
 export interface SavedPiece {
   pieceId: number;
@@ -82,6 +83,8 @@ async function loadCurrentUser(): Promise<User | null> {
   try {
     const response = await fetch('/api/auth/me');
     const data = await response.json();
+    // The site owner's visits are left out of the analytics on this device from now on.
+    if (data.user?.isSuperUser) markSuperUserSession();
     return data.user ?? null;
   } catch (error) {
     console.error('Failed to fetch user:', error);

@@ -10,6 +10,7 @@ import RouteTransitions from "@/components/route-transitions";
 import CatalogueAssistant from "@/components/catalogue-assistant";
 import Spotlight from "@/components/spotlight";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { analyticsBeforeSend } from "@/lib/analytics-opt-out";
 
 export default function App({ Component, pageProps }: AppProps) {
   const mainRef = useRef<HTMLElement>(null);
@@ -29,7 +30,7 @@ export default function App({ Component, pageProps }: AppProps) {
         <Footer />
         <MobileTabBar />
         <CatalogueAssistant />
-        <Analytics />
+        <Analytics beforeSend={analyticsBeforeSend} />
       </div>
     </AuthProvider>
   );
