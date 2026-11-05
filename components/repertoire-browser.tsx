@@ -37,6 +37,10 @@ interface RepertoireBrowserProps {
   headerBackground?: ReactNode;
   /** Browse only the pieces in this featured database. */
   database?: DatabaseSlug;
+  /** Browse only the pieces at this level (a level page); the Level filter is then hidden. */
+  level?: string;
+  /** Shown below the results, e.g. a database's list of composers. */
+  footer?: ReactNode;
   /** The country Free Music is worked out for, when the page lets visitors choose it. Otherwise it's looked up here. */
   freeCountry?: string | null;
   /** URL parameters the page owns, kept when filters rewrite the URL. */
@@ -140,6 +144,8 @@ export default function RepertoireBrowser({
   header,
   headerBackground,
   database,
+  level: fixedLevel,
+  footer,
   freeCountry,
   keepQuery,
   notice,
@@ -168,8 +174,11 @@ export default function RepertoireBrowser({
     [allPieces, instrument, databases]
   );
   const indexed = useMemo(
-    () => (database ? indexedAll.filter((entry) => entry.databases.has(database)) : indexedAll),
-    [indexedAll, database]
+    () =>
+      indexedAll.filter(
+        (entry) => (!database || entry.databases.has(database)) && (!fixedLevel || entry.level === fixedLevel)
+      ),
+    [indexedAll, database, fixedLevel]
   );
   const pieces = useMemo(() => indexed.map((entry) => entry.piece), [indexed]);
 
@@ -257,7 +266,7 @@ export default function RepertoireBrowser({
 
     return {
       // The level list is fixed, so it stays whole until the catalogue has loaded.
-      level: toOptions(indexed.length ? LEVEL_ORDER.filter((value) => levels.has(value)) : LEVEL_ORDER),
+      level: fixedLevel ? [] : toOptions(indexed.length ? LEVEL_ORDER.filter((value) => levels.has(value)) : LEVEL_ORDER),
       database: databases
         .filter((d) => d.slug !== database && databasesInUse.has(d.slug))
         .map((d) => ({ value: d.slug, label: d.label })),
@@ -282,7 +291,7 @@ export default function RepertoireBrowser({
           .sort(collator.compare)
       ),
     };
-  }, [indexed, matchingExcept, level, instrumentation, composer, nationality, focus, ticked, instrument, databases, database, composerLabels]);
+  }, [indexed, matchingExcept, level, instrumentation, composer, nationality, focus, ticked, instrument, databases, database, composerLabels, fixedLevel]);
 
   const toggle = useCallback(
     (key: ListFilterKey, value: string) => {
@@ -477,6 +486,8 @@ export default function RepertoireBrowser({
           </div>
         </section>
       </div>
+
+      {footer}
 
       <FilterDrawer open={drawerOpen} onClose={closeDrawer} onClear={clearFilters} resultCount={sorted.length}>
         {panel('drawer')}

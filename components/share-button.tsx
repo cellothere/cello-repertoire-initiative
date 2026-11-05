@@ -63,12 +63,15 @@ export default function ShareButton({
   content,
   image,
   heading = 'Share',
+  iconOnlyOnPhone = true,
   className = '',
 }: {
   content: ShareContent;
   /** Site path of the link-preview image, shown in the sheet. */
   image?: string;
   heading?: string;
+  /** Phones show just the icon, in a 44px square (piece pages); false keeps the label everywhere. */
+  iconOnlyOnPhone?: boolean;
   className?: string;
 }) {
   const dialogRef = useRef<HTMLDialogElement>(null);
@@ -115,10 +118,12 @@ export default function ShareButton({
         aria-label={heading}
         title={heading}
         // Phones get a square icon button (44px, as tall as Save beside it); wider screens show the label too.
-        className={`inline-flex items-center gap-2 rounded-lg bg-white px-4 py-2 font-semibold text-gray-900 transition-colors hover:bg-gray-100 max-sm:h-11 max-sm:w-11 max-sm:px-0 max-sm:py-0 ${className}`}
+        className={`inline-flex items-center gap-2 rounded-lg bg-white px-4 py-2 font-semibold text-gray-900 transition-colors hover:bg-gray-100 ${
+          iconOnlyOnPhone ? 'max-sm:h-11 max-sm:w-11 max-sm:px-0 max-sm:py-0' : ''
+        } ${className}`}
       >
-        <FiShare className="h-5 w-5 sm:h-4 sm:w-4" aria-hidden="true" />
-        <span className="hidden sm:inline">Share</span>
+        <FiShare className={iconOnlyOnPhone ? 'h-5 w-5 sm:h-4 sm:w-4' : 'h-4 w-4'} aria-hidden="true" />
+        <span className={iconOnlyOnPhone ? 'hidden sm:inline' : ''}>Share</span>
       </button>
 
       {/* showModal() puts the sheet in the top layer, above the header's clipping and the phone tab bar. */}

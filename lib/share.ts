@@ -79,3 +79,29 @@ export function pieceShareContent(piece: PieceDetail): ShareContent {
     ].join('\n'),
   };
 }
+
+/** A share-image address with a version that changes whenever something drawn on it changes. */
+export function versionedImage(path: string, drawn: (string | number)[]): string {
+  return `${path}?v=${fingerprint([SITE_IMAGE_VERSION, ...drawn].join('\n'))}`;
+}
+
+/** What gets shared for a collection page (a composer, a database or a level): its address and a friendly message. */
+export function pageShareContent({ path, name, line }: { path: string; name: string; line: string }): ShareContent {
+  const url = `${SITE_URL}${path}`;
+  return {
+    url,
+    title: name,
+    text: `Check out what I found on the ${SITE_NAME}: ${name}`,
+    emailSubject: `${name} on the ${SITE_NAME}`,
+    emailBody: [
+      `Check out what I found on the ${SITE_NAME}:`,
+      '',
+      name,
+      line,
+      '',
+      url,
+      '',
+      `The ${SITE_NAME} is a free, searchable catalogue of level-appropriate cello music, featuring under-recognized and underrepresented composers.`,
+    ].join('\n'),
+  };
+}

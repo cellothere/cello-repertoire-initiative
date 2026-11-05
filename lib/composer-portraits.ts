@@ -1,3 +1,5 @@
+import { slugify } from './slugs';
+
 /**
  * Public-domain portraits shown behind the Composers page header: women and Black composers from the catalogue.
  * Each file in /public/assets/portraits is a 240px-wide copy of the Wikimedia Commons image in `source`, where
@@ -41,3 +43,14 @@ export const COMPOSER_PORTRAITS: ComposerPortrait[] = [
   { slug: 'elfrida-andree', name: 'Elfrida Andrée', source: 'https://commons.wikimedia.org/wiki/File:Andr%C3%A9e,_Elfrida_i_VJ_6_1916.jpg', focus: '50% 8%' },
   { slug: 'ingeborg-von-bronsart', name: 'Ingeborg von Bronsart', source: 'https://commons.wikimedia.org/wiki/File:Ingeborg_Bronsart.jpg' },
 ];
+
+/**
+ * The portrait for a composer page, if there is one. Records sometimes carry middle names the portrait list leaves out
+ * ("Florence Beatrice Price" is florence-price), so first-and-last name also counts as a match.
+ */
+export function portraitFor(fullName: string): ComposerPortrait | undefined {
+  const words = fullName.trim().split(/\s+/);
+  const short = words.length > 2 ? `${words[0]} ${words[words.length - 1]}` : fullName;
+  const slugs = [slugify(fullName), slugify(short)];
+  return COMPOSER_PORTRAITS.find((portrait) => slugs.includes(portrait.slug));
+}

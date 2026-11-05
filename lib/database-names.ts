@@ -6,7 +6,7 @@ type IdentitySlug = Exclude<DatabaseSlug, 'living' | 'free'>;
 
 // Who belongs to each identity database, judged on the composer's own record rather than the piece's combined tags,
 // so a co-composer outside the group doesn't appear.
-const BELONGS: Record<IdentitySlug, (composer: ComposerSummary) => boolean> = {
+export const BELONGS: Record<IdentitySlug, (composer: ComposerSummary) => boolean> = {
   women: (c) => c.tags.includes('Woman'),
   'disabled-neurodivergent': (c) => c.tags.includes('Disabled') || c.tags.includes('Neurodivergent'),
   queer: (c) => c.tags.includes('LGBTQIA+'),
@@ -58,4 +58,33 @@ export function databaseNames(database: FeaturedDatabase, pieces: PieceSummary[]
     .filter((c) => c.id !== 0 && ids.has(c.id) && c.composer_full_name !== 'Various' && !CANON.has(c.composer_full_name.trim()) && belongs(c))
     .map((c) => c.composer_full_name.trim());
   return Array.from(new Set(names));
+}
+
+const isLiving = (c: ComposerSummary) => c.id !== 0 && !c.died.trim() && c.composer_full_name !== 'Various';
+
+/** The databases a composer belongs to on their own record, for the badges on their page. */
+export function composerDatabaseSlugs(composer: ComposerSummary): DatabaseSlug[] {
+  const identity = (Object.keys(BELONGS) as IdentitySlug[]).filter((slug) => BELONGS[slug](composer));
+  return isLiving(composer) ? [...identity, 'living'] : identity;
+}
+
+/**
+ * Everyone listed under a database's "Composers in this collection": the composers of its pieces who belong to it
+ * themselves (for Free Music, everyone with a page), alphabetical by surname.
+ */
+export function databaseComposers(database: FeaturedDatabase, pieces: PieceSummary[], composers: ComposerSummary[]): ComposerSummary[] {
+  const ids = new Set<number>();
+  for (const piece of pieces) {
+    if (database.matches(piece)) piece.composers.forEach((composer) => ids.add(composer.id));
+  }
+  const belongs =
+    database.slug === 'living' ? isLiving : database.slug === 'free' ? () => true : BELONGS[database.slug];
+  return composers
+    .filter((c) => c.id !== 0 && c.composer_full_name !== 'Various' && c.slug && ids.has(c.id) && belongs(c))
+    .sort(
+      (a, b) =>
+        (a.composer_last_name || a.composer_full_name).localeCompare(b.composer_last_name || b.composer_full_name, 'en', {
+          sensitivity: 'base',
+        }) || a.composer_full_name.localeCompare(b.composer_full_name)
+    );
 }

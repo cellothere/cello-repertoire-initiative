@@ -38,21 +38,21 @@ const TABS: Tab[] = [
     label: 'Browse',
     Icon: HiOutlineMusicalNote,
     ActiveIcon: HiMusicalNote,
-    matches: (p) => p === BROWSE_PATH || p === '/violin-music' || p.endsWith('-piece/[id]'),
+    matches: (p) => p === BROWSE_PATH || p.startsWith(`${BROWSE_PATH}/`) || p === '/violin-music' || p.endsWith('-piece/[id]'),
   },
   {
     href: '/featured-databases',
     label: 'Featured',
     Icon: HiOutlineSparkles,
     ActiveIcon: HiSparkles,
-    matches: (p) => p === '/featured-databases',
+    matches: (p) => p.startsWith('/featured-databases'),
   },
   {
     href: '/composers',
     label: 'Composers',
     Icon: HiOutlineUserGroup,
     ActiveIcon: HiUserGroup,
-    matches: (p) => p === '/composers',
+    matches: (p) => p.startsWith('/composers'),
   },
 ];
 

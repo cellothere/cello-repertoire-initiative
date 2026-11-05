@@ -8,7 +8,7 @@ import PortraitCarousel from '@/components/portrait-carousel';
 import { ExternalLink } from '@/components/linkify';
 import { EmptyState, ErrorState } from '@/components/state-messages';
 import { useJson } from '@/lib/use-json';
-import { composerWorksHref } from '@/lib/instruments';
+import { composerPath } from '@/lib/slugs';
 import type { ComposerSummary } from '@/lib/types';
 import { formatComposerName, normalizeForSearch, parseYear, removeDiacritics } from '@/utils/musicUtils';
 
@@ -60,7 +60,8 @@ function sortComposers(composers: ComposerSummary[], sort: ComposerSort) {
 }
 
 function ComposerRow({ composer }: { composer: ComposerSummary }) {
-  const worksHref = composer.cello_works > 0 ? composerWorksHref('cello', composer.composer_full_name) : null;
+  // Composers with cello works have their own page; the row opens it.
+  const worksHref = composer.cello_works > 0 && composer.slug ? composerPath(composer.slug) : null;
   const dates = composer.born ? `${composer.born}${composer.died ? `–${composer.died}` : '–'}` : '';
 
   const works = `${composer.cello_works} ${composer.cello_works === 1 ? 'work' : 'works'}`;

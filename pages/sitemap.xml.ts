@@ -1,14 +1,15 @@
 import type { GetServerSideProps } from 'next';
 import { SITE_URL } from '@/components/seo';
 import { INSTRUMENTS, pieceHref } from '@/lib/instruments';
-import { listPieces } from '@/lib/repertoire';
+import { DATABASE_SLUGS } from '@/lib/featured-databases';
+import { listComposers, listPieces } from '@/lib/repertoire';
+import { PAGE_LEVELS, composerPath, databasePath, levelPath } from '@/lib/slugs';
 
 // Public pages worth indexing; account pages are left out.
 const PAGES = [
   '/',
   '/cello-music',
   '/violin-music',
-  '/featured-databases',
   '/composers',
   '/recently-added',
   '/resources',
@@ -21,10 +22,21 @@ const PAGES = [
 const escapeXml = (value: string) =>
   value.replace(/[<>&'"]/g, (c) => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;', "'": '&apos;', '"': '&quot;' })[c]!);
 
-/** The sitemap search engines read: the main pages plus every piece page, built from the database. */
+/**
+ * The sitemap search engines read: the main pages, each level and Featured Database, every composer with cello works,
+ * and every piece page, built from the database.
+ */
 export const getServerSideProps: GetServerSideProps = async ({ res }) => {
-  const pieces = (await Promise.all(INSTRUMENTS.map(listPieces))).flat();
-  const paths = [...PAGES, ...pieces.map((piece) => pieceHref(piece.instrument, piece.id))];
+  const [pieces, composers] = await Promise.all([Promise.all(INSTRUMENTS.map(listPieces)).then((all) => all.flat()), listComposers()]);
+  const paths = [
+    ...PAGES,
+    ...PAGE_LEVELS.map(levelPath),
+    ...DATABASE_SLUGS.map(databasePath),
+    ...composers
+      .filter((c) => c.cello_works > 0 && c.slug && c.id !== 0 && c.composer_full_name !== 'Various')
+      .map((c) => composerPath(c.slug)),
+    ...pieces.map((piece) => pieceHref(piece.instrument, piece.id)),
+  ];
   const urls = paths.map((path) => `  <url><loc>${escapeXml(SITE_URL + path)}</loc></url>`).join('\n');
 
   res.setHeader('Content-Type', 'application/xml; charset=utf-8');

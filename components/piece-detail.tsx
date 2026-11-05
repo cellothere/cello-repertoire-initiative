@@ -18,6 +18,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { INSTRUMENT_LABELS, LISTING_PATHS, composerWorksHref, pieceHref } from '@/lib/instruments';
 import type { PieceDetail } from '@/lib/types';
 import { pieceShareContent, pieceShareImage } from '@/lib/share';
+import { composerPath } from '@/lib/slugs';
 import { formatDuration, hostnameOf, joinNames, parseYear, recordingEmbed, youtubeId } from '@/utils/musicUtils';
 
 function Card({ title, children, className = '' }: { title: string; children: ReactNode; className?: string }) {
@@ -58,13 +59,14 @@ export default function PieceDetailPage({ piece: pagePiece }: { piece: PieceDeta
 
   const instrumentLabel = INSTRUMENT_LABELS[piece.instrument];
   const listingPath = LISTING_PATHS[piece.instrument];
-  const composers = piece.composers.length ? piece.composers : [{ id: 0, full_name: 'Unknown Composer', bio_link: null }];
+  const composers = piece.composers.length ? piece.composers : [{ id: 0, full_name: 'Unknown Composer', bio_link: null, slug: null }];
   const byLine = joinNames(composers.map((c) => c.full_name));
   // "Arrangement by the composer." and similar notes aren't names; show only real arranger credits.
   const arrangers = piece.arrangers.filter((name) => !/\s(by|the)\s|\.$/.test(name));
-  // One "more by" link per composer; pieces with a missing composer record get none.
+  // One "more by" link per composer, to the composer's page (or, for Traditional and the like, the filtered list);
+  // pieces with a missing composer record get none.
   const worksLinks = piece.composers
-    .map((c) => ({ composer: c, href: composerWorksHref(piece.instrument, c.full_name) }))
+    .map((c) => ({ composer: c, href: c.slug ? composerPath(c.slug) : composerWorksHref(piece.instrument, c.full_name) }))
     .filter((link): link is { composer: (typeof composers)[number]; href: string } => Boolean(link.href));
   const year = parseYear(piece.composition_year);
   const duration = formatDuration(piece.duration);

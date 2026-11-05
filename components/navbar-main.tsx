@@ -159,7 +159,9 @@ const NavbarMain = () => {
     return () => router.events.off('routeChangeStart', close);
   }, [router.events]);
 
-  const isCurrent = (href: string) => router.pathname === href;
+  // Section pages (/cello-music/<level>, /featured-databases/<database>, /composers/<name>) count as their section.
+  const isCurrent = (href: string) =>
+    router.pathname === href || (href !== '/' && ['/cello-music', '/featured-databases', '/composers'].includes(href) && router.pathname.startsWith(`${href}/`));
   const musicActive = MUSIC_LINKS.some((link) => isCurrent(link.href)) || router.pathname.endsWith('-piece/[id]');
   const moreActive = MORE_LINKS.some((link) => isCurrent(link.href));
   const loginHref = `/login${router.pathname === '/login' ? '' : `?redirect=${encodeURIComponent(router.asPath)}`}`;

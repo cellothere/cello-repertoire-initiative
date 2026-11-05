@@ -72,6 +72,8 @@ export interface PieceDetail {
     id: number;
     full_name: string;
     bio_link: string | null;
+    /** The composer's page (/composers/<slug>), or null for Traditional, Various or a hidden composer. */
+    slug: string | null;
   }[];
 }
 
@@ -86,6 +88,8 @@ export interface ComposerSummary {
   tags: string[];
   bio_link: string | null;
   cello_works: number;
+  /** Address of the composer's page (/composers/<slug>); see lib/slugs.ts. */
+  slug: string;
 }
 
 export interface Resource {

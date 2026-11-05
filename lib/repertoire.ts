@@ -3,6 +3,7 @@ import { deathYear } from './copyright';
 import { getDb } from './mongodb';
 import { INSTRUMENTS, collectionFor, type Instrument } from './instruments';
 import type { ComposerRef, ComposerSummary, LiteratureBook, PieceDetail, PieceSummary, Resource } from './types';
+import { composerSlugMap } from './slugs';
 
 // ---------------------------------------------------------------------------
 // Normalisers: the collections were filled by hand, so be lenient about types.
@@ -147,7 +148,23 @@ export async function listPieces(instrument: Instrument): Promise<PieceSummary[]
   return dedupeById(docs.map((doc) => toSummary(doc, instrument)));
 }
 
-/** The newest pieces across every instrument collection. */
+/** A composer's enabled cello pieces (including co-written ones). */
+export async function listComposerPieces(composerId: number): Promise<PieceSummary[]> {
+  const db = await getDb();
+  const docs = await db
+    .collection(collectionFor('cello'))
+    .aggregate([
+      { $match: { disabled: false } },
+      composerIdsField,
+      { $match: { composerIds: composerId } },
+      { $lookup: { from: 'composers', localField: 'composerIds', foreignField: 'id', as: 'composerDetails' } },
+      arrangerLookup,
+      { $project: summaryProjection },
+    ])
+    .toArray();
+  return dedupeById(docs.map((doc) => toSummary(doc, 'cello')));
+}
+
 /** Everything added in the last `days` days, newest first, up to `limit` pieces. */
 export async function listRecentlyAdded(days = 30, limit = 1500): Promise<PieceSummary[]> {
   const db = await getDb();
@@ -214,6 +231,31 @@ export async function getPiecesByRefs(
     .filter((piece): piece is PieceSummary => Boolean(piece));
 }
 
+/** Composers who get their own page: real people (not Traditional, id 0, or "Various") with a visible record. */
+export const hasComposerPage = (composer: { id: number; full_name: string }) =>
+  composer.id !== 0 && composer.full_name.trim() !== '' && composer.full_name.trim() !== 'Various';
+
+const visibleComposerFilter = { composer_full_name: { $nin: [null, ''] }, disabled: false };
+
+let slugCache: { at: number; slugs: Promise<Map<number, string>> } | undefined;
+
+/** Every visible composer's page slug, cached for a few minutes per server. */
+export function getComposerSlugs(): Promise<Map<number, string>> {
+  if (!slugCache || Date.now() - slugCache.at > 5 * 60 * 1000) {
+    const slugs = getDb()
+      .then((db) =>
+        db
+          .collection('composers')
+          .find(visibleComposerFilter, { projection: { _id: 0, id: 1, composer_full_name: 1 } })
+          .toArray()
+      )
+      .then((docs) => composerSlugMap(docs.map((doc) => ({ id: Number(doc.id), name: str(doc.composer_full_name) }))));
+    slugs.catch(() => (slugCache = undefined));
+    slugCache = { at: Date.now(), slugs };
+  }
+  return slugCache.slugs;
+}
+
 export async function getPieceDetail(instrument: Instrument, id: number): Promise<PieceDetail | null> {
   const db = await getDb();
   const doc = await db
@@ -226,6 +268,7 @@ export async function getPieceDetail(instrument: Instrument, id: number): Promis
     .next();
 
   if (!doc) return null;
+  const slugs = await getComposerSlugs();
 
   return {
     id: Number(doc.id),
@@ -245,11 +288,14 @@ export async function getPieceDetail(instrument: Instrument, id: number): Promis
     arrangers: strArray(doc.arrangers),
     cover_image: str(doc.cover_image),
     cover_credit: str(doc.cover_credit),
-    composers: composerDocs(doc, { enabledOnly: false }).map((c) => ({
-      id: Number(c.id),
-      full_name: str(c.composer_full_name) || 'Unknown Composer',
-      bio_link: firstUrl(c.bio_link),
-    })),
+    composers: composerDocs(doc, { enabledOnly: false }).map((c) => {
+      const ref = { id: Number(c.id), full_name: str(c.composer_full_name) || 'Unknown Composer' };
+      return {
+        ...ref,
+        bio_link: firstUrl(c.bio_link),
+        slug: hasComposerPage(ref) && c.disabled !== true ? (slugs.get(ref.id) ?? null) : null,
+      };
+    }),
   };
 }
 
@@ -259,7 +305,7 @@ export async function listComposers(): Promise<ComposerSummary[]> {
     db
       .collection('composers')
       .find(
-        { composer_full_name: { $nin: [null, ''] }, disabled: false },
+        visibleComposerFilter,
         {
           projection: {
             _id: 0,
@@ -288,6 +334,7 @@ export async function listComposers(): Promise<ComposerSummary[]> {
   ]);
 
   const worksByComposer = new Map(counts.map(({ _id, count }) => [_id, count]));
+  const slugs = composerSlugMap(composers.map((doc) => ({ id: Number(doc.id), name: str(doc.composer_full_name) })));
 
   return dedupeById(
     composers.map((doc) => ({
@@ -301,6 +348,7 @@ export async function listComposers(): Promise<ComposerSummary[]> {
       tags: strArray(doc.tags),
       bio_link: firstUrl(doc.bio_link),
       cello_works: worksByComposer.get(doc.id) ?? 0,
+      slug: slugs.get(Number(doc.id)) ?? '',
     }))
   );
 }
@@ -355,4 +403,33 @@ export async function listResources(): Promise<Resource[]> {
   const db = await getDb();
   const docs = await db.collection('resources').find({ disabled: false }).sort({ title: 1 }).toArray();
   return docs.map(toResource);
+}
+
+/** The composer whose page is /composers/<slug>, with their cello pieces; null when there is no such page. */
+export async function getComposerPage(slug: string): Promise<{ composer: ComposerSummary; pieces: PieceSummary[] } | null> {
+  const slugs = await getComposerSlugs();
+  const id = Array.from(slugs).find(([, value]) => value === slug)?.[0];
+  if (id === undefined) return null;
+
+  const db = await getDb();
+  const doc = await db.collection('composers').findOne({ id, ...visibleComposerFilter });
+  if (!doc) return null;
+  const composer: ComposerSummary = {
+    id,
+    composer_full_name: str(doc.composer_full_name),
+    composer_first_name: str(doc.composer_first_name),
+    composer_last_name: str(doc.composer_last_name),
+    born: str(doc.born),
+    died: str(doc.died),
+    nationality: strArray(doc.nationality),
+    tags: strArray(doc.tags),
+    bio_link: firstUrl(doc.bio_link),
+    cello_works: 0,
+    slug,
+  };
+  if (!hasComposerPage({ id, full_name: composer.composer_full_name })) return null;
+
+  const pieces = await listComposerPieces(id);
+  if (pieces.length === 0) return null;
+  return { composer: { ...composer, cello_works: pieces.length }, pieces };
 }

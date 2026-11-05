@@ -5,7 +5,7 @@ const nextConfig = {
 
   // The share-image routes (lib/og.tsx) read their fonts and pictures from disk.
   outputFileTracingIncludes: {
-    '/api/og/**': ['./lib/og-fonts/*.woff', './public/assets/*.png', './public/covers/**/*'],
+    '/api/og/**': ['./lib/og-fonts/*.woff', './public/assets/*.png', './public/assets/portraits/*', './public/covers/**/*'],
   },
 
   async redirects() {

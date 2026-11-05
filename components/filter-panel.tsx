@@ -261,25 +261,28 @@ export default function FilterPanel({ idPrefix, filters, options, onToggle, onYe
 
   return (
     <div>
-      <Section id={`${idPrefix}-level`} title="Level" count={filters.level.length} defaultOpen>
-        <CheckboxList
-          idPrefix={`${idPrefix}-level`}
-          options={options.level}
-          selected={filters.level}
-          onToggle={(value) => onToggle('level', value)}
-          renderAfter={(option) => (
-            <button
-              type="button"
-              onClick={() => setRubricLevel(option.value)}
-              className="rounded-full p-2.5 text-gray-400 transition hover:text-teal-700 focus-visible:opacity-100 lg:p-1 lg:opacity-0 lg:group-hover:opacity-100"
-              aria-label={`What does ${option.label} mean?`}
-              title="What does this level mean?"
-            >
-              <AiFillQuestionCircle className="h-5 w-5 lg:h-4 lg:w-4" aria-hidden="true" />
-            </button>
-          )}
-        />
-      </Section>
+      {/* Level pages browse a single level, so they pass no level options. */}
+      {options.level.length > 0 && (
+        <Section id={`${idPrefix}-level`} title="Level" count={filters.level.length} defaultOpen>
+          <CheckboxList
+            idPrefix={`${idPrefix}-level`}
+            options={options.level}
+            selected={filters.level}
+            onToggle={(value) => onToggle('level', value)}
+            renderAfter={(option) => (
+              <button
+                type="button"
+                onClick={() => setRubricLevel(option.value)}
+                className="rounded-full p-2.5 text-gray-400 transition hover:text-teal-700 focus-visible:opacity-100 lg:p-1 lg:opacity-0 lg:group-hover:opacity-100"
+                aria-label={`What does ${option.label} mean?`}
+                title="What does this level mean?"
+              >
+                <AiFillQuestionCircle className="h-5 w-5 lg:h-4 lg:w-4" aria-hidden="true" />
+              </button>
+            )}
+          />
+        </Section>
+      )}
 
       <Section
         id={`${idPrefix}-instrumentation`}
