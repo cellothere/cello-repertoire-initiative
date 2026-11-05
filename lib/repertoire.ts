@@ -313,11 +313,9 @@ function resourceAddedAt(doc: Document): string | undefined {
   return undefined;
 }
 
-/** Books for the Literature page, alphabetical by title. */
-export async function listLiterature(): Promise<LiteratureBook[]> {
-  const db = await getDb();
-  const docs = await db.collection('literature').find({ disabled: false }).sort({ title: 1 }).toArray();
-  return docs.map((doc) => ({
+/** A literature document as the Literature page shows it. */
+export function toBook(doc: Document): LiteratureBook {
+  return {
     _id: String(doc._id),
     title: str(doc.title),
     authors: strArray(doc.authors),
@@ -330,13 +328,19 @@ export async function listLiterature(): Promise<LiteratureBook[]> {
     extra_links: strArray(doc.extra_links).filter((v) => /^https?:\/\//.test(v)),
     description: str(doc.description),
     description_sources: strArray(doc.description_sources),
-  }));
+  };
 }
 
-export async function listResources(): Promise<Resource[]> {
+/** Books for the Literature page, alphabetical by title. */
+export async function listLiterature(): Promise<LiteratureBook[]> {
   const db = await getDb();
-  const docs = await db.collection('resources').find({ disabled: false }).sort({ title: 1 }).toArray();
-  return docs.map((doc) => ({
+  const docs = await db.collection('literature').find({ disabled: false }).sort({ title: 1 }).toArray();
+  return docs.map(toBook);
+}
+
+/** A resource document as the Resource Catalog shows it. */
+export function toResource(doc: Document): Resource {
+  return {
     _id: String(doc._id),
     title: str(doc.title),
     description: str(doc.description),
@@ -344,5 +348,11 @@ export async function listResources(): Promise<Resource[]> {
     extra_links: strArray(doc.extra_links).filter((v) => /^https?:\/\//.test(v)),
     description_sources: strArray(doc.description_sources),
     added_at: resourceAddedAt(doc),
-  }));
+  };
+}
+
+export async function listResources(): Promise<Resource[]> {
+  const db = await getDb();
+  const docs = await db.collection('resources').find({ disabled: false }).sort({ title: 1 }).toArray();
+  return docs.map(toResource);
 }

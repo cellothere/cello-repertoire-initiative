@@ -7,7 +7,8 @@ import CitedText from '@/components/cited-text';
 import PageHeader from '@/components/page-header';
 import { EmptyState, ErrorState } from '@/components/state-messages';
 import { useClampToggle } from '@/lib/use-clamp-toggle';
-import { useJson } from '@/lib/use-json';
+import { EditButton, InlineEditor, useEditableList } from '@/components/admin/editable-list';
+import { RESOURCE_FIELDS } from '@/lib/admin-fields';
 import type { Resource } from '@/lib/types';
 import { hostnameOf, normalizeForSearch } from '@/utils/musicUtils';
 
@@ -69,7 +70,7 @@ function ResourceCard({ resource }: { resource: Resource }) {
 }
 
 const Resources: NextPage = () => {
-  const { data, error, loading, retry } = useJson<Resource[]>('/api/resources');
+  const { data, error, loading, retry, adminView, editingId, setEditingId, saved } = useEditableList<Resource>('/api/resources');
   const [search, setSearch] = useState('');
 
   const visible = useMemo(() => {
@@ -128,8 +129,25 @@ const Resources: NextPage = () => {
           ) : (
             <ul className="grid gap-3 sm:gap-6 md:grid-cols-2 lg:grid-cols-3">
               {visible.map((resource, index) => (
-                <li key={resource._id} className="reveal min-w-0" style={{ '--i': index } as React.CSSProperties}>
-                  <ResourceCard resource={resource} />
+                <li
+                  key={resource._id}
+                  className={`reveal min-w-0 ${editingId === resource._id ? 'md:col-span-2 lg:col-span-3' : ''}`}
+                  style={{ '--i': index } as React.CSSProperties}
+                >
+                  {editingId === resource._id ? (
+                    <InlineEditor
+                      record={resource}
+                      specs={RESOURCE_FIELDS}
+                      endpoint="/api/admin/resource"
+                      onSaved={saved}
+                      onCancel={() => setEditingId(null)}
+                    />
+                  ) : (
+                    <div className="relative h-full">
+                      <ResourceCard resource={resource} />
+                      {adminView && <EditButton label={resource.title} onClick={() => setEditingId(resource._id)} />}
+                    </div>
+                  )}
                 </li>
               ))}
             </ul>

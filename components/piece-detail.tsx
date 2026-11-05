@@ -1,9 +1,9 @@
-import { useMemo, useState, type ReactNode } from 'react';
+import { useMemo, useRef, useState, type ReactNode } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { AiFillQuestionCircle } from 'react-icons/ai';
 import { BsFileEarmarkMusicFill } from 'react-icons/bs';
-import { FaArrowRight, FaChevronRight } from 'react-icons/fa';
+import { FaArrowRight, FaChevronRight, FaPen } from 'react-icons/fa';
 import { HiMusicNote } from 'react-icons/hi';
 import Seo from './seo';
 import SaveButton from './save-button';
@@ -12,6 +12,8 @@ import YouTubeEmbed from './youtube-embed';
 import RecordingPlayer from './recording-player';
 import Linkify, { ExternalLink } from './linkify';
 import CitedText, { stripCitations } from './cited-text';
+import PieceEditor from './admin/piece-editor';
+import { useAuth } from '@/contexts/AuthContext';
 import { INSTRUMENT_LABELS, LISTING_PATHS, composerWorksHref, pieceHref } from '@/lib/instruments';
 import type { PieceDetail } from '@/lib/types';
 import { formatDuration, hostnameOf, joinNames, parseYear, recordingEmbed, youtubeId } from '@/utils/musicUtils';
@@ -30,8 +32,23 @@ function summarize(text: string, max = 155): string {
   return clean.length > max ? `${clean.slice(0, max - 1).trimEnd()}…` : clean;
 }
 
-export default function PieceDetailPage({ piece }: { piece: PieceDetail }) {
+export default function PieceDetailPage({ piece: pagePiece }: { piece: PieceDetail }) {
   const [rubricOpen, setRubricOpen] = useState(false);
+  const { adminView } = useAuth();
+  const pieceKey = `${pagePiece.instrument}:${pagePiece.id}`;
+  // Admin edits: the saved version replaces the page's data until the visitor moves to another piece.
+  const [saved, setSaved] = useState<{ key: string; piece: PieceDetail | null; changed: string[] } | null>(null);
+  const [editingKey, setEditingKey] = useState<string | null>(null);
+  const editorRef = useRef<HTMLDivElement>(null);
+  const savedHere = saved?.key === pieceKey ? saved : null;
+  const piece = savedHere?.piece ?? pagePiece;
+  const editing = adminView && editingKey === pieceKey;
+
+  const openEditor = () => {
+    setEditingKey(pieceKey);
+    setSaved(null);
+    requestAnimationFrame(() => editorRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
+  };
 
   const instrumentLabel = INSTRUMENT_LABELS[piece.instrument];
   const listingPath = LISTING_PATHS[piece.instrument];
@@ -190,6 +207,16 @@ export default function PieceDetailPage({ piece }: { piece: PieceDetail }) {
               variant="full"
               className="shrink-0 justify-center py-2.5 sm:py-2"
             />
+            {adminView && !editing && (
+              <button
+                type="button"
+                onClick={openEditor}
+                className="inline-flex shrink-0 items-center gap-2 rounded-lg bg-amber-400 px-4 py-2.5 font-semibold text-gray-900 transition-colors hover:bg-amber-300 sm:py-2"
+              >
+                <FaPen className="h-3.5 w-3.5" aria-hidden="true" />
+                Edit piece
+              </button>
+            )}
             {worksLinks.map(({ composer, href }) => (
               <Link
                 key={composer.id}
@@ -203,6 +230,35 @@ export default function PieceDetailPage({ piece }: { piece: PieceDetail }) {
           </div>
         </div>
       </header>
+
+      {adminView && (editing || savedHere) && (
+        <div ref={editorRef} className="container mx-auto scroll-mt-28 px-4 pt-5 md:pt-8">
+          {editing ? (
+            <section className="card p-5 ring-2 ring-amber-300 sm:p-6">
+              <PieceEditor
+                piece={piece}
+                onClose={() => setEditingKey(null)}
+                onSaved={(updated, changed) => {
+                  setSaved({ key: pieceKey, piece: updated, changed });
+                  setEditingKey(null);
+                }}
+              />
+            </section>
+          ) : savedHere ? (
+            <p role="status" className="rounded-xl bg-teal-50 px-4 py-3 text-sm text-teal-900 ring-1 ring-inset ring-teal-200">
+              {savedHere.changed.length > 0 ? (
+                <>
+                  Saved: {savedHere.changed.join(', ')}. This page is updated for visitors now; lists and search catch up within a
+                  few minutes.
+                </>
+              ) : (
+                'No changes to save.'
+              )}
+              {!savedHere.piece && ' This piece is hidden from the site, so the page will show as not found.'}
+            </p>
+          ) : null}
+        </div>
+      )}
 
       <div className="container mx-auto grid gap-4 px-4 py-5 sm:gap-6 md:py-12 lg:grid-cols-3 lg:gap-8">
         <div className="space-y-4 sm:space-y-6 lg:col-span-2">

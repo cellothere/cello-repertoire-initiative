@@ -5,6 +5,7 @@ import { useRouter } from 'next/router';
 import { FaChevronDown, FaHeart, FaSearch, FaSignInAlt, FaUserCircle } from 'react-icons/fa';
 import { IoClose } from 'react-icons/io5';
 import { useAuth } from '@/contexts/AuthContext';
+import AdminBar from './admin/admin-bar';
 
 interface NavLink {
   href: string;
@@ -256,6 +257,7 @@ const NavbarMain = () => {
           <SearchForm autoFocus onSubmitted={() => setMobileSearchOpen(false)} />
         </div>
       )}
+      <AdminBar />
     </header>
   );
 };

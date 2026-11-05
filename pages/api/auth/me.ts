@@ -1,5 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { getAuthUser } from '@/lib/auth-middleware';
+import { getAuthUser, isSuperUser } from '@/lib/auth-middleware';
 import { allowMethods } from '@/lib/api';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -21,6 +21,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         username: user.username,
         createdAt: user.createdAt,
         savedPieces: user.savedPieces,
+        isSuperUser: isSuperUser(user),
       },
     });
   } catch (error) {

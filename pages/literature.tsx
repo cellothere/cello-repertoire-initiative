@@ -7,7 +7,8 @@ import CitedText from '@/components/cited-text';
 import PageHeader from '@/components/page-header';
 import { EmptyState, ErrorState } from '@/components/state-messages';
 import { useClampToggle } from '@/lib/use-clamp-toggle';
-import { useJson } from '@/lib/use-json';
+import { EditButton, InlineEditor, useEditableList } from '@/components/admin/editable-list';
+import { LITERATURE_FIELDS } from '@/lib/admin-fields';
 import { LITERATURE_TOPICS, type LiteratureBook } from '@/lib/types';
 import { hostnameOf, normalizeForSearch } from '@/utils/musicUtils';
 
@@ -82,7 +83,7 @@ function BookCard({ book }: { book: LiteratureBook }) {
 }
 
 const Literature: NextPage = () => {
-  const { data, error, loading, retry } = useJson<LiteratureBook[]>('/api/literature');
+  const { data, error, loading, retry, adminView, editingId, setEditingId, saved } = useEditableList<LiteratureBook>('/api/literature');
   const [search, setSearch] = useState('');
   const [topic, setTopic] = useState<string | null>(null);
 
@@ -174,8 +175,25 @@ const Literature: NextPage = () => {
           ) : (
             <ul className="grid gap-3 sm:gap-6 md:grid-cols-2 lg:grid-cols-3">
               {visible.map((book, index) => (
-                <li key={book._id} className="reveal min-w-0" style={{ '--i': index } as React.CSSProperties}>
-                  <BookCard book={book} />
+                <li
+                  key={book._id}
+                  className={`reveal min-w-0 ${editingId === book._id ? 'md:col-span-2 lg:col-span-3' : ''}`}
+                  style={{ '--i': index } as React.CSSProperties}
+                >
+                  {editingId === book._id ? (
+                    <InlineEditor
+                      record={book}
+                      specs={LITERATURE_FIELDS}
+                      endpoint="/api/admin/literature"
+                      onSaved={saved}
+                      onCancel={() => setEditingId(null)}
+                    />
+                  ) : (
+                    <div className="relative h-full">
+                      <BookCard book={book} />
+                      {adminView && <EditButton label={book.title} onClick={() => setEditingId(book._id)} />}
+                    </div>
+                  )}
                 </li>
               ))}
             </ul>

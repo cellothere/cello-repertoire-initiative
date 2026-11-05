@@ -13,11 +13,16 @@ export interface User {
   username: string;
   createdAt: string;
   savedPieces: SavedPiece[];
+  /** May switch to admin view and edit the catalogue. */
+  isSuperUser?: boolean;
 }
 
 interface AuthContextType {
   user: User | null;
   loading: boolean;
+  /** True when a super user has switched to admin view; always false for everyone else. */
+  adminView: boolean;
+  setAdminView: (on: boolean) => void;
   login: (email: string, password: string) => Promise<void>;
   register: (email: string, username: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
@@ -31,6 +36,16 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 const PENDING_SAVE_KEY = 'pendingSave';
+const ADMIN_VIEW_KEY = 'cri-admin-view';
+
+/** The super user's last choice of view on this device, so it survives reloads. */
+function storedAdminView(): boolean {
+  try {
+    return window.localStorage.getItem(ADMIN_VIEW_KEY) === '1';
+  } catch {
+    return false;
+  }
+}
 const savedKey = (pieceId: number, instrument: string) => `${instrument}:${pieceId}`;
 
 /** Remember a piece the visitor tried to save before signing in, so it can be saved afterwards. */
@@ -77,9 +92,22 @@ async function loadCurrentUser(): Promise<User | null> {
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [adminViewChosen, setAdminViewChosen] = useState(false);
+
+  const setAdminView = useCallback((on: boolean) => {
+    setAdminViewChosen(on);
+    try {
+      window.localStorage.setItem(ADMIN_VIEW_KEY, on ? '1' : '0');
+    } catch {
+      // The choice lasts until the page is reloaded.
+    }
+  }, []);
+
+  const adminView = Boolean(user?.isSuperUser) && adminViewChosen;
 
   const fetchUser = useCallback(async () => {
     setUser(await loadCurrentUser());
+    setAdminViewChosen(storedAdminView());
     setLoading(false);
   }, []);
 
@@ -88,6 +116,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     loadCurrentUser().then((current) => {
       if (!active) return;
       setUser(current);
+      setAdminViewChosen(storedAdminView());
       setLoading(false);
     });
     return () => {
@@ -217,6 +246,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     () => ({
       user,
       loading,
+      adminView,
+      setAdminView,
       login,
       register,
       logout,
@@ -226,7 +257,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       isPieceSaved,
       refetchUser: fetchUser,
     }),
-    [user, loading, login, register, logout, updateUsername, savePiece, unsavePiece, isPieceSaved, fetchUser]
+    [user, loading, adminView, setAdminView, login, register, logout, updateUsername, savePiece, unsavePiece, isPieceSaved, fetchUser]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

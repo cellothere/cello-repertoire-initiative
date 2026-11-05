@@ -78,3 +78,11 @@ export function useJson<T>(url: string | null, { cache: useCache = true }: { cac
 
   return { data, error, loading: Boolean(url) && data === undefined && !error, retry };
 }
+
+/** Replace a cached response in place (after an admin edit), so returning to the page shows the saved version. */
+export function patchCachedJson<T>(url: string, update: (value: T) => T) {
+  const entry = cache.get(url);
+  if (!entry || entry.value === undefined) return;
+  entry.value = update(entry.value as T);
+  entry.promise = Promise.resolve(entry.value);
+}

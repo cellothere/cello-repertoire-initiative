@@ -17,6 +17,8 @@ export interface User {
   createdAt: Date;
   updatedAt: Date;
   savedPieces: SavedPiece[];
+  /** 1 for editors who may switch to admin view and edit the catalogue (set by hand in the database). */
+  isSuperUser?: number | boolean;
 }
 
 export async function getUsersCollection() {
@@ -67,6 +69,18 @@ export async function getAuthUser(req: NextApiRequest): Promise<User | null> {
     return null;
   }
 }
+
+export const isSuperUser = (user: Pick<User, 'isSuperUser'> | null): boolean =>
+  user?.isSuperUser === 1 || user?.isSuperUser === true;
+
+/** Like requireAuth, but only for super users; anyone else gets an error starting "Forbidden". */
+export async function requireSuperUser(req: NextApiRequest): Promise<User> {
+  const user = await requireAuth(req);
+  if (!isSuperUser(user)) throw new Error('Forbidden: not a super user');
+  return user;
+}
+
+export const isForbidden = (error: unknown): boolean => error instanceof Error && error.message.startsWith('Forbidden');
 
 export const isUnauthorized = (error: unknown): boolean =>
   error instanceof Error && error.message.startsWith('Unauthorized');
