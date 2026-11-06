@@ -98,6 +98,16 @@ export const levelRank = (level: string): number => {
   return index === -1 ? LEVEL_ORDER.length : index;
 };
 
+/** Order pieces outward from a level: that level first, then each easier level, then each harder one up to the top. */
+export function sortFromLevel<T extends { level: string }>(pieces: T[], start: string): T[] {
+  const anchor = levelRank(start);
+  const place = (level: string) => {
+    const rank = levelRank(level);
+    return rank <= anchor ? anchor - rank : rank;
+  };
+  return [...pieces].sort((a, b) => place(a.level) - place(b.level));
+}
+
 /** Extract a usable year from values like "1890", "c. 1890", "1890-95" or "0000". */
 export const parseYear = (value: string | undefined): number | null => {
   const match = value?.match(/\d{4}/);

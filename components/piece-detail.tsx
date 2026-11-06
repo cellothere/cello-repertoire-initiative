@@ -19,7 +19,7 @@ import { INSTRUMENT_LABELS, LISTING_PATHS, composerWorksHref, pieceHref } from '
 import type { PieceDetail } from '@/lib/types';
 import { pieceShareContent, pieceShareImage } from '@/lib/share';
 import { composerPath } from '@/lib/slugs';
-import { formatDuration, hostnameOf, joinNames, parseYear, recordingEmbed, youtubeId, youtubeStart } from '@/utils/musicUtils';
+import { baseLevel, formatDuration, hostnameOf, joinNames, parseYear, recordingEmbed, youtubeId, youtubeStart } from '@/utils/musicUtils';
 
 function Card({ title, children, className = '' }: { title: string; children: ReactNode; className?: string }) {
   return (
@@ -315,8 +315,17 @@ export default function PieceDetailPage({ piece: pagePiece }: { piece: PieceDeta
                   <h3 className="mb-2 mt-6 text-sm font-semibold uppercase tracking-wide text-gray-500">Technical focus</h3>
                   <ul className="flex flex-wrap gap-2">
                     {[...piece.technique_focus].sort((x, y) => x.localeCompare(y, 'en', { sensitivity: 'base' })).map((focus) => (
-                      <li key={focus} className="chip">
-                        {focus}
+                      <li key={focus}>
+                        {listingPath ? (
+                          <Link
+                            href={{ pathname: listingPath, query: { focus, near: baseLevel(piece.level) } }}
+                            className="chip transition-colors hover:bg-teal-100 hover:text-teal-900"
+                          >
+                            {focus}
+                          </Link>
+                        ) : (
+                          <span className="chip">{focus}</span>
+                        )}
                       </li>
                     ))}
                   </ul>

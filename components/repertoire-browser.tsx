@@ -26,6 +26,7 @@ import {
   normalizeForSearch,
   parseYear,
   searchRank,
+  sortFromLevel,
   sortPieces,
 } from '@/utils/musicUtils';
 
@@ -238,12 +239,15 @@ export default function RepertoireBrowser({
   // A search under the default order puts the closest matches first; any other chosen sort is followed exactly.
   const searchQuery = deferredFilters.q.trim();
   const bestMatchesFirst = searchQuery.length > 0 && state.sort === DEFAULT_BROWSE_STATE.sort;
+  // Arriving from a technique chip starts at that piece's level, for as long as a technique filter is on.
+  const startLevel = state.sort === DEFAULT_BROWSE_STATE.sort && state.focus.length > 0 ? state.near : '';
   const sorted = useMemo(() => {
-    const ordered = sortPieces(matches.map((entry) => entry.piece), state.sort);
+    const byLevel = sortPieces(matches.map((entry) => entry.piece), state.sort);
+    const ordered = startLevel ? sortFromLevel(byLevel, startLevel) : byLevel;
     if (!bestMatchesFirst) return ordered;
     const ranks = new Map(matches.map((entry) => [entry.piece, searchRank(searchQuery, entry.piece.title, entry.text)]));
     return ordered.sort((a, b) => (ranks.get(a) ?? 0) - (ranks.get(b) ?? 0));
-  }, [matches, state.sort, bestMatchesFirst, searchQuery]);
+  }, [matches, state.sort, startLevel, bestMatchesFirst, searchQuery]);
 
   const composerLabels = useMemo(() => {
     const labels = new Map<string, string>();
@@ -312,7 +316,7 @@ export default function RepertoireBrowser({
   );
 
   const setYears = useCallback((from: number, to: number) => update({ from, to }), [update]);
-  const clearFilters = useCallback(() => update({ ...EMPTY_FILTERS }), [update]);
+  const clearFilters = useCallback(() => update({ ...EMPTY_FILTERS, near: '' }), [update]);
   const closeDrawer = useCallback(() => setDrawerOpen(false), []);
 
   const chips = [
@@ -339,6 +343,12 @@ export default function RepertoireBrowser({
       : []),
   ];
   const sortLabel = SORT_OPTIONS.find((option) => option.value === state.sort)?.label ?? '';
+  // An order the sort menu can't show.
+  const specialOrder = bestMatchesFirst
+    ? 'Best matches first'
+    : startLevel
+      ? `${startLevel} first, then easier, then harder`
+      : '';
   const hasQuery = state.q.trim().length > 0;
   const activeCount = chips.length + (hasQuery ? 1 : 0);
   const isLoading = loading || !ready;
@@ -431,6 +441,7 @@ export default function RepertoireBrowser({
             </button>
             <p className="hidden text-sm text-gray-600 sm:block" aria-live="polite">
               {resultCount}
+              {!isLoading && specialOrder && <span className="text-gray-500"> · {specialOrder}</span>}
             </p>
             <div className="ml-auto flex items-center gap-2 sm:gap-3">
               <SortSelect id="sort-select" value={state.sort} onChange={(sort) => update({ sort })} />
@@ -440,7 +451,7 @@ export default function RepertoireBrowser({
           <p className="mt-3 truncate text-sm text-gray-600 sm:hidden" aria-live="polite">
             {resultCount}
             {/* The phone toolbar only says "Sort", so name the current order here. */}
-            {!isLoading && <span className="text-gray-500"> · {bestMatchesFirst ? 'Best matches first' : sortLabel}</span>}
+            {!isLoading && <span className="text-gray-500"> · {specialOrder || sortLabel}</span>}
           </p>
 
           {chips.length > 0 && (

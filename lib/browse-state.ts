@@ -2,7 +2,7 @@ import type { ParsedUrlQuery } from 'querystring';
 import type { Instrument } from './instruments';
 import type { SortKey, ViewMode } from './types';
 import { DATABASE_SLUGS } from './featured-databases';
-import { CURRENT_YEAR, MIN_YEAR, isSortKey, normalizeInstrumentationOption } from '@/utils/musicUtils';
+import { CURRENT_YEAR, LEVEL_ORDER, MIN_YEAR, isSortKey, normalizeInstrumentationOption } from '@/utils/musicUtils';
 
 export interface BrowseFilters {
   q: string;
@@ -18,6 +18,8 @@ export interface BrowseFilters {
 }
 
 export interface BrowseState extends BrowseFilters {
+  /** The level to start from when arriving from a technique chip on a piece; empty for the usual order. */
+  near: string;
   sort: SortKey;
   view: ViewMode;
   page: number;
@@ -33,6 +35,7 @@ export const DEFAULT_BROWSE_STATE: BrowseState = {
   database: [],
   from: MIN_YEAR,
   to: CURRENT_YEAR,
+  near: '',
   sort: 'level-asc',
   view: 'grid',
   page: 1,
@@ -88,6 +91,7 @@ export function parseBrowseQuery(query: ParsedUrlQuery, instrument: Instrument):
   if (from > to) [from, to] = [to, from];
 
   const page = Number(first(query.page));
+  const near = first(query.near) ?? '';
 
   return {
     q: q.slice(0, 200),
@@ -101,6 +105,7 @@ export function parseBrowseQuery(query: ParsedUrlQuery, instrument: Instrument):
     database: list(query.database).filter((slug) => (DATABASE_SLUGS as string[]).includes(slug)),
     from,
     to,
+    near: near !== 'Various' && LEVEL_ORDER.includes(near) ? near : '',
     sort,
     view,
     page: Number.isInteger(page) && page > 0 ? page : 1,
@@ -119,6 +124,7 @@ export function browseStateToQuery(state: BrowseState): Record<string, string | 
   if (state.database.length) query.database = state.database;
   if (state.from !== MIN_YEAR) query.from = String(state.from);
   if (state.to !== CURRENT_YEAR) query.to = String(state.to);
+  if (state.near) query.near = state.near;
   if (state.sort !== DEFAULT_BROWSE_STATE.sort) query.sort = state.sort;
   if (state.view !== DEFAULT_BROWSE_STATE.view) query.view = state.view;
   if (state.page > 1) query.page = String(state.page);
