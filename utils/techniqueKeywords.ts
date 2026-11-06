@@ -47,6 +47,7 @@ const techniqueKeywords: string[] = [
     'String Crossings',
     'Bow Retakes',
     'Bow Control',
+    'Bow Sustain',
     'Tremolo',
     'Col Legno',
     'Sul Ponticello',

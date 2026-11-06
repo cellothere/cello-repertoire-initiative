@@ -8,7 +8,7 @@ import PieceResults, { CardSkeletonGrid, SortSelect, ViewToggle } from './piece-
 import { EmptyState, ErrorState } from './state-messages';
 import { useJson } from '@/lib/use-json';
 import { useBrowseState } from '@/lib/use-browse-state';
-import { EMPTY_FILTERS, isYearFilterActive, type BrowseFilters } from '@/lib/browse-state';
+import { DEFAULT_BROWSE_STATE, EMPTY_FILTERS, isYearFilterActive, type BrowseFilters } from '@/lib/browse-state';
 import { featuredDatabases, type DatabaseSlug } from '@/lib/featured-databases';
 import { useFreeMusicCountry } from '@/lib/use-free-music-country';
 import { INSTRUMENT_LABELS, type Instrument } from '@/lib/instruments';
@@ -22,8 +22,10 @@ import {
   instrumentationCategories,
   instrumentationOptions,
   matchesInstrumentationOption,
+  matchesSearchWord,
   normalizeForSearch,
   parseYear,
+  searchRank,
   sortPieces,
 } from '@/utils/musicUtils';
 
@@ -212,7 +214,7 @@ export default function RepertoireBrowser({
     const focus = f.focus.map(normalizeForSearch);
     const yearActive = isYearFilterActive(f);
     const all: Record<FacetKey, (entry: Entry) => boolean> = {
-      q: (entry) => tokens.every((token) => entry.text.includes(token)),
+      q: (entry) => tokens.every((token) => matchesSearchWord(entry.text, token)),
       composer: (entry) => composers.size === 0 || entry.piece.composers.some((c) => composers.has(c.full_name)),
       level: (entry) => levels.size === 0 || levels.has(entry.level),
       country: (entry) => countries.size === 0 || entry.piece.nationality.some((n) => countries.has(n)),
@@ -231,9 +233,17 @@ export default function RepertoireBrowser({
     [indexed, tests]
   );
 
-  const filtered = useMemo(() => matchingExcept(null).map((entry) => entry.piece), [matchingExcept]);
+  const matches = useMemo(() => matchingExcept(null), [matchingExcept]);
 
-  const sorted = useMemo(() => sortPieces(filtered, state.sort), [filtered, state.sort]);
+  // A search under the default order puts the closest matches first; any other chosen sort is followed exactly.
+  const searchQuery = deferredFilters.q.trim();
+  const bestMatchesFirst = searchQuery.length > 0 && state.sort === DEFAULT_BROWSE_STATE.sort;
+  const sorted = useMemo(() => {
+    const ordered = sortPieces(matches.map((entry) => entry.piece), state.sort);
+    if (!bestMatchesFirst) return ordered;
+    const ranks = new Map(matches.map((entry) => [entry.piece, searchRank(searchQuery, entry.piece.title, entry.text)]));
+    return ordered.sort((a, b) => (ranks.get(a) ?? 0) - (ranks.get(b) ?? 0));
+  }, [matches, state.sort, bestMatchesFirst, searchQuery]);
 
   const composerLabels = useMemo(() => {
     const labels = new Map<string, string>();
@@ -430,7 +440,7 @@ export default function RepertoireBrowser({
           <p className="mt-3 truncate text-sm text-gray-600 sm:hidden" aria-live="polite">
             {resultCount}
             {/* The phone toolbar only says "Sort", so name the current order here. */}
-            {!isLoading && <span className="text-gray-500"> · {sortLabel}</span>}
+            {!isLoading && <span className="text-gray-500"> · {bestMatchesFirst ? 'Best matches first' : sortLabel}</span>}
           </p>
 
           {chips.length > 0 && (

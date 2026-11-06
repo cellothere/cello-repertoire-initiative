@@ -22,7 +22,36 @@ export const removeDiacritics = (str: string): string =>
   str.normalize('NFD').replace(/[̀-ͯ]/g, '');
 
 export const normalizeForSearch = (str: string): string =>
-  removeDiacritics(str.toLowerCase()).replace(/[.'’]/g, '').replace(/\s+/g, ' ').trim();
+  removeDiacritics(str.toLowerCase()).replace(/[.'’‘ʻ]/g, '').replace(/\s+/g, ' ').trim();
+
+const WORD_CHARACTER = /[\p{L}\p{N}]/u;
+
+/** Does `term` occur in `text` starting at the beginning of a word and, if `wholeWord`, ending at the end of one? */
+function occursAsWord(text: string, term: string, wholeWord: boolean): boolean {
+  for (let at = text.indexOf(term); at !== -1; at = text.indexOf(term, at + 1)) {
+    const end = at + term.length;
+    const startsWord = at === 0 || !WORD_CHARACTER.test(text[at - 1]);
+    if (startsWord && (!wholeWord || end === text.length || !WORD_CHARACTER.test(text[end]))) return true;
+  }
+  return false;
+}
+
+/**
+ * Does one typed word match normalized piece text? Words of one or two letters must start a word, or "am" would find
+ * "exam" and "i" nearly everything. Longer words can appear anywhere, so "cello" still finds "violoncello".
+ */
+export const matchesSearchWord = (text: string, word: string): boolean =>
+  word.length <= 2 ? occursAsWord(text, word, false) : text.includes(word);
+
+/** How closely a piece fits a search, best first: exact title, title opening, exact phrase, all whole words, the rest. */
+export function searchRank(query: string, title: string, text: string): number {
+  const phrase = normalizeForSearch(query);
+  const normalizedTitle = normalizeForSearch(title);
+  if (normalizedTitle === phrase) return 0;
+  if (normalizedTitle.startsWith(phrase) && occursAsWord(normalizedTitle, phrase, true)) return 1;
+  if (occursAsWord(text, phrase, true)) return 2;
+  return phrase.split(' ').every((word) => occursAsWord(text, word, true)) ? 3 : 4;
+}
 
 /** Edit distance (swapped neighbours count as one edit), capped: anything above `max` returns max + 1. */
 function editDistance(a: string, b: string, max: number): number {
