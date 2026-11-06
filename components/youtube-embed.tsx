@@ -5,14 +5,14 @@ import { FaPlay } from 'react-icons/fa';
  * Shows the video thumbnail and only loads YouTube's (heavy) player once it's clicked,
  * which keeps piece pages fast. Uses the privacy-enhanced youtube-nocookie domain.
  */
-export default function YouTubeEmbed({ videoId, title }: { videoId: string; title: string }) {
+export default function YouTubeEmbed({ videoId, title, start = 0 }: { videoId: string; title: string; start?: number }) {
   const [playing, setPlaying] = useState(false);
 
   return (
     <div className="relative aspect-video w-full overflow-hidden bg-black">
       {playing ? (
         <iframe
-          src={`https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1&rel=0`}
+          src={`https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1&rel=0${start > 0 ? `&start=${start}` : ''}`}
           title={`Recording of ${title}`}
           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
           allowFullScreen

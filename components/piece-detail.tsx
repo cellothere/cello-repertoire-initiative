@@ -19,7 +19,7 @@ import { INSTRUMENT_LABELS, LISTING_PATHS, composerWorksHref, pieceHref } from '
 import type { PieceDetail } from '@/lib/types';
 import { pieceShareContent, pieceShareImage } from '@/lib/share';
 import { composerPath } from '@/lib/slugs';
-import { formatDuration, hostnameOf, joinNames, parseYear, recordingEmbed, youtubeId } from '@/utils/musicUtils';
+import { formatDuration, hostnameOf, joinNames, parseYear, recordingEmbed, youtubeId, youtubeStart } from '@/utils/musicUtils';
 
 function Card({ title, children, className = '' }: { title: string; children: ReactNode; className?: string }) {
   return (
@@ -70,7 +70,8 @@ export default function PieceDetailPage({ piece: pagePiece }: { piece: PieceDeta
     .filter((link): link is { composer: (typeof composers)[number]; href: string } => Boolean(link.href));
   const year = parseYear(piece.composition_year);
   const duration = formatDuration(piece.duration);
-  const videoId = useMemo(() => piece.audio_link.map(youtubeId).find(Boolean) ?? null, [piece.audio_link]);
+  const videoLink = useMemo(() => piece.audio_link.find((link) => youtubeId(link)) ?? null, [piece.audio_link]);
+  const videoId = videoLink ? youtubeId(videoLink) : null;
   // Without a YouTube video, play the first recording that has an embeddable player instead.
   const embed = useMemo(
     () => (videoId ? null : (piece.audio_link.map(recordingEmbed).find(Boolean) ?? null)),
@@ -281,7 +282,7 @@ export default function PieceDetailPage({ piece: pagePiece }: { piece: PieceDeta
             <section className="card overflow-hidden" aria-label="Recording">
               {/* Keyed by video: moving to another piece reuses this page, and the old player's "playing" state would
                   start the new piece's video by itself. */}
-              <YouTubeEmbed key={videoId} videoId={videoId} title={piece.title} />
+              <YouTubeEmbed key={videoId} videoId={videoId} title={piece.title} start={videoLink ? youtubeStart(videoLink) : 0} />
             </section>
           )}
           {embed && <RecordingPlayer embed={embed} title={piece.title} />}

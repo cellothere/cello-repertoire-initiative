@@ -176,6 +176,17 @@ export const youtubeId = (link: string): string | null => {
   return id && /^[\w-]{6,20}$/.test(id) ? id : null;
 };
 
+/** The second a YouTube link starts at (t=141 or t=141s, or start=141), or 0 if it has none. */
+export const youtubeStart = (link: string): number => {
+  try {
+    const url = new URL(link);
+    const value = url.searchParams.get('t') ?? url.searchParams.get('start') ?? '';
+    return Number(value.match(/^(\d+)s?$/)?.[1] ?? 0);
+  } catch {
+    return 0;
+  }
+};
+
 /** A recording that can be played on the page: a streaming service's player, or an audio file. */
 export type RecordingEmbed =
   | { kind: 'player'; service: 'Spotify' | 'Apple Music' | 'Deezer' | 'SoundCloud'; src: string; height: number }
