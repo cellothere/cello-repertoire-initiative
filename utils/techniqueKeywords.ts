@@ -24,6 +24,7 @@ const techniqueKeywords: string[] = [
     'Tenor Clef',
     'Treble Clef',
     'Accidentals',
+    'Intonation',
     'Scordatura',
     // Bow
     'Detaché',
@@ -56,6 +57,7 @@ const techniqueKeywords: string[] = [
     'Rhythm',
     'Dotted Rhythms',
     'Syncopation',
+    'Swing',
     'Triplets',
     'Meter Changes',
     'Tempo Changes',
