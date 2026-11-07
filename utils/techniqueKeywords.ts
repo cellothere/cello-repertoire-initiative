@@ -53,6 +53,7 @@ const techniqueKeywords: string[] = [
     'Sul Ponticello',
     'Sul Tasto',
     'Pizzicato',
+    'Pizzicato Chords',
     'Mute',
     // Musical
     'Dynamics',
