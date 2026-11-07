@@ -63,6 +63,7 @@ const SHEET_MUSIC_LINKS = MUSIC_LINKS.filter((link) => !TABS.some((tab) => tab.h
 const SHEET_CLOSE_DISTANCE = 96;
 const SHEET_CLOSE_SPEED = 0.5;
 const SHEET_FLICK_WINDOW = 100;
+const SHEET_SLIDE_OUT_MS = 200;
 
 function SheetLink({ href, label, description, current }: { href: string; label: string; description?: string; current: boolean }) {
   return (
@@ -111,6 +112,7 @@ export default function MobileTabBar() {
     let drag: { startX: number; startY: number; distance: number; lastY: number; lastTime: number; flickY: number; flickTime: number; active: boolean } | null = null;
 
     const onStart = (event: TouchEvent) => {
+      if (closeTimer !== undefined) return; // already sliding out
       const target = event.target as Node;
       const canDrag = target !== sheet && (handle.contains(target) || scroller.scrollTop <= 0);
       if (event.touches.length !== 1 || !canDrag) {
@@ -146,12 +148,25 @@ export default function MobileTabBar() {
       sheet.style.transform = `translateY(${drag.distance}px)`;
     };
 
+    let closeTimer: number | undefined;
     const finish = (shouldClose: boolean) => {
-      // Handing back to the stylesheet animates from where the finger left the sheet, either closed or back up.
-      sheet.style.transition = '';
-      sheet.style.transform = '';
-      if (shouldClose) sheet.close();
       drag = null;
+      if (!shouldClose) {
+        // Back to the stylesheet's open state, which eases the sheet up from where the finger let go.
+        sheet.style.transition = '';
+        sheet.style.transform = '';
+        return;
+      }
+      // Slide the rest of the way out from the finger's position, and only then close. Closing straight away handed the
+      // animation to the stylesheet, and some browsers drew the sheet fully open for a frame before it slid away.
+      sheet.style.transition = `transform ${SHEET_SLIDE_OUT_MS}ms cubic-bezier(0.4, 0, 1, 1)`;
+      sheet.style.transform = 'translateY(100%)';
+      closeTimer = window.setTimeout(() => {
+        closeTimer = undefined;
+        sheet.close();
+        sheet.style.transition = '';
+        sheet.style.transform = '';
+      }, SHEET_SLIDE_OUT_MS);
     };
     const onEnd = (event: TouchEvent) => {
       if (!drag?.active) return;
@@ -170,6 +185,7 @@ export default function MobileTabBar() {
     sheet.addEventListener('touchend', onEnd);
     sheet.addEventListener('touchcancel', onCancel);
     return () => {
+      window.clearTimeout(closeTimer);
       sheet.removeEventListener('touchstart', onStart);
       sheet.removeEventListener('touchmove', onMove);
       sheet.removeEventListener('touchend', onEnd);
@@ -268,7 +284,8 @@ export default function MobileTabBar() {
         className="dialog-sheet m-0 mt-auto w-full max-w-none rounded-t-2xl bg-white p-0 text-gray-900 shadow-2xl"
       >
         <div ref={sheetScrollerRef} className="max-h-[85dvh] overflow-y-auto overscroll-contain px-3 pb-[max(1rem,env(safe-area-inset-bottom))]">
-          <div ref={sheetHandleRef} className="sticky top-0 z-10 flex items-center justify-between bg-white px-3 pb-2 pt-3">
+          {/* touch-none keeps the browser's own pull-down gestures (refresh, Chrome's tab actions) off the handle. */}
+          <div ref={sheetHandleRef} className="sticky top-0 z-10 flex touch-none items-center justify-between bg-white px-3 pb-2 pt-3">
             <span className="mx-auto h-1 w-10 rounded-full bg-gray-300" aria-hidden="true" />
             <button
               type="button"
