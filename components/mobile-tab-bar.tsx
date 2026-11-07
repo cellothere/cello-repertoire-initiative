@@ -59,6 +59,11 @@ const TABS: Tab[] = [
 // Pages reached from the tabs themselves aren't repeated in the "More" sheet.
 const SHEET_MUSIC_LINKS = MUSIC_LINKS.filter((link) => !TABS.some((tab) => tab.href === link.href));
 
+// Lifting a finger closes the "More" sheet after a pull this far (px) or a flick this fast (px per ms).
+const SHEET_CLOSE_DISTANCE = 96;
+const SHEET_CLOSE_SPEED = 0.5;
+const SHEET_FLICK_WINDOW = 100;
+
 function SheetLink({ href, label, description, current }: { href: string; label: string; description?: string; current: boolean }) {
   return (
     <Link
@@ -81,6 +86,8 @@ export default function MobileTabBar() {
   const { user, loading: authLoading, logout } = useAuth();
   const [moreOpen, setMoreOpen] = useState(false);
   const sheetRef = useRef<HTMLDialogElement>(null);
+  const sheetScrollerRef = useRef<HTMLDivElement>(null);
+  const sheetHandleRef = useRef<HTMLDivElement>(null);
   // Coming back to Browse from a piece returns to the same filtered list, not a fresh one.
   const [browseHref, setBrowseHref] = useState(BROWSE_PATH);
   if (router.pathname === BROWSE_PATH && router.isReady && browseHref !== router.asPath) setBrowseHref(router.asPath);
@@ -91,6 +98,84 @@ export default function MobileTabBar() {
     if (moreOpen && !sheet.open) sheet.showModal();
     if (!moreOpen && sheet.open) sheet.close();
   }, [moreOpen]);
+
+  // Drag the sheet down to dismiss it, from the handle at any time or from the list once it's scrolled to the top.
+  // These are native listeners because stopping the browser's own scroll needs a non-passive touchmove.
+  useEffect(() => {
+    const sheet = sheetRef.current;
+    const scroller = sheetScrollerRef.current;
+    const handle = sheetHandleRef.current;
+    if (!sheet || !scroller || !handle) return;
+
+    // Speed is measured over the last moments of the drag: `flickY` and `flickTime` trail the finger by up to SHEET_FLICK_WINDOW.
+    let drag: { startX: number; startY: number; distance: number; lastY: number; lastTime: number; flickY: number; flickTime: number; active: boolean } | null = null;
+
+    const onStart = (event: TouchEvent) => {
+      const target = event.target as Node;
+      const canDrag = target !== sheet && (handle.contains(target) || scroller.scrollTop <= 0);
+      if (event.touches.length !== 1 || !canDrag) {
+        drag = null;
+        return;
+      }
+      const { clientX, clientY } = event.touches[0];
+      const time = event.timeStamp;
+      drag = { startX: clientX, startY: clientY, distance: 0, lastY: clientY, lastTime: time, flickY: clientY, flickTime: time, active: false };
+    };
+
+    const onMove = (event: TouchEvent) => {
+      if (!drag) return;
+      const { clientX, clientY } = event.touches[0];
+      const distance = clientY - drag.startY;
+      if (!drag.active) {
+        // Anything but a downward pull, or a scroll the browser has already started, stays a normal scroll.
+        if (distance < 0 || Math.abs(clientX - drag.startX) > distance || !event.cancelable) {
+          drag = null;
+          return;
+        }
+        drag.active = true;
+        sheet.style.transition = 'none';
+      }
+      event.preventDefault();
+      if (event.timeStamp - drag.flickTime > SHEET_FLICK_WINDOW) {
+        drag.flickY = drag.lastY;
+        drag.flickTime = drag.lastTime;
+      }
+      drag.lastY = clientY;
+      drag.lastTime = event.timeStamp;
+      drag.distance = Math.max(distance, 0);
+      sheet.style.transform = `translateY(${drag.distance}px)`;
+    };
+
+    const finish = (shouldClose: boolean) => {
+      // Handing back to the stylesheet animates from where the finger left the sheet, either closed or back up.
+      sheet.style.transition = '';
+      sheet.style.transform = '';
+      if (shouldClose) sheet.close();
+      drag = null;
+    };
+    const onEnd = (event: TouchEvent) => {
+      if (!drag?.active) return;
+      // A finger that stopped before lifting isn't a flick, however fast it moved earlier.
+      const stillMoving = event.timeStamp - drag.lastTime < SHEET_FLICK_WINDOW;
+      const elapsed = drag.lastTime - drag.flickTime;
+      const speed = stillMoving && elapsed > 0 ? (drag.lastY - drag.flickY) / elapsed : 0;
+      finish(drag.distance >= SHEET_CLOSE_DISTANCE || speed >= SHEET_CLOSE_SPEED);
+    };
+    const onCancel = () => {
+      if (drag?.active) finish(false);
+    };
+
+    sheet.addEventListener('touchstart', onStart, { passive: true });
+    sheet.addEventListener('touchmove', onMove, { passive: false });
+    sheet.addEventListener('touchend', onEnd);
+    sheet.addEventListener('touchcancel', onCancel);
+    return () => {
+      sheet.removeEventListener('touchstart', onStart);
+      sheet.removeEventListener('touchmove', onMove);
+      sheet.removeEventListener('touchend', onEnd);
+      sheet.removeEventListener('touchcancel', onCancel);
+    };
+  }, []);
 
   useEffect(() => {
     const close = () => setMoreOpen(false);
@@ -182,8 +267,8 @@ export default function MobileTabBar() {
         aria-label="More"
         className="dialog-sheet m-0 mt-auto w-full max-w-none rounded-t-2xl bg-white p-0 text-gray-900 shadow-2xl"
       >
-        <div className="max-h-[85dvh] overflow-y-auto overscroll-contain px-3 pb-[max(1rem,env(safe-area-inset-bottom))]">
-          <div className="sticky top-0 z-10 flex items-center justify-between bg-white px-3 pb-2 pt-3">
+        <div ref={sheetScrollerRef} className="max-h-[85dvh] overflow-y-auto overscroll-contain px-3 pb-[max(1rem,env(safe-area-inset-bottom))]">
+          <div ref={sheetHandleRef} className="sticky top-0 z-10 flex items-center justify-between bg-white px-3 pb-2 pt-3">
             <span className="mx-auto h-1 w-10 rounded-full bg-gray-300" aria-hidden="true" />
             <button
               type="button"
