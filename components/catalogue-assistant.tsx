@@ -6,7 +6,8 @@ import { HiArrowPath, HiChatBubbleLeftRight, HiPaperAirplane, HiXMark } from 're
 import LevelBadge from './level-badge';
 import { useAuth } from '@/contexts/AuthContext';
 import { pieceHref } from '@/lib/instruments';
-import type { LiteratureBook, PieceSummary, Resource } from '@/lib/types';
+import { composerPath } from '@/lib/slugs';
+import type { ComposerSummary, LiteratureBook, PieceSummary, Resource } from '@/lib/types';
 import { formatComposers, hostnameOf } from '@/utils/musicUtils';
 
 interface Turn {
@@ -93,7 +94,7 @@ const pickSuggestions = () =>
 // On a piece's page, the assistant knows which piece "this" is.
 const PIECE_SUGGESTIONS = ['Is this right for my student?', 'Find similar pieces', 'Tell me about the composer'];
 
-// Piece ids are numbers; resource and book ids can be MongoDB ObjectIds.
+// Piece and composer ids are numbers; resource and book ids can be MongoDB ObjectIds.
 const TOKEN = /\[\[([a-z]+:[0-9a-f]+)\]\]/g;
 const STORAGE_KEY = 'cri-assistant-chat';
 const MAX_LENGTH = 800;
@@ -113,6 +114,23 @@ function PieceLink({ piece, onNavigate }: { piece: PieceSummary; onNavigate: () 
         <span>{formatComposers(piece.composers)}</span>
         <LevelBadge level={piece.level} />
       </span>
+    </Link>
+  );
+}
+
+/** A composer's page on this site. */
+function ComposerLink({ composer, onNavigate }: { composer: ComposerSummary; onNavigate: () => void }) {
+  const dates = composer.born ? `${composer.born}–${composer.died}` : '';
+  const pieces = `${composer.cello_works} cello ${composer.cello_works === 1 ? 'piece' : 'pieces'}`;
+  return (
+    <Link
+      href={composerPath(composer.slug)}
+      onClick={onNavigate}
+      className="block rounded-xl border border-gray-200 bg-white px-3 py-2 shadow-sm transition hover:border-teal-400 hover:shadow focus-visible:outline focus-visible:outline-2 focus-visible:outline-teal-600"
+    >
+      <span className="text-[11px] font-semibold uppercase tracking-wide text-teal-800">Composer</span>
+      <span className="block font-semibold leading-snug text-gray-900">{composer.composer_full_name}</span>
+      <span className="mt-0.5 block text-sm text-gray-600">{[composer.nationality.join(', '), dates, pieces].filter(Boolean).join(' · ')}</span>
     </Link>
   );
 }
@@ -224,7 +242,7 @@ type Block =
 
 /**
  * Groups a reply's lines into blocks: paragraphs (headings become bold lines), bulleted or numbered lists, and lines
- * that cite pieces, books or resources, which become cards with their note underneath.
+ * that cite pieces, composers, books or resources, which become cards with their note underneath.
  */
 function toBlocks(content: string, known: (ref: string) => boolean): Block[] {
   const blocks: Block[] = [];
@@ -254,21 +272,23 @@ function toBlocks(content: string, known: (ref: string) => boolean): Block[] {
   return blocks;
 }
 
-/** An assistant reply: lightly formatted text, with each piece, book or resource token shown as a card. */
+/** An assistant reply: lightly formatted text, with each piece, composer, book or resource token shown as a card. */
 function AssistantMessage({
   content,
   pieces,
   resources,
   books,
+  composers,
   onNavigate,
 }: {
   content: string;
   pieces: Record<string, PieceSummary>;
   resources: Record<string, Resource>;
   books: Record<string, LiteratureBook>;
+  composers: Record<string, ComposerSummary>;
   onNavigate: () => void;
 }) {
-  const blocks = toBlocks(content, (ref) => Boolean(pieces[ref] || resources[ref] || books[ref]));
+  const blocks = toBlocks(content, (ref) => Boolean(pieces[ref] || resources[ref] || books[ref] || composers[ref]));
   return (
     <div className="space-y-2">
       {blocks.map((block, index) => {
@@ -296,6 +316,8 @@ function AssistantMessage({
             {block.refs.map((ref) =>
               pieces[ref] ? (
                 <PieceLink key={ref} piece={pieces[ref]} onNavigate={onNavigate} />
+              ) : composers[ref] ? (
+                <ComposerLink key={ref} composer={composers[ref]} onNavigate={onNavigate} />
               ) : books[ref] ? (
                 <BookLink key={ref} book={books[ref]} />
               ) : (
@@ -319,6 +341,7 @@ interface ReplyData {
   pieces: Record<string, PieceSummary>;
   resources: Record<string, Resource>;
   books: Record<string, LiteratureBook>;
+  composers: Record<string, ComposerSummary>;
 }
 
 /**
@@ -343,7 +366,7 @@ async function readReply(response: Response, onStatus: (status: string) => void)
       if (!line.trim()) continue;
       const data = JSON.parse(line);
       if (typeof data.status === 'string') onStatus(data.status);
-      else if (typeof data.reply === 'string') return { pieces: {}, resources: {}, books: {}, ...data };
+      else if (typeof data.reply === 'string') return { pieces: {}, resources: {}, books: {}, composers: {}, ...data };
       else throw new Error(data.error || fallback);
     }
     if (done) throw new Error(fallback);
@@ -355,6 +378,7 @@ interface SavedChat {
   pieces: Record<string, PieceSummary>;
   resources: Record<string, Resource>;
   books: Record<string, LiteratureBook>;
+  composers: Record<string, ComposerSummary>;
 }
 
 /**
@@ -366,7 +390,7 @@ function loadSavedChat(): SavedChat | null {
   if (typeof window === 'undefined') return null;
   try {
     const saved = JSON.parse(sessionStorage.getItem(STORAGE_KEY) ?? 'null');
-    return saved && Array.isArray(saved.turns) ? { pieces: {}, resources: {}, books: {}, ...saved } : null;
+    return saved && Array.isArray(saved.turns) ? { pieces: {}, resources: {}, books: {}, composers: {}, ...saved } : null;
   } catch {
     return null;
   }
@@ -384,6 +408,7 @@ export default function CatalogueAssistant() {
   const [pieces, setPieces] = useState<Record<string, PieceSummary>>(saved?.pieces ?? {});
   const [resources, setResources] = useState<Record<string, Resource>>(saved?.resources ?? {});
   const [books, setBooks] = useState<Record<string, LiteratureBook>>(saved?.books ?? {});
+  const [composers, setComposers] = useState<Record<string, ComposerSummary>>(saved?.composers ?? {});
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [draft, setDraft] = useState('');
   const [busy, setBusy] = useState(false);
@@ -414,12 +439,12 @@ export default function CatalogueAssistant() {
 
   useEffect(() => {
     try {
-      if (turns.length) sessionStorage.setItem(STORAGE_KEY, JSON.stringify({ turns, pieces, resources, books }));
+      if (turns.length) sessionStorage.setItem(STORAGE_KEY, JSON.stringify({ turns, pieces, resources, books, composers }));
       else sessionStorage.removeItem(STORAGE_KEY);
     } catch {
       // Not saved; the chat still works.
     }
-  }, [turns, pieces, resources, books]);
+  }, [turns, pieces, resources, books, composers]);
 
   useEffect(() => {
     logRef.current?.scrollTo({ top: logRef.current.scrollHeight, behavior: 'smooth' });
@@ -457,6 +482,7 @@ export default function CatalogueAssistant() {
       setPieces((known) => ({ ...known, ...data.pieces }));
       setResources((known) => ({ ...known, ...data.resources }));
       setBooks((known) => ({ ...known, ...data.books }));
+      setComposers((known) => ({ ...known, ...data.composers }));
       setTurns([...history, { role: 'assistant', content: data.reply }]);
     } catch (err) {
       // Put the message back so the visitor can retry without retyping it.
@@ -477,6 +503,7 @@ export default function CatalogueAssistant() {
     setPieces({});
     setResources({});
     setBooks({});
+    setComposers({});
     setError(null);
     setSuggestions(pickSuggestions());
     focusInput();
@@ -559,7 +586,7 @@ export default function CatalogueAssistant() {
                 </div>
               ) : (
                 <div key={index} className="max-w-[95%] rounded-2xl rounded-tl-sm bg-white px-3 py-2 text-gray-800 shadow-sm">
-                  <AssistantMessage content={turn.content} pieces={pieces} resources={resources} books={books} onNavigate={closeOnPhone} />
+                  <AssistantMessage content={turn.content} pieces={pieces} resources={resources} books={books} composers={composers} onNavigate={closeOnPhone} />
                 </div>
               )
             )}

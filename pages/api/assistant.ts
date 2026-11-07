@@ -91,7 +91,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     res.end();
   } catch (error) {
     if (error instanceof AssistantRefusal) {
-      send({ reply: "Sorry, I can't help with that. I can help you find pieces in the catalogue.", pieces: {}, resources: {}, books: {} });
+      send({ reply: "Sorry, I can't help with that. I can help you find pieces in the catalogue.", pieces: {}, resources: {}, books: {}, composers: {} });
       return res.end();
     }
     if (error instanceof Anthropic.RateLimitError || error instanceof Anthropic.InternalServerError) {

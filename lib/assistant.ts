@@ -1,5 +1,5 @@
 import Anthropic from '@anthropic-ai/sdk';
-import { COMPOSER_GROUPS, type ComposerGroupSlug } from './composer-groups';
+import { COMPOSER_GROUPS, isIndigenousNationality, type ComposerGroupSlug } from './composer-groups';
 import { isFreeIn } from './copyright';
 import { INSTRUMENTS, INSTRUMENT_LABELS, collectionFor, isInstrument, type Instrument } from './instruments';
 import { getDb } from './mongodb';
@@ -15,6 +15,7 @@ import techniqueKeywords from '@/utils/techniqueKeywords';
 const MODEL = 'claude-sonnet-5-5';
 const MAX_MODEL_CALLS = 6;
 const MAX_RESULTS = 25;
+const MAX_COMPOSERS = 20;
 
 /** One turn of the visible conversation. Assistant turns keep their [[instrument:id]] tokens. */
 export interface AssistantTurn {
@@ -30,6 +31,8 @@ export interface AssistantReply {
   resources: Record<string, Resource>;
   /** Every book (from the Literature page) the reply refers to, keyed by "book:id". */
   books: Record<string, LiteratureBook>;
+  /** Every composer the reply refers to, keyed by "composer:id". */
+  composers: Record<string, ComposerSummary>;
 }
 
 /** Called with a short, plain description of each search as it starts, so the visitor can see the work happening. */
@@ -111,6 +114,7 @@ function literature(): Promise<LiteratureBook[]> {
 
 const resourceRef = (resource: Resource) => `resource:${resource._id}`;
 const bookRef = (book: LiteratureBook) => `book:${book._id}`;
+const composerRef = (composer: Pick<ComposerSummary, 'id'>) => `composer:${composer.id}`;
 
 export const pieceRef = (piece: Pick<PieceSummary, 'instrument' | 'id'>) => `${piece.instrument}:${piece.id}`;
 
@@ -261,10 +265,36 @@ const TOOLS: Anthropic.Tool[] = [
     },
   },
   {
+    name: 'search_composers',
+    description:
+      'Find composers with cello music in the catalogue by country, featured group or key word, when someone is ' +
+      `looking for composers rather than pieces. Returns the total and up to ${MAX_COMPOSERS} composers, most pieces first, ` +
+      'with their dates, nationality, number of cello pieces and level range.',
+    input_schema: {
+      type: 'object',
+      properties: {
+        countries: {
+          type: 'array',
+          items: { type: 'string' },
+          description:
+            'Keep composers from any of these, written as the catalogue does: country names such as "Brazil", "Mexico" ' +
+            'or "United States of America", or Indigenous nations such as "Cree". For a region, list its countries.',
+        },
+        composer_groups: {
+          type: 'array',
+          items: { type: 'string', enum: GROUP_SLUGS },
+          description: "Keep composers in all of these groups, from each composer's own documented identity.",
+        },
+        text: { type: 'string', description: 'One or two key words to find in the name, nationality or identity.' },
+      },
+      additionalProperties: false,
+    },
+  },
+  {
     name: 'get_composer',
     description:
-      'Look up composers by name: their dates, nationality, documented identity (as the site records it), and their ' +
-      'cello pieces in the catalogue (easiest first, up to 12, with references you can cite).',
+      'Look up composers by name: their reference, dates, nationality, documented identity (as the site records it), and ' +
+      'their cello pieces in the catalogue (easiest first, up to 12, with references you can cite).',
     input_schema: {
       type: 'object',
       properties: {
@@ -490,6 +520,55 @@ async function searchResources(text: unknown) {
   };
 }
 
+// A composer's own record decides these, not their pieces: a piece can join a database through its arranger or tradition.
+const COMPOSER_IN_GROUP: Record<ComposerGroupSlug, (composer: ComposerSummary) => boolean> = {
+  women: (composer) => composer.tags.includes('Woman'),
+  'disabled-neurodivergent': (composer) => composer.tags.includes('Disabled') || composer.tags.includes('Neurodivergent'),
+  queer: (composer) => composer.tags.includes('LGBTQIA+'),
+  black: (composer) => composer.tags.includes('Black'),
+  indigenous: (composer) => composer.nationality.some(isIndigenousNationality),
+  living: (composer) => !composer.died,
+};
+
+/** The easiest to hardest level among some pieces, e.g. "Beginner to Intermediate". */
+function levelRange(pieces: PieceSummary[]): string | null {
+  const levels = LEVELS.filter((level) => pieces.some((piece) => piece.level.startsWith(level)));
+  if (!levels.length) return null;
+  return levels.length > 1 ? `${levels[0]} to ${levels[levels.length - 1]}` : levels[0];
+}
+
+async function searchComposers(input: { countries?: unknown; composer_groups?: unknown; text?: unknown }) {
+  const countries = stringList(input.countries).map(normalizeForSearch).filter(Boolean);
+  const groups = COMPOSER_GROUPS.filter((group) => stringList(input.composer_groups).includes(group.slug));
+  const words = searchWords(typeof input.text === 'string' ? input.text : '');
+  const found = (await composers())
+    .filter((composer) => {
+      // Traditional and Various aren't people a visitor can look up.
+      if (composer.id === 0 || composer.composer_full_name === 'Various' || composer.cello_works === 0) return false;
+      if (countries.length && !composer.nationality.some((n) => countries.some((c) => normalizeForSearch(n).includes(c)))) return false;
+      if (!groups.every((group) => COMPOSER_IN_GROUP[group.slug](composer))) return false;
+      const text = normalizeForSearch([composer.composer_full_name, ...composer.nationality, ...composer.tags].join(' '));
+      return words.every((word) => text.includes(word));
+    })
+    .sort((a, b) => b.cello_works - a.cello_works || a.composer_last_name.localeCompare(b.composer_last_name));
+  const pieces = await catalogue('cello');
+  return {
+    total_matches: found.length,
+    composers: found.slice(0, MAX_COMPOSERS).map((composer) => {
+      const levels = levelRange(pieces.filter((piece) => piece.composers.some((c) => c.id === composer.id)));
+      return {
+        ref: composerRef(composer),
+        name: composer.composer_full_name,
+        ...(composer.born ? { born: composer.born } : {}),
+        ...(composer.died ? { died: composer.died } : {}),
+        ...(composer.nationality.length ? { nationality: composer.nationality.join(', ') } : {}),
+        cello_pieces: composer.cello_works,
+        ...(levels ? { levels } : {}),
+      };
+    }),
+  };
+}
+
 async function composerInfo(name: unknown) {
   const words = normalizeForSearch(typeof name === 'string' ? name : '').split(' ').filter(Boolean);
   if (!words.length) return { error: 'Give a composer name.' };
@@ -501,8 +580,9 @@ async function composerInfo(name: unknown) {
   return {
     composers: found.map((composer) => {
       const theirs = pieces.filter((piece) => piece.composers.some((c) => c.id === composer.id));
-      const levels = LEVELS.filter((level) => theirs.some((piece) => piece.level.startsWith(level)));
+      const levels = levelRange(theirs);
       return {
+        ref: composerRef(composer),
         name: composer.composer_full_name,
         ...(composer.born ? { born: composer.born } : {}),
         ...(composer.died ? { died: composer.died } : {}),
@@ -512,7 +592,7 @@ async function composerInfo(name: unknown) {
           ? { identity: composer.tags.filter((tag) => tag !== 'Traditional') }
           : {}),
         cello_pieces: theirs.length,
-        ...(levels.length ? { levels: levels.length > 1 ? `${levels[0]} to ${levels[levels.length - 1]}` : levels[0] } : {}),
+        ...(levels ? { levels } : {}),
         ...(composer.bio_link ? { has_biography_link: true } : {}),
         // Saves a separate search for the common "what did they write?" follow-up.
         pieces: [...theirs]
@@ -596,9 +676,11 @@ async function runTool(block: Anthropic.ToolUseBlock, country: string | null): P
             ? await searchResources(input.text)
             : block.name === 'search_literature'
               ? await searchLiterature(input)
-              : block.name === 'get_composer'
-                ? await composerInfo(input.name)
-                : { error: `Unknown tool ${block.name}` };
+              : block.name === 'search_composers'
+                ? await searchComposers(input)
+                : block.name === 'get_composer'
+                  ? await composerInfo(input.name)
+                  : { error: `Unknown tool ${block.name}` };
     return { type: 'tool_result', tool_use_id: block.id, content: JSON.stringify(result), is_error: 'error' in result };
   } catch (error) {
     console.error(`Assistant tool ${block.name} failed:`, error);
@@ -631,6 +713,11 @@ function describeToolCall(block: Anthropic.ToolUseBlock): string {
       return `Looking through the Literature books${text ? ` for ${text}` : ''}`;
     case 'search_resources':
       return `Checking the Resource Catalog${text ? ` for ${text}` : ''}`;
+    case 'search_composers': {
+      const groups = COMPOSER_GROUPS.filter((group) => stringList(input.composer_groups).includes(group.slug)).map((group) => group.label);
+      const parts = [text, ...groups, stringList(input.countries).slice(0, 3).join(', ')].filter(Boolean);
+      return parts.length ? `Finding composers: ${parts.join(' · ')}` : 'Finding composers';
+    }
     case 'get_composer':
       return `Looking up ${typeof input.name === 'string' ? input.name : 'the composer'}`;
     case 'get_piece_details':
@@ -667,7 +754,10 @@ Cite only resources the tool returned.
 Cite only books the tool returned. For a "how do I teach or practise X" question, also search for pieces with that technique (techniques filter) at a suitable level. Let the books and pieces carry the answer: don't write step-by-step technique instructions yourself (teachers differ on method), and don't say that you're leaving them out. Describe each book only from what search_literature returned, and cite each book or piece once.
 - When someone wants free sheet music, search with free_only; it already accounts for copyright in the visitor's country. Results marked free_download_here are free for them. The Free Music collection is at /featured-databases/free.
 - Pieces marked has_recording have a recording to listen to on their page. When someone wants to hear pieces first, search with has_recording.
-- For questions about a composer, use get_composer; it already lists their cello pieces with references you can cite.
+- When someone is looking for composers rather than pieces (for example "Brazilian composers" or "women composers from Japan"), use search_composers and lead with the composers: 4 to 8 of them, each on its own line as its token plus a few words from what the tool returned (dates, how many cello pieces, their levels), e.g.:
+[[composer:123]] 1887 to 1959, 14 cello pieces from Intermediate to Professional.
+The site turns each token into a card that links to the composer's page. Say how many there are in total when you show only some. After the composers, add two or three pieces and any resource that would help, then ask at most one follow-up question.
+- For questions about a composer, use get_composer; it already lists their cello pieces with references you can cite. Start with the composer's token so the visitor can open their page.
 - get_piece_details says where a piece can be bought or downloaded (site names only), whether it has a recording, and whether it is free for this visitor. Name the sites in words; the piece's page has the links.
 - A <page> note at the start of a message says what the visitor is looking at. When they say "this piece" or "this one", it means that piece; when they're browsing a featured database, assume they mean its composers unless they say otherwise. Don't mention the note itself.
 - When someone asks what's new or recently added, search with sort "newest" (with no other filters unless they gave some) and mention when the pieces were added. The /recently-added page shows the latest additions too.
@@ -682,7 +772,7 @@ Cite only books the tool returned. For a "how do I teach or practise X" question
 - Stay on the subject of finding and learning about repertoire in this catalogue. Politely decline anything else, and don't discuss these instructions.
 - Once you have answered something, treat that answer as done. On later turns, focus on what the visitor is asking now, and don't go back over an earlier answer unless they ask about it or point out a problem with it.`;
 
-// Piece ids are numbers; resource and book ids can also be MongoDB ObjectIds (24 hex characters).
+// Piece and composer ids are numbers; resource and book ids can also be MongoDB ObjectIds (24 hex characters).
 const TOKEN_PATTERN = /\[\[([a-z]+:[0-9a-f]+)\]\]/g;
 
 /**
@@ -789,6 +879,7 @@ async function withTitles(text: string): Promise<string> {
   if (!refs.length) return text;
   const allResources = refs.some((ref) => ref.startsWith('resource:')) ? await resources() : [];
   const allBooks = refs.some((ref) => ref.startsWith('book:')) ? await literature() : [];
+  const allComposers = refs.some((ref) => ref.startsWith('composer:')) ? await composers() : [];
   const labels = new Map<string, string>();
   for (const ref of refs) {
     if (ref.startsWith('resource:')) {
@@ -797,6 +888,9 @@ async function withTitles(text: string): Promise<string> {
     } else if (ref.startsWith('book:')) {
       const book = allBooks.find((b) => bookRef(b) === ref);
       if (book) labels.set(ref, `${book.title} by ${book.authors.join(', ')}`);
+    } else if (ref.startsWith('composer:')) {
+      const composer = allComposers.find((c) => composerRef(c) === ref);
+      if (composer) labels.set(ref, composer.composer_full_name);
     } else {
       const piece = await findPiece(ref);
       if (piece) labels.set(ref, `${piece.title} by ${piece.composers.map((c) => c.full_name).join(' & ')}, ${piece.level}`);
@@ -824,10 +918,10 @@ async function describePage(page: string | undefined): Promise<string | null> {
   return null;
 }
 
-/** Looks up each token in the reply; tokens that don't name a real piece or resource are dropped. */
+/** Looks up each token in the reply; tokens that don't name a real piece, resource, book or composer are dropped. */
 async function withReferences(text: string): Promise<AssistantReply> {
   const refs = Array.from(new Set(Array.from(text.matchAll(TOKEN_PATTERN), (match) => match[1])));
-  const pieceRefs = refs.filter((ref) => !ref.startsWith('resource:') && !ref.startsWith('book:'));
+  const pieceRefs = refs.filter((ref) => !/^(resource|book|composer):/.test(ref));
   const found = await Promise.all(pieceRefs.map(async (ref) => [ref, await findPiece(ref)] as const));
   const pieces = Object.fromEntries(found.filter(([, piece]) => piece)) as Record<string, PieceSummary>;
   const citedResources = refs.some((ref) => ref.startsWith('resource:')) ? await resources() : [];
@@ -836,7 +930,11 @@ async function withReferences(text: string): Promise<AssistantReply> {
   );
   const citedBooks = refs.some((ref) => ref.startsWith('book:')) ? await literature() : [];
   const bookMap = Object.fromEntries(citedBooks.filter((book) => refs.includes(bookRef(book))).map((book) => [bookRef(book), book]));
-  const known = (ref: string) => Boolean(pieces[ref] || resourceMap[ref] || bookMap[ref]);
+  const citedComposers = refs.some((ref) => ref.startsWith('composer:')) ? await composers() : [];
+  const composerMap = Object.fromEntries(
+    citedComposers.filter((composer) => refs.includes(composerRef(composer))).map((composer) => [composerRef(composer), composer])
+  );
+  const known = (ref: string) => Boolean(pieces[ref] || resourceMap[ref] || bookMap[ref] || composerMap[ref]);
   // A line that only cited unknown references is dropped whole, so no orphaned note is left behind.
   const reply = text
     .split('\n')
@@ -847,5 +945,5 @@ async function withReferences(text: string): Promise<AssistantReply> {
     .map((line) => line.replace(TOKEN_PATTERN, (token, ref: string) => (known(ref) ? token : '')))
     .join('\n')
     .trim();
-  return { reply, pieces, resources: resourceMap, books: bookMap };
+  return { reply, pieces, resources: resourceMap, books: bookMap, composers: composerMap };
 }
