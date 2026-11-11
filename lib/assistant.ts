@@ -7,7 +7,7 @@ import { stripCitations } from '@/components/cited-text';
 import { getPieceDetail, listComposers, listLiterature, listPieces, listResources } from './repertoire';
 import { LITERATURE_TOPICS, type ComposerSummary, type LiteratureBook, type PieceSummary, type Resource } from './types';
 import { LEVEL_ORDER, levelRank, normalizeForSearch, parseYear } from '@/utils/musicUtils';
-import techniqueKeywords from '@/utils/techniqueKeywords';
+import { getTechniqueKeywords } from './technique-keywords';
 
 // Sonnet 5.5 judges fit (level, instrumentation, what a teacher is really asking) better than Haiku did. It costs about
 // 20 times as much per token ($2 / $10 per million input / output tokens, cached input $0.20), so each turn logs its
@@ -207,7 +207,8 @@ const TOOLS: Anthropic.Tool[] = [
         },
         techniques: {
           type: 'array',
-          items: { type: 'string', enum: techniqueKeywords },
+          // Filled in per conversation from the stored chip list (see toolsFor).
+          items: { type: 'string', enum: [] as string[] },
           description: 'Keep pieces whose technique focus includes all of these. Mostly set on student-level pieces.',
         },
         free_only: {
@@ -828,6 +829,21 @@ class UsageTally {
   }
 }
 
+/** The tools with search_catalogue's techniques filter limited to the current chip list. */
+function toolsFor(techniques: string[]): Anthropic.Tool[] {
+  return TOOLS.map((tool) => {
+    if (tool.name !== 'search_catalogue') return tool;
+    const properties = tool.input_schema.properties as Record<string, Record<string, unknown>>;
+    return {
+      ...tool,
+      input_schema: {
+        ...tool.input_schema,
+        properties: { ...properties, techniques: { ...properties.techniques, items: { type: 'string', enum: techniques } } },
+      },
+    };
+  });
+}
+
 async function converse(
   client: Anthropic,
   messages: Anthropic.MessageParam[],
@@ -835,6 +851,7 @@ async function converse(
   onStatus: StatusCallback | undefined,
   usage: UsageTally
 ): Promise<AssistantReply> {
+  const tools = toolsFor(await getTechniqueKeywords());
   for (let call = 0; call < MAX_MODEL_CALLS; call++) {
     const response = await client.messages.create({
       model: MODEL,
@@ -844,7 +861,7 @@ async function converse(
       output_config: { effort: 'low' },
       cache_control: { type: 'ephemeral' },
       system: SYSTEM_PROMPT,
-      tools: TOOLS,
+      tools,
       messages,
     });
 

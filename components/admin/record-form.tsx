@@ -41,11 +41,23 @@ export const fieldClass =
   'mt-1 block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-base text-gray-900 shadow-sm focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500 sm:text-sm';
 
 function ChipPicker({ spec, selected, onChange }: { spec: FieldSpec; selected: string[]; onChange: (next: string[]) => void }) {
+  const [newName, setNewName] = useState('');
+  const inputId = useId();
   const toggle = (option: string) =>
     onChange(selected.includes(option) ? selected.filter((item) => item !== option) : [...selected, option]);
-  // Keep any stored chip that is no longer in the list visible, so it can be removed.
+  // Keep any stored chip that is no longer in the list visible, so it can be removed. New chips also show here.
   const options = [...(spec.options ?? []), ...selected.filter((item) => !spec.options?.includes(item))];
+  const addNew = () => {
+    const name = newName.replace(/\s+/g, ' ').trim();
+    if (!name) return;
+    // An existing chip typed in another case ("tied notes") is chosen rather than added twice.
+    const existing = options.find((option) => option.toLocaleLowerCase('en') === name.toLocaleLowerCase('en'));
+    const chosen = existing ?? name;
+    if (!selected.includes(chosen)) onChange([...selected, chosen]);
+    setNewName('');
+  };
   return (
+    <>
     <div className="mt-2 flex flex-wrap gap-1.5">
       {options.map((option) => {
         const on = selected.includes(option);
@@ -60,10 +72,38 @@ function ChipPicker({ spec, selected, onChange }: { spec: FieldSpec; selected: s
             }`}
           >
             {option}
+            {!spec.options?.includes(option) && <span className="ml-1 opacity-75">(added on save)</span>}
           </button>
         );
       })}
     </div>
+    {spec.allowNew && (
+      <div className="mt-2 flex max-w-sm gap-2">
+        <label htmlFor={inputId} className="sr-only">
+          Add a technique
+        </label>
+        <input
+          id={inputId}
+          type="text"
+          value={newName}
+          maxLength={40}
+          onChange={(e) => setNewName(e.target.value)}
+          onKeyDown={(e) => {
+            // Enter adds the chip instead of submitting the whole form.
+            if (e.key === 'Enter') {
+              e.preventDefault();
+              addNew();
+            }
+          }}
+          placeholder="Add a technique, e.g. Tied Notes"
+          className={fieldClass.replace('mt-1 ', '')}
+        />
+        <button type="button" onClick={addNew} disabled={!newName.trim()} className="btn-secondary shrink-0 px-3 py-1.5 text-sm">
+          Add
+        </button>
+      </div>
+    )}
+    </>
   );
 }
 

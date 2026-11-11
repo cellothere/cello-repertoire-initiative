@@ -1,11 +1,12 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import type { Document, WithId } from 'mongodb';
 import { adminHandler, applyEdit, EditError, logEdit } from '@/lib/admin';
-import { PIECE_FIELDS, normalizeFields } from '@/lib/admin-fields';
+import { PIECE_FIELDS, normalizeFields, withOptions } from '@/lib/admin-fields';
 import { collectionFor, isInstrument, pieceHref, type Instrument } from '@/lib/instruments';
 import { getDb } from '@/lib/mongodb';
 import { getPieceDetail } from '@/lib/repertoire';
 import type { User } from '@/lib/auth-middleware';
+import { addTechniqueKeywords, getTechniqueKeywords, matchTechniques } from '@/lib/technique-keywords';
 
 const isUrl = (value: unknown): value is string => typeof value === 'string' && /^https?:\/\/\S+$/i.test(value);
 
@@ -13,6 +14,19 @@ const isUrl = (value: unknown): value is string => typeof value === 'string' && 
 function firstLink(value: unknown): string {
   const items = Array.isArray(value) ? value : [value];
   return items.find(isUrl) ?? '';
+}
+
+/**
+ * Checks the submitted technique chips against the stored list: known names take the list's spelling, and new names
+ * are allowed (and returned in `added`, to be stored once the piece saves) if they pass checkTechniqueName.
+ */
+async function planTechniques(changes: Record<string, unknown>) {
+  const list = await getTechniqueKeywords({ fresh: true });
+  const submitted = changes.technique_focus;
+  if (!Array.isArray(submitted) || submitted.some((item) => typeof item !== 'string')) return { list, added: [] as string[], changes };
+  const { names, added, errors } = matchTechniques(submitted as string[], list);
+  if (errors.length) throw new EditError(`Technical focus: ${errors[0]}`);
+  return { list, added, changes: { ...changes, technique_focus: names } };
 }
 
 function target(source: Record<string, unknown>): { instrument: Instrument; id: number } {
@@ -72,6 +86,7 @@ async function editorData(instrument: Instrument, id: number) {
   const { doc, composers } = await loadPiece(instrument, id);
   return {
     fields: normalizeFields(PIECE_FIELDS, doc),
+    techniques: await getTechniqueKeywords({ fresh: true }),
     composers: composers.map((c) => ({ id: Number(c.id), full_name: String(c.composer_full_name ?? ''), bio_link: firstLink(c.bio_link) })),
   };
 }
@@ -92,13 +107,21 @@ export default adminHandler(['GET', 'PATCH'], async (req: NextApiRequest, res: N
   const { instrument, id } = target(body);
   const { composers } = await loadPiece(instrument, id);
   const linkUpdates = planBioLinks(composers, body.composers);
+  const rawChanges = body.changes ?? {};
+  const isObject = typeof rawChanges === 'object' && !Array.isArray(rawChanges);
+  // Malformed changes still go to applyEdit unchanged, which rejects them.
+  const techniques = isObject ? await planTechniques(rawChanges) : { list: [] as string[], added: [] as string[], changes: rawChanges };
   const { changed } = await applyEdit({
     user,
     collection: collectionFor(instrument),
     filter: { id },
-    specs: PIECE_FIELDS,
-    changes: body.changes ?? {},
+    specs: isObject ? withOptions(PIECE_FIELDS, 'technique_focus', [...techniques.list, ...techniques.added]) : PIECE_FIELDS,
+    changes: techniques.changes,
   });
+  if (techniques.added.length && changed.includes('technique_focus')) {
+    const after = await addTechniqueKeywords(techniques.added);
+    await logEdit(user, 'settings', { _id: 'technique_keywords' }, { values: { before: techniques.list, after } });
+  }
   await saveBioLinks(user, linkUpdates);
   const linksChanged = linkUpdates.length > 0;
 

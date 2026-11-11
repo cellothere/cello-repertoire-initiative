@@ -22,6 +22,8 @@ export interface FieldSpec {
   required?: boolean;
   /** A whole-value check for `line` fields, e.g. a four-digit year. */
   pattern?: RegExp;
+  /** For `chips`: the editor may type a new option, which the save route adds to the stored list. */
+  allowNew?: boolean;
   hint?: string;
 }
 
@@ -41,7 +43,15 @@ export const PIECE_FIELDS: FieldSpec[] = [
   { name: 'description', label: 'About this piece', kind: 'text', hint: 'Use [1], [2]… to cite the sources below.' },
   { name: 'description_sources', label: 'Description sources', kind: 'urls', hint: CITATION_HINT },
   { name: 'technical_overview', label: 'Technical overview', kind: 'text' },
-  { name: 'technique_focus', label: 'Technical focus', kind: 'chips', options: techniqueKeywords },
+  {
+    name: 'technique_focus',
+    label: 'Technical focus',
+    kind: 'chips',
+    // The built-in list; the admin routes swap in the stored list (lib/technique-keywords.ts) with withOptions.
+    options: techniqueKeywords,
+    allowNew: true,
+    hint: 'A technique you add here joins the list for every piece when you save.',
+  },
   {
     name: 'where_to_buy_or_download',
     label: 'Purchase or download',
@@ -80,6 +90,11 @@ export const LITERATURE_FIELDS: FieldSpec[] = [
   { name: 'description_sources', label: 'Description sources', kind: 'urls', hint: CITATION_HINT },
   { name: 'extra_links', label: 'Extra links', kind: 'urls', hint: 'One per line.' },
 ];
+
+/** The specs with one field's options replaced, e.g. the technique chips as currently stored. */
+export function withOptions(specs: FieldSpec[], name: string, options: readonly string[]): FieldSpec[] {
+  return specs.map((spec) => (spec.name === name ? { ...spec, options } : spec));
+}
 
 const isListKind = (kind: FieldKind) => kind === 'list' || kind === 'urls' || kind === 'chips';
 const isUrl = (value: string) => /^https?:\/\/\S+$/i.test(value);

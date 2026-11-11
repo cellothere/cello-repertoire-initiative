@@ -13,7 +13,7 @@ import { featuredDatabases, type DatabaseSlug } from '@/lib/featured-databases';
 import { useFreeMusicCountry } from '@/lib/use-free-music-country';
 import { INSTRUMENT_LABELS, type Instrument } from '@/lib/instruments';
 import type { PieceSummary } from '@/lib/types';
-import techniqueKeywords from '@/utils/techniqueKeywords';
+import DEFAULT_TECHNIQUE_KEYWORDS from '@/utils/techniqueKeywords';
 import {
   LEVEL_ORDER,
   SORT_OPTIONS,
@@ -156,6 +156,9 @@ export default function RepertoireBrowser({
   const label = INSTRUMENT_LABELS[instrument];
   const { data, error, loading, retry } = useJson<PieceSummary[]>(apiPath);
   const allPieces = data ?? NO_PIECES;
+  // The chip list lives in the database (lib/technique-keywords.ts); the built-in list covers the moment before it loads.
+  const { data: storedKeywords } = useJson<string[]>('/api/techniqueKeywords');
+  const techniqueKeywords = storedKeywords ?? DEFAULT_TECHNIQUE_KEYWORDS;
   const { state, update, ready } = useBrowseState(instrument, keepQuery);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const ownFreeCountry = useFreeMusicCountry(freeCountry === undefined && state.database.includes('free'));
@@ -305,7 +308,7 @@ export default function RepertoireBrowser({
           .sort(collator.compare)
       ),
     };
-  }, [indexed, matchingExcept, level, instrumentation, composer, nationality, focus, ticked, instrument, databases, database, composerLabels, fixedLevel]);
+  }, [indexed, matchingExcept, level, instrumentation, composer, nationality, focus, ticked, instrument, databases, database, composerLabels, fixedLevel, techniqueKeywords]);
 
   const toggle = useCallback(
     (key: ListFilterKey, value: string) => {

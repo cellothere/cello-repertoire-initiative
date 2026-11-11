@@ -1,5 +1,5 @@
-import { useEffect, useId, useState } from 'react';
-import { PIECE_FIELDS, type FieldValues } from '@/lib/admin-fields';
+import { useEffect, useId, useMemo, useState } from 'react';
+import { PIECE_FIELDS, withOptions, type FieldValues } from '@/lib/admin-fields';
 import type { PieceDetail } from '@/lib/types';
 import RecordForm, { adminRequest, fieldClass } from './record-form';
 
@@ -12,6 +12,8 @@ interface EditorComposer {
 interface EditorData {
   fields: FieldValues;
   composers: EditorComposer[];
+  /** The technique chips as stored in the database (lib/technique-keywords.ts). */
+  techniques: string[];
 }
 
 interface SaveResult extends EditorData {
@@ -47,6 +49,8 @@ export default function PieceEditor({
   const [data, setData] = useState<EditorData | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [links, setLinks] = useState<Record<number, string>>({});
+  const techniques = data?.techniques;
+  const specs = useMemo(() => (techniques ? withOptions(PIECE_FIELDS, 'technique_focus', techniques) : PIECE_FIELDS), [techniques]);
 
   useEffect(() => {
     let active = true;
@@ -92,7 +96,7 @@ export default function PieceEditor({
   return (
     <RecordForm
       title={`Edit “${piece.title}”`}
-      specs={PIECE_FIELDS}
+      specs={specs}
       initial={data.fields}
       onSave={save}
       onCancel={onClose}

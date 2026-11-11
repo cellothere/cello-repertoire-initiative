@@ -1,5 +1,8 @@
 // /utils/techniqueKeywords.ts
-// Technique-focus chips offered as filters. The filter only shows chips that some piece actually uses.
+// The built-in technique-focus chips. The live list is stored in the database (settings collection, _id
+// 'technique_keywords'; see lib/technique-keywords.ts) and new chips are added from the admin piece editor, so this
+// file is only the starting list and the fallback when the database can't be read. The filter only shows chips that
+// some piece actually uses.
 
 const techniqueKeywords: string[] = [
     // Left hand
