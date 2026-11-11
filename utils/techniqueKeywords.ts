@@ -61,6 +61,7 @@ const techniqueKeywords: string[] = [
     'Rubato',
     'Rhythm',
     'Dotted Rhythms',
+    'Tied Notes',
     'Syncopation',
     'Swing',
     'Triplets',
