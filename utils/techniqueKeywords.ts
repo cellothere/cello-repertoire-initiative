@@ -73,7 +73,8 @@ const techniqueKeywords: string[] = [
     'Collaboration with Piano',
     'Extended Techniques',
     'Sight-Reading',
-    'Theory'
+    'Theory',
+    'Contemporary Notation'
   ];
   
   export default techniqueKeywords;
