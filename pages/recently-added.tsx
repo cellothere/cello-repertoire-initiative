@@ -89,12 +89,15 @@ const RecentlyAdded: NextPage = () => {
   const { data, error, loading, retry } = useJson<PieceSummary[]>('/api/recentlyAdded');
   const pieces = data ?? NO_PIECES;
   const { data: allResources } = useJson<Resource[]>('/api/resources');
-  const newResources = useMemo(() => {
-    const since = Date.now() - RECENT_DAYS * 24 * 60 * 60 * 1000;
-    return (allResources ?? [])
-      .filter((resource) => resource.added_at && new Date(resource.added_at).getTime() >= since)
-      .sort((a, b) => b.added_at!.localeCompare(a.added_at!));
-  }, [allResources]);
+  // Read the clock once when the page mounts, so re-renders don't shift the cutoff.
+  const [since] = useState(() => Date.now() - RECENT_DAYS * 24 * 60 * 60 * 1000);
+  const newResources = useMemo(
+    () =>
+      (allResources ?? [])
+        .filter((resource) => resource.added_at && new Date(resource.added_at).getTime() >= since)
+        .sort((a, b) => b.added_at!.localeCompare(a.added_at!)),
+    [allResources, since]
+  );
   const [band, setBand] = useState<string | null>(null);
   // How many cards each day shows; days not listed show FIRST_SHOWN.
   const [shown, setShown] = useState<Record<string, number>>({});
