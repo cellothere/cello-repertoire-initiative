@@ -72,6 +72,7 @@ const techniqueKeywords: string[] = [
     'Compound Meter',
     'Asymmetric Meter',
     'Meter Changes',
+    'Key Changes',
     'Tempo Changes',
     'Ensemble Skills',
     'Collaboration with Piano',
