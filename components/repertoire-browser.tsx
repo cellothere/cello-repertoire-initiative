@@ -3,7 +3,7 @@ import { FaFilter, FaSearch, FaTimes } from 'react-icons/fa';
 import { IoClose } from 'react-icons/io5';
 import Seo from './seo';
 import PageHeader from './page-header';
-import FilterPanel, { type FilterOptions, type ListFilterKey } from './filter-panel';
+import FilterPanel, { FREE_OPTION, type FilterOptions, type ListFilterKey } from './filter-panel';
 import PieceResults, { CardSkeletonGrid, SortSelect, ViewToggle } from './piece-results';
 import { EmptyState, ErrorState } from './state-messages';
 import { useJson } from '@/lib/use-json';
@@ -15,9 +15,12 @@ import { INSTRUMENT_LABELS, type Instrument } from '@/lib/instruments';
 import type { PieceSummary } from '@/lib/types';
 import DEFAULT_TECHNIQUE_KEYWORDS from '@/utils/techniqueKeywords';
 import {
+  DURATION_BUCKETS,
   LEVEL_ORDER,
   SORT_OPTIONS,
   baseLevel,
+  convertDurationToSeconds,
+  durationBucket,
   formatComposerName,
   instrumentationCategories,
   instrumentationOptions,
@@ -57,6 +60,9 @@ const NO_PIECES: PieceSummary[] = [];
 const SHOW_PIECE_COUNT_FROM = 1000;
 const collator = new Intl.Collator('en', { sensitivity: 'base' });
 const toOptions = (values: string[]) => values.map((value) => ({ value, label: value }));
+const RECORDING_OPTION = { value: 'recording', label: 'Has a recording' };
+const FREE_LABEL = 'Free to download';
+const durationLabel = (value: string) => DURATION_BUCKETS.find((bucket) => bucket.value === value)?.label ?? value;
 
 function FilterDrawer({
   open,
@@ -173,6 +179,7 @@ export default function RepertoireBrowser({
         text: normalizeForSearch(`${piece.title} ${piece.composers.map((c) => c.full_name).join(' ')} ${piece.arrangers.join(' ')}`),
         level: baseLevel(piece.level),
         year: parseYear(piece.composition_year),
+        duration: durationBucket(convertDurationToSeconds(piece.duration)),
         categories: instrumentationCategories(piece.instrumentation, instrument),
         focus: piece.technique_focus.map(normalizeForSearch),
         databases: new Set(databases.filter((d) => d.matches(piece)).map((d) => d.slug)),
@@ -197,10 +204,24 @@ export default function RepertoireBrowser({
       country: state.country,
       focus: state.focus,
       database: state.database,
+      duration: state.duration,
+      show: state.show,
       from: state.from,
       to: state.to,
     }),
-    [state.q, state.composer, state.level, state.instrumentation, state.country, state.focus, state.database, state.from, state.to]
+    [
+      state.q,
+      state.composer,
+      state.level,
+      state.instrumentation,
+      state.country,
+      state.focus,
+      state.database,
+      state.duration,
+      state.show,
+      state.from,
+      state.to,
+    ]
   );
   // Keep typing and slider dragging responsive; results catch up a frame later.
   const deferredFilters = useDeferredValue(filters);
@@ -216,6 +237,8 @@ export default function RepertoireBrowser({
     const levels = new Set(f.level);
     const countries = new Set(f.country);
     const focus = f.focus.map(normalizeForSearch);
+    const durations = new Set(f.duration);
+    const needsRecording = f.show.includes(RECORDING_OPTION.value);
     const yearActive = isYearFilterActive(f);
     const all: Record<FacetKey, (entry: Entry) => boolean> = {
       q: (entry) => tokens.every((token) => matchesSearchWord(entry.text, token)),
@@ -227,6 +250,8 @@ export default function RepertoireBrowser({
         f.instrumentation.some((option) => matchesInstrumentationOption(entry.categories, option)),
       focus: (entry) => focus.length === 0 || focus.some((item) => entry.focus.includes(item)),
       database: (entry) => f.database.every((slug) => entry.databases.has(slug as DatabaseSlug)),
+      duration: (entry) => durations.size === 0 || (entry.duration !== null && durations.has(entry.duration)),
+      show: (entry) => !needsRecording || entry.piece.has_recording,
       year: (entry) => !yearActive || (entry.year !== null && entry.year >= f.from && entry.year <= f.to),
     };
     return Object.entries(all) as [FacetKey, (entry: Entry) => boolean][];
@@ -264,9 +289,18 @@ export default function RepertoireBrowser({
 
   // Each list offers only what would find pieces given the other filters, so ticking Women Composers leaves only
   // women in the composer list. Ticked options always stay listed so they can be unticked.
-  const { level, instrumentation, composer, country: nationality, focus, database: ticked } = state;
+  const { level, instrumentation, composer, country: nationality, focus, database: ticked, duration, show } = state;
   const options = useMemo<FilterOptions>(() => {
-    const selected: Record<ListFilterKey, string[]> = { level, instrumentation, composer, country: nationality, focus, database: ticked };
+    const selected: Record<ListFilterKey, string[]> = {
+      level,
+      instrumentation,
+      composer,
+      country: nationality,
+      focus,
+      database: ticked,
+      duration,
+      show,
+    };
     const offered = (key: ListFilterKey, values: Iterable<string>) => {
       const set = new Set(values);
       selected[key].forEach((value) => set.add(value));
@@ -280,12 +314,21 @@ export default function RepertoireBrowser({
     const databasesInUse = offered('database', pool('database').flatMap((entry) => Array.from(entry.databases)));
     const composers = offered('composer', pool('composer').flatMap((entry) => entry.piece.composers.map((c) => c.full_name)));
     const countries = offered('country', pool('country').flatMap((entry) => entry.piece.nationality));
+    const durations = offered('duration', pool('duration').flatMap((entry) => (entry.duration ? [entry.duration] : [])));
+    const recordingOffered = show.includes(RECORDING_OPTION.value) || pool('show').some((entry) => entry.piece.has_recording);
+    // Free to download is offered here rather than among the databases, except on the Free Music page itself.
+    const freeOffered = database !== FREE_OPTION && databasesInUse.has(FREE_OPTION);
 
     return {
+      show: [
+        ...(recordingOffered ? [RECORDING_OPTION] : []),
+        ...(freeOffered ? [{ value: FREE_OPTION, label: FREE_LABEL }] : []),
+      ],
       // The level list is fixed, so it stays whole until the catalogue has loaded.
       level: fixedLevel ? [] : toOptions(indexed.length ? LEVEL_ORDER.filter((value) => levels.has(value)) : LEVEL_ORDER),
+      duration: indexed.length ? DURATION_BUCKETS.filter((bucket) => durations.has(bucket.value)) : [],
       database: databases
-        .filter((d) => d.slug !== database && databasesInUse.has(d.slug))
+        .filter((d) => d.slug !== database && d.slug !== FREE_OPTION && databasesInUse.has(d.slug))
         .map((d) => ({ value: d.slug, label: d.label })),
       instrumentation: toOptions(
         instrumentationOptions(instrument).filter(
@@ -308,7 +351,24 @@ export default function RepertoireBrowser({
           .sort(collator.compare)
       ),
     };
-  }, [indexed, matchingExcept, level, instrumentation, composer, nationality, focus, ticked, instrument, databases, database, composerLabels, fixedLevel, techniqueKeywords]);
+  }, [
+    indexed,
+    matchingExcept,
+    level,
+    instrumentation,
+    composer,
+    nationality,
+    focus,
+    ticked,
+    duration,
+    show,
+    instrument,
+    databases,
+    database,
+    composerLabels,
+    fixedLevel,
+    techniqueKeywords,
+  ]);
 
   const toggle = useCallback(
     (key: ListFilterKey, value: string) => {
@@ -323,10 +383,20 @@ export default function RepertoireBrowser({
   const closeDrawer = useCallback(() => setDrawerOpen(false), []);
 
   const chips = [
+    ...state.show.map((value) => ({
+      key: `show:${value}`,
+      label: value === RECORDING_OPTION.value ? RECORDING_OPTION.label : value,
+      remove: () => toggle('show', value),
+    })),
     ...state.level.map((value) => ({ key: `level:${value}`, label: value, remove: () => toggle('level', value) })),
+    ...state.duration.map((value) => ({
+      key: `duration:${value}`,
+      label: durationLabel(value),
+      remove: () => toggle('duration', value),
+    })),
     ...state.database.map((value) => ({
       key: `database:${value}`,
-      label: databases.find((d) => d.slug === value)?.label ?? value,
+      label: value === FREE_OPTION ? FREE_LABEL : (databases.find((d) => d.slug === value)?.label ?? value),
       remove: () => toggle('database', value),
     })),
     ...state.instrumentation.map((value) => ({
@@ -382,7 +452,7 @@ export default function RepertoireBrowser({
           <Seo
             title={`${label} Music`}
             path={path}
-            description={`Search and filter ${label.toLowerCase()} repertoire by level, featured database, instrumentation, composer, nationality, technical focus and composition year.`}
+            description={`Search and filter ${label.toLowerCase()} repertoire by level, length, recordings, free downloads, featured database, instrumentation, composer, nationality, technical focus and composition year.`}
           />
           <PageHeader
             size="compact"

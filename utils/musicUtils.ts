@@ -125,6 +125,19 @@ export const convertDurationToSeconds = (duration: string): number | null => {
   return total > 0 ? total : null;
 };
 
+/** The Length filter's ranges, in seconds: from `min` up to but not including `max`. */
+export const DURATION_BUCKETS: { value: string; label: string; min: number; max: number }[] = [
+  { value: 'under-3', label: 'Under 3 minutes', min: 0, max: 180 },
+  { value: '3-6', label: '3 to 6 minutes', min: 180, max: 360 },
+  { value: '6-10', label: '6 to 10 minutes', min: 360, max: 600 },
+  { value: '10-20', label: '10 to 20 minutes', min: 600, max: 1200 },
+  { value: 'over-20', label: 'Over 20 minutes', min: 1200, max: Infinity },
+];
+
+/** The Length filter range a duration falls in, or null when the duration is unknown. */
+export const durationBucket = (seconds: number | null): string | null =>
+  seconds === null ? null : (DURATION_BUCKETS.find((b) => seconds >= b.min && seconds < b.max)?.value ?? null);
+
 /** Formats "HH:MM:SS" as e.g. 5'30'' or 1hr 5'. Returns null when unknown. */
 export const formatDuration = (duration: string | undefined): string | null => {
   if (!duration) return null;

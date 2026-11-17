@@ -7,7 +7,10 @@ import LevelModal from './level-modal';
 import type { BrowseFilters } from '@/lib/browse-state';
 import { CURRENT_YEAR, MIN_YEAR, fuzzyMatches } from '@/utils/musicUtils';
 
-export type ListFilterKey = 'level' | 'database' | 'instrumentation' | 'composer' | 'country' | 'focus';
+export type ListFilterKey = 'level' | 'database' | 'instrumentation' | 'composer' | 'country' | 'focus' | 'duration' | 'show';
+
+/** The Show only option that stands for the Free Music database. */
+export const FREE_OPTION = 'free';
 
 export interface FilterOption {
   value: string;
@@ -15,7 +18,10 @@ export interface FilterOption {
 }
 
 export interface FilterOptions {
+  /** Has a recording, and Free to download (FREE_OPTION, which toggles the Free Music database). */
+  show: FilterOption[];
   level: FilterOption[];
+  duration: FilterOption[];
   database: FilterOption[];
   instrumentation: FilterOption[];
   composer: FilterOption[];
@@ -259,8 +265,22 @@ export default function FilterPanel({ idPrefix, filters, options, onToggle, onYe
   const [rubricLevel, setRubricLevel] = useState<string | null>(null);
   const yearActive = filters.from > MIN_YEAR || filters.to < CURRENT_YEAR;
 
+  // Free to download is the Free Music database, so its tick lives in `database`.
+  const showSelected = [...filters.show, ...(filters.database.includes(FREE_OPTION) ? [FREE_OPTION] : [])];
+
   return (
     <div>
+      {options.show.length > 0 && (
+        <Section id={`${idPrefix}-show`} title="Show only" count={showSelected.length} defaultOpen>
+          <CheckboxList
+            idPrefix={`${idPrefix}-show`}
+            options={options.show}
+            selected={showSelected}
+            onToggle={(value) => onToggle(value === FREE_OPTION ? 'database' : 'show', value)}
+          />
+        </Section>
+      )}
+
       {/* Level pages browse a single level, so they pass no level options. */}
       {options.level.length > 0 && (
         <Section id={`${idPrefix}-level`} title="Level" count={filters.level.length} defaultOpen>
@@ -281,6 +301,23 @@ export default function FilterPanel({ idPrefix, filters, options, onToggle, onYe
               </button>
             )}
           />
+        </Section>
+      )}
+
+      {options.duration.length > 0 && (
+        <Section
+          id={`${idPrefix}-duration`}
+          title="Length"
+          count={filters.duration.length}
+          defaultOpen={filters.duration.length > 0}
+        >
+          <CheckboxList
+            idPrefix={`${idPrefix}-duration`}
+            options={options.duration}
+            selected={filters.duration}
+            onToggle={(value) => onToggle('duration', value)}
+          />
+          <p className="mt-2 text-xs text-gray-500">Pieces without a known length are hidden while this filter is set.</p>
         </Section>
       )}
 
@@ -348,7 +385,13 @@ export default function FilterPanel({ idPrefix, filters, options, onToggle, onYe
       </Section>
 
       {options.database.length > 0 && (
-        <Section id={`${idPrefix}-database`} title="Featured databases" count={filters.database.length} defaultOpen>
+        <Section
+          id={`${idPrefix}-database`}
+          title="Featured databases"
+          // Free to download is ticked under Show only, so it isn't counted here.
+          count={filters.database.filter((slug) => slug !== FREE_OPTION).length}
+          defaultOpen
+        >
           <CheckboxList
             idPrefix={`${idPrefix}-database`}
             options={options.database}

@@ -2,7 +2,17 @@ import type { ParsedUrlQuery } from 'querystring';
 import type { Instrument } from './instruments';
 import type { SortKey, ViewMode } from './types';
 import { DATABASE_SLUGS } from './featured-databases';
-import { CURRENT_YEAR, LEVEL_ORDER, MIN_YEAR, isSortKey, normalizeInstrumentationOption } from '@/utils/musicUtils';
+import {
+  CURRENT_YEAR,
+  DURATION_BUCKETS,
+  LEVEL_ORDER,
+  MIN_YEAR,
+  isSortKey,
+  normalizeInstrumentationOption,
+} from '@/utils/musicUtils';
+
+/** The "Show only" options kept in `show`; Free to download is the Free Music database, kept in `database`. */
+export const SHOW_ONLY_VALUES = ['recording'] as const;
 
 export interface BrowseFilters {
   q: string;
@@ -13,6 +23,10 @@ export interface BrowseFilters {
   focus: string[];
   /** Featured database slugs; a piece must be in all of them. */
   database: string[];
+  /** Length ranges (DURATION_BUCKETS values); a piece must fall in one of them. */
+  duration: string[];
+  /** "Show only" requirements (SHOW_ONLY_VALUES), e.g. "recording". */
+  show: string[];
   from: number;
   to: number;
 }
@@ -33,6 +47,8 @@ export const DEFAULT_BROWSE_STATE: BrowseState = {
   country: [],
   focus: [],
   database: [],
+  duration: [],
+  show: [],
   from: MIN_YEAR,
   to: CURRENT_YEAR,
   near: '',
@@ -49,6 +65,8 @@ export const EMPTY_FILTERS: BrowseFilters = {
   country: [],
   focus: [],
   database: [],
+  duration: [],
+  show: [],
   from: MIN_YEAR,
   to: CURRENT_YEAR,
 };
@@ -103,6 +121,8 @@ export function parseBrowseQuery(query: ParsedUrlQuery, instrument: Instrument):
     country: list(query.country, query.selectedCountries),
     focus: list(query.focus, query.selectedTechnicalFocus),
     database: list(query.database).filter((slug) => (DATABASE_SLUGS as string[]).includes(slug)),
+    duration: list(query.duration).filter((value) => DURATION_BUCKETS.some((bucket) => bucket.value === value)),
+    show: list(query.show).filter((value) => (SHOW_ONLY_VALUES as readonly string[]).includes(value)),
     from,
     to,
     near: near !== 'Various' && LEVEL_ORDER.includes(near) ? near : '',
@@ -122,6 +142,8 @@ export function browseStateToQuery(state: BrowseState): Record<string, string | 
   if (state.country.length) query.country = state.country;
   if (state.focus.length) query.focus = state.focus;
   if (state.database.length) query.database = state.database;
+  if (state.duration.length) query.duration = state.duration;
+  if (state.show.length) query.show = state.show;
   if (state.from !== MIN_YEAR) query.from = String(state.from);
   if (state.to !== CURRENT_YEAR) query.to = String(state.to);
   if (state.near) query.near = state.near;

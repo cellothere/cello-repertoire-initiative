@@ -59,6 +59,7 @@ const summaryProjection = {
   free_download: 1,
   first_published: 1,
   cover_image: 1,
+  audio_link: 1,
   composerIds: 1,
   'composerDetails.id': 1,
   'composerDetails.composer_full_name': 1,
@@ -120,6 +121,7 @@ function toSummary(doc: Document, instrument: Instrument): PieceSummary {
     // "Traditional" (id 0) has no death year and doesn't hold a copyright.
     composer_died: composers.filter((c) => Number(c.id) !== 0).map((c) => deathYear(c.died)),
     cover_image: str(doc.cover_image),
+    has_recording: strArray(doc.audio_link).length > 0,
   };
 }
 

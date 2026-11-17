@@ -41,6 +41,8 @@ export interface PieceSummary {
   composer_died: (number | null)[];
   /** Site path of the edition's cover (e.g. "/covers/charvey/CHP113.jpg"), or '' to use the level illustration. */
   cover_image: string;
+  /** The piece has at least one recording link, for the "Has a recording" filter. */
+  has_recording: boolean;
   /** ISO date derived from the document's ObjectId; only set by the recently-added endpoint. */
   added_at?: string;
 }
