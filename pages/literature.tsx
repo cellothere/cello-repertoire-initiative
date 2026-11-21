@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import { NextPage } from 'next';
+import { useRouter } from 'next/router';
 import { FaBook, FaSearch } from 'react-icons/fa';
 import { FiExternalLink } from 'react-icons/fi';
 import Seo from '@/components/seo';
@@ -84,7 +85,12 @@ function BookCard({ book }: { book: LiteratureBook }) {
 
 const Literature: NextPage = () => {
   const { data, error, loading, retry, adminView, editingId, setEditingId, saved } = useEditableList<LiteratureBook>('/api/literature');
-  const [search, setSearch] = useState('');
+  // A link (or redirect) can open the page with a search filled in: /literature?q=string%20game.
+  // The URL's search applies until the visitor types their own.
+  const router = useRouter();
+  const initialQuery = router.isReady && typeof router.query.q === 'string' ? router.query.q : '';
+  const [typed, setSearch] = useState<string | null>(null);
+  const search = typed ?? initialQuery;
   const [topic, setTopic] = useState<string | null>(null);
 
   // Only offer topics that have books, in the fixed order.

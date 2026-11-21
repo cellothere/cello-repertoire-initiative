@@ -14,6 +14,10 @@ const nextConfig = {
       // and the page understands the old `?query=` parameter.
       { source: '/search-results', destination: '/cello-music', permanent: true },
       { source: '/coming-soon', destination: '/', permanent: false },
+      // Playing the String Game (a teaching book, no music) moved from the catalogue to Literature on 2026-11-21.
+      // Its piece page was a top Google landing page, so send visitors to the book.
+      { source: '/cello-piece/31', destination: '/literature?q=string%20game', permanent: true },
+      { source: '/composers/phyllis-young', destination: '/literature?q=phyllis%20young', permanent: true },
     ];
   },
 
