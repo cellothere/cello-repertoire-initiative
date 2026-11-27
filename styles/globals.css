@@ -192,6 +192,23 @@
   to { opacity: 1; }
 }
 
+/* ---------- Literature header: shelves of books drifting past ----------
+   Each shelf holds two copies of its spines and moves by one copy; components/book-shelf.tsx sets each shelf's
+   duration from its width, so the books move at a slow, steady pace. The lower shelf runs the other way. */
+.book-shelf-left {
+  animation: drift-left 240s linear infinite;
+  will-change: transform;
+}
+
+.book-shelf-right {
+  animation: drift-right 240s linear infinite;
+  will-change: transform;
+}
+
+.book-shelf-in {
+  animation: fade-in 1.2s ease-out both;
+}
+
 /* ---------- Resource Catalog header: the home page's colour pools, at night ----------
    The same teal and purple pools as the home hero drift past each other, but dimmed and slowed to sit on a dark
    page header. They reuse the hero's paths; with reduced motion they rest in place. */

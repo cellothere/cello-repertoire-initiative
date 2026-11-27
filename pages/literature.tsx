@@ -4,6 +4,7 @@ import { useRouter } from 'next/router';
 import { FaBook, FaSearch } from 'react-icons/fa';
 import { FiExternalLink } from 'react-icons/fi';
 import Seo from '@/components/seo';
+import BookShelf from '@/components/book-shelf';
 import CitedText from '@/components/cited-text';
 import PageHeader from '@/components/page-header';
 import { EmptyState, ErrorState } from '@/components/state-messages';
@@ -92,6 +93,8 @@ const Literature: NextPage = () => {
   const [typed, setSearch] = useState<string | null>(null);
   const search = typed ?? initialQuery;
   const [topic, setTopic] = useState<string | null>(null);
+  // The header's book spines; memoized so typing in the search box doesn't rebuild the shelves.
+  const titles = useMemo(() => (data ?? []).map((book) => book.title), [data]);
 
   // Only offer topics that have books, in the fixed order.
   const topics = useMemo(
@@ -123,7 +126,12 @@ const Literature: NextPage = () => {
       <PageHeader
         title="Literature"
         subtitle="Books on playing, teaching and learning the cello and its repertoire."
-        background={<div className="header-glow" aria-hidden="true" />}
+        background={
+          <>
+            <div className="header-glow" aria-hidden="true" />
+            <BookShelf titles={titles} />
+          </>
+        }
       />
 
       <div className="container mx-auto px-4 py-5 md:py-12">
